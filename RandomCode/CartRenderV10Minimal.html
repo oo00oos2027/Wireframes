@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minimal Fulfillment Cart</title>
+  <style>
+    :root {
+      --bg: #f5f5f2;
+      --panel: #ffffff;
+      --line: #e7e5df;
+      --text: #171717;
+      --muted: #737373;
+      --blue: #1d4ed8;
+      --green: #4d7c0f;
+      --amber: #b45309;
+      --gray: #a3a3a3;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    .page {
+      max-width: 1080px;
+      margin: 20px auto 32px;
+      padding: 0 16px;
+    }
+
+    .header {
+      margin-bottom: 14px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -0.03em;
+      font-weight: 700;
+    }
+
+    .header p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    .composer {
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    .composer-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 140px auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 10px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .btn {
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      padding: 0 12px;
+      font-size: 13px;
+      font-weight: 700;
+      background: white;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .btn-primary {
+      background: var(--text);
+      color: white;
+      border-color: var(--text);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.95fr 0.85fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-head h2,
+    .summary h2 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+      font-weight: 700;
+    }
+
+    .muted { color: var(--muted); }
+
+    .line-item {
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .line-item:last-child { border-bottom: 0; }
+
+    .item-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 110px 100px;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .title {
+      margin: 0 0 2px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .mini-label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .price {
+      text-align: right;
+    }
+
+    .price strong {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .fulfillment {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+    }
+
+    .fulfillment-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .summary-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .summary-row span small {
+      color: var(--muted);
+      font-weight: 600;
+      margin-left: 4px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .mini-btn {
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 7px;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .bar {
+      height: 6px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #ece9e2;
+      display: flex;
+    }
+
+    .seg-standard { background: #6b8f3a; }
+    .seg-expedited { background: #c97a2b; }
+    .seg-backorder { background: #b0b0b0; }
+
+    .caps {
+      margin-top: 6px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .editor {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+    }
+
+    .editor-grid {
+      display: grid;
+      grid-template-columns: 1fr 220px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .metric {
+      padding: 8px 0;
+    }
+
+    .metric h4 {
+      margin: 0 0 4px;
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+    }
+
+    .metric strong {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .slider input[type="range"] {
+      width: 100%;
+    }
+
+    .fields {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .field-card {
+      padding: 0;
+      background: white;
+    }
+
+    .field-card h4 {
+      margin: 0 0 6px;
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+    }
+
+    .readonly {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f7f6f2;
+      font-weight: 700;
+    }
+
+    .summary {
+      padding: 14px;
+      position: sticky;
+      top: 18px;
+    }
+
+    .summary-block {
+      padding-top: 4px;
+      margin-top: 8px;
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .summary-line:last-child { margin-bottom: 0; }
+    .summary-line strong { font-weight: 700; }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .toolbar .btn { flex: 1; }
+
+    @media (max-width: 1020px) {
+      .layout { grid-template-columns: 1fr; }
+      .summary { position: static; }
+    }
+
+    @media (max-width: 860px) {
+      .composer-grid,
+      .item-grid,
+      .editor-grid,
+      .fields { grid-template-columns: 1fr; }
+      .price { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <h1>Minimal Fulfillment Cart</h1>
+      <p>Compact by default. Edit allocation only when needed.</p>
+    </div>
+
+    <section class="card composer">
+      <div class="composer-grid">
+        <div>
+          <label for="partNumber">Part number</label>
+          <input id="partNumber" type="text" placeholder="AX-100, BR-200, MX-900, PL-310" />
+        </div>
+        <div>
+          <label for="orderQty">Quantity</label>
+          <input id="orderQty" type="number" min="1" value="1200" />
+        </div>
+        <button class="btn btn-primary" id="addBtn">Add to cart</button>
+      </div>
+    </section>
+
+    <div class="layout">
+      <section class="card">
+        <div class="section-head">
+          <h2>Cart</h2>
+          <div class="muted"><span id="itemCount">0</span> items</div>
+        </div>
+        <div id="cartItems"></div>
+      </section>
+
+      <aside class="card summary">
+        <h2>Summary</h2>
+        <div class="summary-block">
+          <div class="summary-line"><span>Requested</span><strong id="sumRequested">0</strong></div>
+          <div class="summary-line"><span>Standard</span><strong id="sumStandard">0</strong></div>
+          <div class="summary-line"><span>Expedited</span><strong id="sumExpedited">0</strong></div>
+          <div class="summary-line"><span>Backorder</span><strong id="sumBackorder">0</strong></div>
+          <div class="summary-line"><span>Total</span><strong id="sumAmount">$0.00</strong></div>
+        </div>
+        <div class="toolbar">
+          <button class="btn">Save</button>
+          <button class="btn btn-primary">Checkout</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const catalog = {
+      'AX-100': { name: 'Stainless Steel Fasteners', price: 2.0, standardMax: 800, expeditedMax: 300 },
+      'BR-200': { name: 'Brass Check Valve', price: 5.0, standardMax: 400, expeditedMax: 150 },
+      'MX-900': { name: 'Hydraulic Pump Assembly', price: 25.0, standardMax: 200, expeditedMax: 50 },
+      'PL-310': { name: 'Aluminum Sheet Plate', price: 7.5, standardMax: 100, expeditedMax: 100 }
+    };
+
+    let cart = [
+      { id: crypto.randomUUID(), partNumber: 'AX-100', quantity: 1200, editing: false, manualExpedited: null },
+      { id: crypto.randomUUID(), partNumber: 'BR-200', quantity: 600, editing: false, manualExpedited: null }
+    ];
+
+    const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function getProduct(partNumber) {
+      return catalog[partNumber.toUpperCase()];
+    }
+
+    function computeRecommendedExpedited(qty, product) {
+      return Math.min(product.expeditedMax, Math.max(0, qty - Math.min(qty, product.standardMax)));
+    }
+
+    function computePlan(item) {
+      const product = getProduct(item.partNumber);
+      if (!product) return null;
+
+      const qty = Math.max(0, Number(item.quantity) || 0);
+      const fulfillable = Math.min(qty, product.standardMax + product.expeditedMax);
+      let expedited = computeRecommendedExpedited(qty, product);
+
+      if (item.editing && item.manualExpedited !== null) {
+        expedited = clamp(item.manualExpedited, 0, Math.min(product.expeditedMax, fulfillable));
+      }
+
+      const standard = clamp(fulfillable - expedited, 0, Math.min(product.standardMax, qty));
+      const backorder = Math.max(0, qty - standard - expedited);
+
+      return {
+        product,
+        qty,
+        standard,
+        expedited,
+        backorder,
+        fulfillable,
+        amount: qty * product.price
+      };
+    }
+
+    function renderCart() {
+      const host = document.getElementById('cartItems');
+      host.innerHTML = '';
+
+      cart.forEach(item => {
+        const plan = computePlan(item);
+        const standardPct = plan.qty ? (plan.standard / plan.qty) * 100 : 0;
+        const expeditedPct = plan.qty ? (plan.expedited / plan.qty) * 100 : 0;
+        const backorderPct = plan.qty ? (plan.backorder / plan.qty) * 100 : 0;
+
+        const row = document.createElement('article');
+        row.className = 'line-item';
+        row.innerHTML = `
+          <div class="item-grid">
+            <div>
+              <h3 class="title">${plan.product.name}</h3>
+              <div class="meta">Part ${item.partNumber} · Std max ${plan.product.standardMax} · Exp max ${plan.product.expeditedMax}</div>
+            </div>
+            <div>
+              <span class="mini-label">Qty</span>
+              <input type="number" min="0" value="${plan.qty}" data-action="qty" data-id="${item.id}" />
+            </div>
+            <div class="price">
+              <span class="mini-label">Total</span>
+              <strong>${money.format(plan.amount)}</strong>
+            </div>
+          </div>
+
+          <div class="fulfillment">
+            <div class="fulfillment-top">
+              <div class="summary-row">
+                <span>${plan.standard} <small>Std</small></span>
+                <span>${plan.expedited} <small>Exp</small></span>
+                <span>${plan.backorder} <small>BO</small></span>
+              </div>
+              <div class="actions">
+                <button class="mini-btn" data-action="toggle-edit" data-id="${item.id}">${item.editing ? 'Done' : 'Edit allocation'}</button>
+                <button class="mini-btn" data-action="recommended" data-id="${item.id}">Recommended</button>
+              </div>
+            </div>
+
+            <div class="bar">
+              <div class="seg-standard" style="width:${standardPct}%"></div>
+              <div class="seg-expedited" style="width:${expeditedPct}%"></div>
+              <div class="seg-backorder" style="width:${backorderPct}%"></div>
+            </div>
+
+            <div class="caps">
+              <span>Std max ${plan.product.standardMax}</span>
+              <span>Exp max ${plan.product.expeditedMax}</span>
+            </div>
+
+            ${item.editing ? `
+              <div class="editor">
+                <div class="editor-grid">
+                  <div class="metric">
+                    <h4>Standard</h4>
+                    <strong>${plan.standard}</strong>
+                  </div>
+                  <div class="slider">
+                    <input type="range" min="0" max="${Math.min(plan.product.expeditedMax, plan.fulfillable)}" value="${plan.expedited}" data-action="slider-expedited" data-id="${item.id}" />
+                  </div>
+                  <div class="metric">
+                    <h4>Expedited</h4>
+                    <strong>${plan.expedited}</strong>
+                  </div>
+                </div>
+
+                <div class="fields">
+                  <div class="field-card">
+                    <h4>Standard</h4>
+                    <input type="number" min="0" max="${Math.min(plan.qty, plan.product.standardMax)}" value="${plan.standard}" data-action="standard" data-id="${item.id}" />
+                  </div>
+                  <div class="field-card">
+                    <h4>Expedited</h4>
+                    <input type="number" min="0" max="${Math.min(plan.product.expeditedMax, plan.fulfillable)}" value="${plan.expedited}" data-action="expedited" data-id="${item.id}" />
+                  </div>
+                  <div class="field-card">
+                    <h4>Backorder</h4>
+                    <div class="readonly">${plan.backorder}</div>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+        host.appendChild(row);
+      });
+
+      document.getElementById('itemCount').textContent = cart.length;
+      updateSummary();
+    }
+
+    function updateSummary() {
+      let requested = 0, standard = 0, expedited = 0, backorder = 0, amount = 0;
+      cart.forEach(item => {
+        const plan = computePlan(item);
+        requested += plan.qty;
+        standard += plan.standard;
+        expedited += plan.expedited;
+        backorder += plan.backorder;
+        amount += plan.amount;
+      });
+      document.getElementById('sumRequested').textContent = requested;
+      document.getElementById('sumStandard').textContent = standard;
+      document.getElementById('sumExpedited').textContent = expedited;
+      document.getElementById('sumBackorder').textContent = backorder;
+      document.getElementById('sumAmount').textContent = money.format(amount);
+    }
+
+    function addItem() {
+      const pn = document.getElementById('partNumber').value.trim().toUpperCase();
+      const qty = Math.max(1, Number(document.getElementById('orderQty').value) || 1);
+      const product = getProduct(pn);
+      if (!product) {
+        alert('Unknown part number. Try AX-100, BR-200, MX-900, or PL-310.');
+        return;
+      }
+      cart.unshift({ id: crypto.randomUUID(), partNumber: pn, quantity: qty, editing: false, manualExpedited: null });
+      document.getElementById('partNumber').value = '';
+      document.getElementById('orderQty').value = 100;
+      renderCart();
+    }
+
+    document.getElementById('addBtn').addEventListener('click', addItem);
+    document.getElementById('partNumber').addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+    document.getElementById('orderQty').addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+
+    document.getElementById('cartItems').addEventListener('click', (e) => {
+      const target = e.target.closest('[data-action]');
+      if (!target) return;
+      const item = cart.find(x => x.id === target.dataset.id);
+      if (!item) return;
+
+      if (target.dataset.action === 'toggle-edit') {
+        item.editing = !item.editing;
+        item.manualExpedited = computePlan(item).expedited;
+      }
+      if (target.dataset.action === 'recommended') {
+        item.editing = false;
+        item.manualExpedited = null;
+      }
+      renderCart();
+    });
+
+    document.getElementById('cartItems').addEventListener('input', (e) => {
+      const action = e.target.dataset.action;
+      const id = e.target.dataset.id;
+      if (!action || !id) return;
+      const item = cart.find(x => x.id === id);
+      if (!item) return;
+
+      const product = getProduct(item.partNumber);
+      const value = Math.max(0, Number(e.target.value) || 0);
+      const fulfillable = Math.min(item.quantity, product.standardMax + product.expeditedMax);
+
+      if (action === 'qty') {
+        item.quantity = value;
+        if (item.manualExpedited !== null) {
+          item.manualExpedited = clamp(item.manualExpedited, 0, Math.min(product.expeditedMax, Math.min(value, product.standardMax + product.expeditedMax)));
+        }
+      }
+      if (action === 'slider-expedited' || action === 'expedited') {
+        item.editing = true;
+        item.manualExpedited = clamp(value, 0, Math.min(product.expeditedMax, fulfillable));
+      }
+      if (action === 'standard') {
+        item.editing = true;
+        const standard = clamp(value, 0, Math.min(item.quantity, product.standardMax));
+        item.manualExpedited = clamp(fulfillable - standard, 0, Math.min(product.expeditedMax, fulfillable));
+      }
+      renderCart();
+    });
+
+    renderCart();
+  </script>
+</body>
+</html>

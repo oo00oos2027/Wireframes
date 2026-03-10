@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>B2B Cart Fulfillment Mockup</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --line: #d9e0ea;
+      --text: #1f2937;
+      --muted: #667085;
+      --blue: #1d4ed8;
+      --blue-soft: #e8f0ff;
+      --green: #18794e;
+      --green-soft: #eaf7f0;
+      --amber: #b45309;
+      --amber-soft: #fff6e8;
+      --gray: #475467;
+      --gray-soft: #f2f4f7;
+      --red: #b42318;
+      --shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .page {
+      max-width: 1280px;
+      margin: 32px auto;
+      padding: 0 20px 40px;
+    }
+
+    .header {
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+    }
+
+    .header p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 900px;
+      line-height: 1.45;
+    }
+
+    .composer {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .composer-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 160px 180px auto;
+      gap: 14px;
+      align-items: end;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 650;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .field input[type="text"],
+    .field input[type="number"] {
+      width: 100%;
+      height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0 14px;
+      font-size: 15px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .checkbox-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 46px;
+      padding: 0 4px 2px;
+      font-weight: 600;
+    }
+
+    .checkbox-wrap input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--blue);
+    }
+
+    .btn {
+      height: 46px;
+      border: 0;
+      border-radius: 12px;
+      padding: 0 18px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: white;
+      min-width: 132px;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--blue);
+      border: 1px solid var(--line);
+    }
+
+    .btn-tertiary {
+      background: transparent;
+      color: var(--blue);
+      border: 1px solid var(--line);
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .note-row {
+      margin-top: 14px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      background: var(--gray-soft);
+      color: var(--gray);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1.8fr 0.9fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .cart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .cart-header h2,
+    .summary h2 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+    }
+
+    .muted { color: var(--muted); }
+
+    .line-item {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .line-item:last-child { border-bottom: 0; }
+
+    .item-top {
+      display: grid;
+      grid-template-columns: 1.7fr 160px 140px;
+      gap: 18px;
+      align-items: start;
+      margin-bottom: 14px;
+    }
+
+    .item-title {
+      font-size: 18px;
+      font-weight: 750;
+      margin: 0 0 6px;
+    }
+
+    .item-meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .qty-box label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .qty-box input {
+      width: 100%;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .price-box {
+      text-align: right;
+    }
+
+    .price-box .label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .price-box .amount {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .availability-grid {
+      display: none;
+    }
+
+    .compact-fulfillment {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fbfcfe;
+      margin-bottom: 14px;
+    }
+
+    .compact-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .compact-label {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .compact-summary {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .compact-summary .dot {
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .mini-bar {
+      margin-top: 12px;
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #e7ecf3;
+      display: flex;
+    }
+
+    .allocation-editor {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .allocation-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      align-items: end;
+    }
+
+    .allocation-cell {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .allocation-cell h4 {
+      margin: 0 0 6px;
+      font-size: 14px;
+    }
+
+    .allocation-cell p {
+      margin: 0 0 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .allocation-static {
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 800;
+      background: var(--gray-soft);
+    }
+
+    .summary {
+      padding: 18px;
+      position: sticky;
+      top: 24px;
+    }
+      padding: 18px;
+      position: sticky;
+      top: 24px;
+    }
+
+    .summary h2 { margin-bottom: 16px; }
+
+    .summary-block {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #fbfcfe;
+    }
+
+    .summary-block h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .summary-line:last-child { margin-bottom: 0; }
+    .summary-line strong { font-weight: 800; }
+
+    .total {
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+      margin-top: 6px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .toolbar .btn { flex: 1; }
+
+    .error {
+      margin-top: 10px;
+      color: var(--red);
+      font-size: 13px;
+      font-weight: 700;
+      display: none;
+    }
+
+    @media (max-width: 1080px) {
+      .content { grid-template-columns: 1fr; }
+      .summary { position: static; }
+    }
+
+    @media (max-width: 900px) {
+      .composer-grid,
+      .item-top,
+      .allocation-grid,
+      .split-summary { grid-template-columns: 1fr; }
+      .price-box { text-align: left; }
+      .summary-points { justify-content: flex-start; }
+    }
+      .price-box { text-align: left; }
+      .summary-points { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <h1>Cart + Fulfillment Planning Mockup</h1>
+      <p>
+        Enter a part number and quantity to add a line item. Turn on <strong>Expedited Shipping</strong> to expose a split fulfillment plan.
+        Quantities update in real time based on each item's max standard, max expedited, and backorder availability.
+      </p>
+    </div>
+
+    <section class="composer">
+      <div class="composer-grid">
+        <div class="field">
+          <label for="partNumber">Part number</label>
+          <input id="partNumber" type="text" placeholder="Try: AX-100, BR-200, MX-900" />
+        </div>
+        <div class="field">
+          <label for="orderQty">Quantity</label>
+          <input id="orderQty" type="number" min="1" value="1200" />
+        </div>
+        <label class="checkbox-wrap" for="expeditedToggle">
+          <input id="expeditedToggle" type="checkbox" checked />
+          <span>Expedited Shipping</span>
+        </label>
+        <button class="btn btn-primary" id="addToCartBtn">Add to cart</button>
+      </div>
+      <div class="note-row">
+        <div class="chip">Standard allocation fills first</div>
+        <div class="chip">Expedited allocation appears only when enabled</div>
+        <div class="chip">Backorder is calculated from remaining demand</div>
+      </div>
+    </section>
+
+    <div class="content">
+      <section class="card" id="cartCard">
+        <div class="cart-header">
+          <h2>Shopping Cart</h2>
+          <div class="muted"><span id="itemCount">2</span> line items</div>
+        </div>
+
+        <div id="cartItems"></div>
+      </section>
+
+      <aside class="card summary">
+        <h2>Order Summary</h2>
+        <div class="summary-block">
+          <h3>Cart totals</h3>
+          <div class="summary-line"><span>Requested units</span><strong id="sumRequested">0</strong></div>
+          <div class="summary-line"><span>Standard allocation</span><strong id="sumStandard">0</strong></div>
+          <div class="summary-line"><span>Expedited allocation</span><strong id="sumExpedited">0</strong></div>
+          <div class="summary-line"><span>Backorder</span><strong id="sumBackorder">0</strong></div>
+          <div class="summary-line total"><span>Merchandise total</span><strong id="sumAmount">$0.00</strong></div>
+        </div>
+
+        <div class="summary-block">
+          <h3>How the logic works</h3>
+          <div class="summary-line"><span>1.</span><span>User enters desired quantity</span></div>
+          <div class="summary-line"><span>2.</span><span>System checks standard and expedited caps</span></div>
+          <div class="summary-line"><span>3.</span><span>Remaining units become backorder</span></div>
+          <div class="summary-line"><span>4.</span><span>All split values refresh live</span></div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn btn-secondary">Save Cart</button>
+          <button class="btn btn-primary">Checkout</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const catalog = {
+      'AX-100': {
+        name: 'Stainless Steel Fasteners',
+        price: 2.0,
+        standardMax: 800,
+        expeditedMax: 300,
+        standardETA: '3–5 business days',
+        expeditedETA: '1–2 business days',
+        backorderETA: '2–3 weeks'
+      },
+      'BR-200': {
+        name: 'Brass Check Valve',
+        price: 5.0,
+        standardMax: 400,
+        expeditedMax: 150,
+        standardETA: '3–5 business days',
+        expeditedETA: 'Next day',
+        backorderETA: '10–14 days'
+      },
+      'MX-900': {
+        name: 'Hydraulic Pump Assembly',
+        price: 25.0,
+        standardMax: 200,
+        expeditedMax: 50,
+        standardETA: '4 business days',
+        expeditedETA: '1–2 business days',
+        backorderETA: '3–4 weeks'
+      },
+      'PL-310': {
+        name: 'Aluminum Sheet Plate',
+        price: 7.5,
+        standardMax: 100,
+        expeditedMax: 100,
+        standardETA: '3–5 business days',
+        expeditedETA: '2 business days',
+        backorderETA: '2 weeks'
+      }
+    };
+
+    let cart = [
+      { id: crypto.randomUUID(), partNumber: 'AX-100', quantity: 1200, expeditedEnabled: true, manualStandard: 800, manualExpedited: 300, editingAllocation: false },
+      { id: crypto.randomUUID(), partNumber: 'BR-200', quantity: 600, expeditedEnabled: false, manualStandard: 400, manualExpedited: 0, editingAllocation: false }
+    ];
+
+    const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function getProduct(partNumber) {
+      return catalog[partNumber.toUpperCase()];
+    }
+
+    function computeAutoPlan(item) {
+      const product = getProduct(item.partNumber);
+      const qty = Math.max(0, Number(item.quantity) || 0);
+      const standardCap = product.standardMax;
+      const expeditedCap = item.expeditedEnabled ? product.expeditedMax : 0;
+      const standard = Math.min(qty, standardCap);
+      const remainingAfterStandard = qty - standard;
+      const expedited = Math.min(remainingAfterStandard, expeditedCap);
+      const backorder = Math.max(0, qty - standard - expedited);
+      return { qty, standardCap, expeditedCap, standard, expedited, backorder };
+    }
+
+    function computePlan(item) {
+      const product = getProduct(item.partNumber);
+      if (!product) return null;
+
+      const qty = Math.max(0, Number(item.quantity) || 0);
+      const standardCap = product.standardMax;
+      const expeditedCap = product.expeditedMax;
+
+      let standard = Math.min(qty, standardCap);
+      let expedited = 0;
+
+      if (item.editingAllocation) {
+        standard = clamp(Number(item.manualStandard) || 0, 0, Math.min(qty, standardCap));
+        const maxExpAllowed = Math.min(expeditedCap, Math.max(0, qty - standard));
+        expedited = clamp(Number(item.manualExpedited) || 0, 0, maxExpAllowed);
+      } else if (item.expeditedEnabled) {
+        expedited = Math.min(qty, expeditedCap);
+        standard = Math.min(Math.max(0, qty - expedited), standardCap);
+      }
+
+      const backorder = Math.max(0, qty - standard - expedited);
+      return {
+        product,
+        qty,
+        standardCap,
+        expeditedCap,
+        standard,
+        expedited,
+        backorder,
+        amount: qty * product.price
+      };
+    }
+
+    function summaryText(plan) {
+      const parts = [];
+      if (plan.standard > 0) parts.push(`${plan.standard} standard`);
+      if (plan.expedited > 0) parts.push(`${plan.expedited} expedited`);
+      if (plan.backorder > 0) parts.push(`${plan.backorder} backorder`);
+      return parts.length ? parts.join(' · ') : 'No allocation';
+    }
+
+    function renderCart() {
+      const container = document.getElementById('cartItems');
+      container.innerHTML = '';
+
+      cart.forEach(item => {
+        const plan = computePlan(item);
+        const product = plan.product;
+        const standardPct = plan.qty ? (plan.standard / plan.qty) * 100 : 0;
+        const expeditedPct = plan.qty ? (plan.expedited / plan.qty) * 100 : 0;
+        const backorderPct = plan.qty ? (plan.backorder / plan.qty) * 100 : 0;
+
+        const el = document.createElement('article');
+        el.className = 'line-item';
+        el.innerHTML = `
+          <div class="item-top">
+            <div>
+              <h3 class="item-title">${product.name}</h3>
+              <div class="item-meta">Part number: <strong>${item.partNumber}</strong><br>Max standard: <strong>${plan.standardCap}</strong> · Max expedited: <strong>${plan.expeditedCap}</strong></div>
+            </div>
+            <div class="qty-box">
+              <label>Order quantity</label>
+              <input type="number" min="0" value="${plan.qty}" data-action="qty" data-id="${item.id}" />
+            </div>
+            <div class="price-box">
+              <span class="label">Line total</span>
+              <div class="amount">${money.format(plan.amount)}</div>
+            </div>
+          </div>
+
+          <div class="compact-fulfillment">
+            <div class="compact-top">
+              <div>
+                <div class="compact-label">Fulfillment</div>
+                <div class="compact-summary">
+                  <span>${plan.standard} Std</span>
+                  <span class="dot">·</span>
+                  <span>${plan.expedited} Exp</span>
+                  <span class="dot">·</span>
+                  <span>${plan.backorder} BO</span>
+                </div>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <label class="checkbox-wrap" style="min-height:auto; padding:0; font-size:14px;" for="exp-${item.id}">
+                  <input id="exp-${item.id}" type="checkbox" ${item.expeditedEnabled ? 'checked' : ''} data-action="toggle-expedited" data-id="${item.id}" />
+                  <span>Use expedited inventory</span>
+                </label>
+                <button class="btn-tertiary" data-action="toggle-edit-allocation" data-id="${item.id}">${item.editingAllocation ? 'Done' : 'Edit allocation'}</button>
+              </div>
+            </div>
+
+            <div class="mini-bar" aria-label="fulfillment distribution">
+              <div class="seg-standard" style="width:${standardPct}%"></div>
+              <div class="seg-expedited" style="width:${expeditedPct}%"></div>
+              <div class="seg-backorder" style="width:${backorderPct}%"></div>
+            </div>
+
+            ${item.editingAllocation ? `
+              <div class="allocation-editor">
+                <div style="margin-bottom:10px;font-size:13px;font-weight:700;color:var(--muted);">Adjust fulfillment split</div>
+
+                <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;">
+                  <div style="text-align:left;">
+                    <div style="font-size:12px;color:var(--muted);">Standard</div>
+                    <div style="font-weight:800;font-size:16px;">${plan.standard}</div>
+                  </div>
+
+                  <input
+                    type="range"
+                    min="0"
+                    max="${Math.min(plan.qty, plan.standardCap + plan.expeditedCap)}"
+                    value="${plan.expedited}"
+                    data-action="slider-expedited"
+                    data-id="${item.id}"
+                    style="width:220px;"
+                  />
+
+                  <div style="text-align:right;">
+                    <div style="font-size:12px;color:var(--muted);">Expedited</div>
+                    <div style="font-weight:800;font-size:16px;">${plan.expedited}</div>
+                  </div>
+                </div>
+
+                <div style="margin-top:10px;font-size:12px;color:var(--muted);">
+                  Backorder: <strong>${plan.backorder}</strong>
+                </div>
+              </div>` : ''}
+          </div>
+
+          <div class="split-row">
+            <div class="split-head">
+              <div class="split-title">Availability snapshot <small>compact view</small></div>
+              <div class="split-pills">
+                <span class="pill standard">Std max ${plan.standardCap}</span>
+                <span class="pill expedited">Exp max ${plan.expeditedCap}</span>
+                <span class="pill backorder">${product.backorderETA}</span>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(el);
+      });
+
+      document.getElementById('itemCount').textContent = cart.length;
+      updateSummary();
+    }
+
+    function updateSummary() {
+      let requested = 0;
+      let standard = 0;
+      let expedited = 0;
+      let backorder = 0;
+      let amount = 0;
+
+      cart.forEach(item => {
+        const plan = computePlan(item);
+        requested += plan.qty;
+        standard += plan.standard;
+        expedited += plan.expedited;
+        backorder += plan.backorder;
+        amount += plan.amount;
+      });
+
+      document.getElementById('sumRequested').textContent = requested;
+      document.getElementById('sumStandard').textContent = standard;
+      document.getElementById('sumExpedited').textContent = expedited;
+      document.getElementById('sumBackorder').textContent = backorder;
+      document.getElementById('sumAmount').textContent = money.format(amount);
+    }
+
+    function addItem() {
+      const partNumberInput = document.getElementById('partNumber');
+      const qtyInput = document.getElementById('orderQty');
+      const expeditedToggle = document.getElementById('expeditedToggle');
+
+      const partNumber = partNumberInput.value.trim().toUpperCase();
+      const quantity = Math.max(1, Number(qtyInput.value) || 1);
+      const product = getProduct(partNumber);
+
+      if (!product) {
+        alert('Unknown part number. Try AX-100, BR-200, MX-900, or PL-310.');
+        return;
+      }
+
+      cart.unshift({
+        id: crypto.randomUUID(),
+        partNumber,
+        quantity,
+        expeditedEnabled: expeditedToggle.checked,
+        manualStandard: null,
+        manualExpedited: null,
+        editingAllocation: false
+      });
+
+      partNumberInput.value = '';
+      qtyInput.value = 100;
+      renderCart();
+    }
+
+    document.getElementById('addToCartBtn').addEventListener('click', addItem);
+
+    document.getElementById('partNumber').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addItem();
+    });
+
+    document.getElementById('orderQty').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addItem();
+    });
+
+    document.getElementById('cartItems').addEventListener('click', (e) => {
+      const editBtn = e.target.closest('[data-action="toggle-edit-allocation"]');
+      if (editBtn) {
+        const item = cart.find(x => x.id === editBtn.dataset.id);
+        if (!item) return;
+        item.editingAllocation = !item.editingAllocation;
+        const plan = computePlan(item);
+        item.manualStandard = plan.standard;
+        item.manualExpedited = plan.expedited;
+        renderCart();
+      }
+    });
+
+    document.getElementById('cartItems').addEventListener('input', (e) => {
+      const action = e.target.dataset.action;
+      const id = e.target.dataset.id;
+      if (!action || !id) return;
+
+      const item = cart.find(x => x.id === id);
+      if (!item) return;
+      const value = Math.max(0, Number(e.target.value) || 0);
+      const product = getProduct(item.partNumber);
+
+      if (action === 'qty') {
+        item.quantity = value;
+        if (!item.editingAllocation) {
+          item.manualStandard = null;
+          item.manualExpedited = null;
+        } else {
+          item.manualStandard = clamp(item.manualStandard ?? 0, 0, Math.min(value, product.standardMax));
+          item.manualExpedited = clamp(item.manualExpedited ?? 0, 0, product.expeditedMax);
+        }
+      }
+
+      if (action === 'toggle-expedited') {
+        item.expeditedEnabled = e.target.checked;
+        if (!item.editingAllocation) {
+          item.manualStandard = null;
+          item.manualExpedited = null;
+        }
+      }
+
+      if (action === 'standard') {
+        item.editingAllocation = true;
+        item.manualStandard = clamp(value, 0, Math.min(item.quantity, product.standardMax));
+        const remaining = Math.max(0, item.quantity - item.manualStandard);
+        item.manualExpedited = clamp(item.manualExpedited ?? 0, 0, Math.min(product.expeditedMax, remaining));
+      }
+
+      if (action === 'expedited') {
+        item.editingAllocation = true;
+        const remainingCap = Math.max(0, item.quantity - (item.manualStandard ?? 0));
+        item.manualExpedited = clamp(value, 0, Math.min(product.expeditedMax, remainingCap));
+      }
+
+      renderCart();
+    });
+
+    renderCart();
+  </script>
+</body>
+</html>
