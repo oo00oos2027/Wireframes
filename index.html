@@ -3,835 +3,1729 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>B2B Cart Fulfillment Mockup</title>
+  <title>Cart & Fulfillment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #f5f7fb;
-      --panel: #ffffff;
-      --line: #d9e0ea;
-      --text: #1f2937;
-      --muted: #667085;
-      --blue: #1d4ed8;
-      --blue-soft: #e8f0ff;
-      --green: #18794e;
-      --green-soft: #eaf7f0;
-      --amber: #b45309;
-      --amber-soft: #fff6e8;
-      --gray: #475467;
-      --gray-soft: #f2f4f7;
-      --red: #b42318;
-      --shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
-      --radius: 16px;
+      --bg: #f7f7f5;
+      --surface: #ffffff;
+      --surface-2: #f2f2ef;
+      --border: #e4e4df;
+      --border-strong: #c8c8c0;
+      --text: #18181a;
+      --text-2: #6b6b6b;
+      --text-3: #9a9a9a;
+
+      --green: #1a7a4a;
+      --green-bg: #edf7f2;
+      --green-border: #b6dfc9;
+
+      --amber: #a35c00;
+      --amber-bg: #fdf5e6;
+      --amber-border: #e8c97a;
+
+      --slate: #4a5568;
+      --slate-bg: #f1f2f4;
+      --slate-border: #c8cdd6;
+
+      --red: #c0392b;
+      --blue: #1a56db;
+      --blue-bg: #eff4ff;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow: 0 4px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
+      --radius: 10px;
+      --radius-sm: 6px;
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: 'DM Sans', sans-serif;
       background: var(--bg);
       color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
     }
 
-    .page {
-      max-width: 1280px;
-      margin: 32px auto;
-      padding: 0 20px 40px;
+    /* ── Layout ── */
+    .shell {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
     }
 
-    .header {
-      margin-bottom: 20px;
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
     }
 
-    .header h1 {
-      margin: 0;
-      font-size: 28px;
-      font-weight: 750;
-      letter-spacing: -0.02em;
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
-    .header p {
-      margin: 8px 0 0;
-      color: var(--muted);
-      max-width: 900px;
-      line-height: 1.45;
+    .topbar-logo {
+      width: 32px;
+      height: 32px;
+      background: var(--text);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .composer {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 20px;
-      margin-bottom: 18px;
+    .topbar-logo svg { color: #fff; }
+
+    .topbar-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
     }
 
-    .composer-grid {
+    .topbar-sub {
+      color: var(--text-2);
+      font-size: 13px;
+    }
+
+    .topbar-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      padding: 4px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text-2);
+    }
+
+    .main-grid {
       display: grid;
-      grid-template-columns: 1.4fr 160px 180px auto;
-      gap: 14px;
-      align-items: end;
+      grid-template-columns: 1fr 300px;
+      gap: 20px;
+      align-items: start;
     }
+
+    /* ── Add Item Bar ── */
+    .add-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 16px 18px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .add-bar .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .add-bar .field.grow { flex: 1; min-width: 140px; }
+    .add-bar .field.w-qty { width: 120px; }
 
     .field label {
-      display: block;
-      font-size: 13px;
-      font-weight: 650;
-      color: var(--muted);
-      margin-bottom: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-2);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
 
     .field input[type="text"],
     .field input[type="number"] {
-      width: 100%;
-      height: 46px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 0 14px;
-      font-size: 15px;
-      background: #fff;
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0 12px;
+      font-family: inherit;
+      font-size: 14px;
       color: var(--text);
+      background: var(--surface);
+      transition: border-color 0.15s;
+      width: 100%;
     }
 
-    .checkbox-wrap {
+    .field input:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(26,86,219,0.08);
+    }
+
+    /* Expedited toggle */
+    .exp-toggle {
       display: flex;
       align-items: center;
-      gap: 10px;
-      min-height: 46px;
-      padding: 0 4px 2px;
-      font-weight: 600;
-    }
-
-    .checkbox-wrap input {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--blue);
-    }
-
-    .btn {
-      height: 46px;
-      border: 0;
-      border-radius: 12px;
-      padding: 0 18px;
-      font-weight: 700;
+      gap: 8px;
+      height: 40px;
+      padding: 0 2px;
       cursor: pointer;
+      user-select: none;
     }
 
-    .btn-primary {
-      background: var(--blue);
-      color: white;
-      min-width: 132px;
-    }
-
-    .btn-secondary {
-      background: white;
-      color: var(--blue);
-      border: 1px solid var(--line);
-    }
-
-    .note-row {
-      margin-top: 14px;
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .chip {
-      background: var(--gray-soft);
-      color: var(--gray);
+    .toggle-track {
+      width: 36px;
+      height: 20px;
       border-radius: 999px;
-      padding: 8px 12px;
+      background: var(--border-strong);
+      position: relative;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .toggle-track.on { background: var(--blue); }
+
+    .toggle-thumb {
+      width: 14px;
+      height: 14px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .toggle-track.on .toggle-thumb { transform: translateX(16px); }
+
+    .exp-toggle input { display: none; }
+
+    .exp-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .btn-add {
+      height: 40px;
+      padding: 0 20px;
+      background: var(--text);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
       font-size: 13px;
       font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+      transition: opacity 0.15s;
     }
 
-    .content {
-      display: grid;
-      grid-template-columns: 1.8fr 0.9fr;
-      gap: 18px;
-      align-items: start;
+    .btn-add:hover { opacity: 0.85; }
+
+    /* ── Cart ── */
+    .cart-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
+    .cart-empty {
+      background: var(--surface);
+      border: 1px dashed var(--border-strong);
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--text-3);
     }
 
-    .cart-header {
+    .cart-empty p { font-size: 13px; margin-top: 8px; }
+
+    /* ── Line Item Card ── */
+    .line-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .lc-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 18px 20px;
-      border-bottom: 1px solid var(--line);
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      gap: 16px;
     }
 
-    .cart-header h2,
-    .summary h2 {
-      margin: 0;
-      font-size: 20px;
-      letter-spacing: -0.02em;
-    }
-
-    .muted { color: var(--muted); }
-
-    .line-item {
-      padding: 18px 20px;
-      border-bottom: 1px solid var(--line);
-    }
-
-    .line-item:last-child { border-bottom: 0; }
-
-    .item-top {
-      display: grid;
-      grid-template-columns: 1.7fr 160px 140px;
-      gap: 18px;
-      align-items: start;
-      margin-bottom: 14px;
-    }
-
-    .item-title {
-      font-size: 18px;
-      font-weight: 750;
-      margin: 0 0 6px;
-    }
-
-    .item-meta {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.45;
-    }
-
-    .qty-box label {
-      display: block;
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 700;
-      margin-bottom: 8px;
-      text-transform: uppercase;
+    .lc-part {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text-3);
       letter-spacing: 0.04em;
+      margin-bottom: 2px;
     }
 
-    .qty-box input {
-      width: 100%;
-      height: 42px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 0 12px;
-      font-size: 16px;
-      font-weight: 700;
+    .lc-name {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
     }
 
-    .price-box {
+    .lc-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .lc-price {
       text-align: right;
     }
 
-    .price-box .label {
-      display: block;
-      font-size: 12px;
-      color: var(--muted);
+    .lc-price-label {
+      font-size: 11px;
+      color: var(--text-3);
+      font-weight: 500;
+    }
+
+    .lc-price-amount {
+      font-size: 20px;
       font-weight: 700;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
     }
 
-    .price-box .amount {
-      font-size: 24px;
-      font-weight: 800;
-    }
-
-    .availability-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .avail-card {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px;
-      min-height: 124px;
-    }
-
-    .avail-card.standard { background: var(--green-soft); }
-    .avail-card.expedited { background: var(--amber-soft); }
-    .avail-card.backorder { background: var(--gray-soft); }
-
-    .avail-head {
+    .lc-qty-wrap {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 8px;
+      flex-direction: column;
+      gap: 4px;
     }
 
-    .avail-head strong { font-size: 15px; }
-
-    .avail-card .meta {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.45;
-      margin-bottom: 12px;
-    }
-
-    .stat {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      font-size: 14px;
-      margin-bottom: 6px;
-    }
-
-    .stat span:first-child { color: var(--muted); }
-    .stat span:last-child { font-weight: 750; }
-
-    .split-row {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px;
-      background: #fbfcfe;
-    }
-
-    .split-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-
-    .split-title {
-      font-size: 15px;
-      font-weight: 750;
-    }
-
-    .split-title small {
-      color: var(--muted);
+    .lc-qty-wrap label {
+      font-size: 11px;
       font-weight: 600;
-      font-size: 13px;
-      margin-left: 8px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
-    .split-pills {
+    .lc-qty-wrap input {
+      width: 90px;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      background: var(--surface-2);
+      text-align: right;
+    }
+
+    .lc-qty-wrap input:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(26,86,219,0.08);
+      background: white;
+    }
+
+    .btn-remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-3);
+      padding: 4px;
+      border-radius: 4px;
       display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
+      align-items: center;
+      transition: color 0.15s;
     }
+    .btn-remove:hover { color: var(--red); }
 
-    .pill {
-      font-size: 12px;
-      font-weight: 800;
-      border-radius: 999px;
-      padding: 7px 10px;
-    }
-
-    .pill.standard { background: var(--green-soft); color: var(--green); }
-    .pill.expedited { background: var(--amber-soft); color: var(--amber); }
-    .pill.backorder { background: var(--gray-soft); color: var(--gray); }
-
-    .split-controls {
+    /* ── Availability row ── */
+    .avail-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .avail-cell {
+      padding: 12px 18px;
+      border-right: 1px solid var(--border);
+    }
+
+    .avail-cell:last-child { border-right: none; }
+
+    .avail-cell-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .avail-type {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .avail-type.standard { color: var(--green); }
+    .avail-type.expedited { color: var(--amber); }
+    .avail-type.backorder { color: var(--slate); }
+
+    .avail-eta {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text-3);
+    }
+
+    .avail-stat {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 3px;
+      color: var(--text-2);
+    }
+
+    .avail-stat strong {
+      font-weight: 600;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Tags (always visible in lc-head) ── */
+    .tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .tag.standard { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .tag.expedited { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+    .tag.backorder { background: var(--slate-bg); color: var(--slate); border: 1px solid var(--slate-border); }
+
+    .lc-plan-tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+    .btn-edit-plan {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 5px 10px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-edit-plan:hover { border-color: var(--border-strong); color: var(--text); }
+    .btn-edit-plan.open { background: var(--blue-bg); border-color: rgba(26,86,219,0.3); color: var(--blue); }
+
+    /* ── Collapsible split panel ── */
+    .split-panel {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.3s ease;
+      padding: 0 18px;
+      border-top: 0px solid var(--border);
+    }
+    .split-panel.open {
+      max-height: 300px;
+      opacity: 1;
+      padding: 14px 18px;
+      border-top-width: 1px;
+    }
+
+    .split-inputs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
       margin-bottom: 12px;
     }
 
     .split-field label {
       display: block;
-      margin-bottom: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 5px;
     }
 
     .split-field input {
       width: 100%;
-      height: 40px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 0 12px;
-      font-size: 15px;
-      font-weight: 700;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      color: var(--text);
       background: white;
     }
 
-    .split-summary {
-      display: grid;
-      grid-template-columns: 1.3fr 1fr;
-      gap: 16px;
-      align-items: center;
+    .split-field input:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(26,86,219,0.08);
     }
 
-    .bar {
-      height: 14px;
+    .split-field input:disabled {
+      background: var(--surface-2);
+      color: var(--text-2);
+      cursor: not-allowed;
+    }
+
+    .split-field.green input { border-color: var(--green-border); background: var(--green-bg); }
+    .split-field.amber input { border-color: var(--amber-border); background: var(--amber-bg); }
+
+    /* Progress bar */
+    .prog-bar {
+      height: 5px;
+      background: var(--border);
       border-radius: 999px;
       overflow: hidden;
-      background: #e7ecf3;
       display: flex;
     }
 
-    .seg-standard { background: #22a06b; }
-    .seg-expedited { background: #f79009; }
-    .seg-backorder { background: #98a2b3; }
+    .prog-standard { background: #2da866; transition: width 0.3s ease; }
+    .prog-expedited { background: #f59e0b; transition: width 0.3s ease; }
+    .prog-backorder { background: #94a3b8; transition: width 0.3s ease; }
 
-    .summary-points {
+    /* ── Plan bar row (always visible, sits between avail and editor) ── */
+    .plan-bar-row {
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 18px;
+      border-top: 1px solid var(--border);
     }
 
-    .summary {
-      padding: 18px;
+    .plan-bar-row .prog-bar {
+      flex: 1;
+    }
+
+    /* ── Summary Panel ── */
+    .summary-panel {
       position: sticky;
       top: 24px;
     }
 
-    .summary h2 { margin-bottom: 16px; }
-
-    .summary-block {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 12px;
-      background: #fbfcfe;
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
     }
 
-    .summary-block h3 {
-      margin: 0 0 10px;
-      font-size: 15px;
-    }
-
-    .summary-line {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 8px;
-      font-size: 14px;
-    }
-
-    .summary-line:last-child { margin-bottom: 0; }
-    .summary-line strong { font-weight: 800; }
-
-    .total {
-      border-top: 1px solid var(--line);
-      padding-top: 14px;
-      margin-top: 6px;
-    }
-
-    .toolbar {
-      display: flex;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    .toolbar .btn { flex: 1; }
-
-    .error {
-      margin-top: 10px;
-      color: var(--red);
+    .sum-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
       font-size: 13px;
       font-weight: 700;
+      letter-spacing: 0.01em;
+      color: var(--text);
+    }
+
+    .sum-body { padding: 14px 16px; }
+
+    .sum-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sum-row:last-child { border-bottom: none; }
+
+    .sum-row span { color: var(--text-2); }
+
+    .sum-row strong {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+    }
+
+    .sum-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      margin-right: 7px;
+    }
+
+    .sum-dot.standard { background: #2da866; }
+    .sum-dot.expedited { background: #f59e0b; }
+    .sum-dot.backorder { background: #94a3b8; }
+
+    .sum-total {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    .sum-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .sum-total-label { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .sum-total-amount {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sum-actions {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .btn-checkout {
+      height: 42px;
+      background: var(--text);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: opacity 0.15s;
+    }
+    .btn-checkout:hover { opacity: 0.85; }
+
+    .btn-save {
+      height: 42px;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-save:hover { background: var(--surface-2); }
+
+    /* Error */
+    .field-error {
+      font-size: 11px;
+      color: var(--red);
+      font-weight: 600;
+      margin-top: 3px;
       display: none;
     }
 
-    @media (max-width: 1080px) {
-      .content { grid-template-columns: 1fr; }
-      .summary { position: static; }
+    @media (max-width: 960px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .summary-panel { position: static; }
     }
 
-    @media (max-width: 900px) {
-      .composer-grid,
-      .item-top,
-      .availability-grid,
-      .split-controls,
-      .split-summary { grid-template-columns: 1fr; }
-      .price-box { text-align: left; }
-      .summary-points { justify-content: flex-start; }
+    @media (max-width: 640px) {
+      .avail-row { grid-template-columns: 1fr; }
+      .avail-cell { border-right: none; border-bottom: 1px solid var(--border); }
+      .avail-cell:last-child { border-bottom: none; }
+      .split-inputs { grid-template-columns: 1fr; }
+      .add-bar { flex-wrap: wrap; }
     }
   </style>
 </head>
 <body>
-  <div class="page">
-    <div class="header">
-      <h1>Cart + Fulfillment Planning Mockup</h1>
-      <p>
-        Enter a part number and quantity to add a line item. Turn on <strong>Expedited Shipping</strong> to expose a split fulfillment plan.
-        Quantities update in real time based on each item's max standard, max expedited, and backorder availability.
-      </p>
-    </div>
+<div class="shell">
 
-    <section class="composer">
-      <div class="composer-grid">
-        <div class="field">
-          <label for="partNumber">Part number</label>
-          <input id="partNumber" type="text" placeholder="Try: AX-100, BR-200, MX-900" />
-        </div>
-        <div class="field">
-          <label for="orderQty">Quantity</label>
-          <input id="orderQty" type="number" min="1" value="1200" />
-        </div>
-        <label class="checkbox-wrap" for="expeditedToggle">
-          <input id="expeditedToggle" type="checkbox" checked />
-          <span>Expedited Shipping</span>
-        </label>
-        <button class="btn btn-primary" id="addToCartBtn">Add to cart</button>
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="2" y="2" width="5" height="5" fill="white" rx="1"/>
+          <rect x="9" y="2" width="5" height="5" fill="white" rx="1" opacity=".6"/>
+          <rect x="2" y="9" width="5" height="5" fill="white" rx="1" opacity=".6"/>
+          <rect x="9" y="9" width="5" height="5" fill="white" rx="1" opacity=".3"/>
+        </svg>
       </div>
-      <div class="note-row">
-        <div class="chip">Standard allocation fills first</div>
-        <div class="chip">Expedited allocation appears only when enabled</div>
-        <div class="chip">Backorder is calculated from remaining demand</div>
+      <div>
+        <div class="topbar-title">Fulfillment Cart</div>
+        <div class="topbar-sub">B2B Order Management</div>
       </div>
-    </section>
-
-    <div class="content">
-      <section class="card" id="cartCard">
-        <div class="cart-header">
-          <h2>Shopping Cart</h2>
-          <div class="muted"><span id="itemCount">2</span> line items</div>
-        </div>
-
-        <div id="cartItems"></div>
-      </section>
-
-      <aside class="card summary">
-        <h2>Order Summary</h2>
-        <div class="summary-block">
-          <h3>Cart totals</h3>
-          <div class="summary-line"><span>Requested units</span><strong id="sumRequested">0</strong></div>
-          <div class="summary-line"><span>Standard allocation</span><strong id="sumStandard">0</strong></div>
-          <div class="summary-line"><span>Expedited allocation</span><strong id="sumExpedited">0</strong></div>
-          <div class="summary-line"><span>Backorder</span><strong id="sumBackorder">0</strong></div>
-          <div class="summary-line total"><span>Merchandise total</span><strong id="sumAmount">$0.00</strong></div>
-        </div>
-
-        <div class="summary-block">
-          <h3>How the logic works</h3>
-          <div class="summary-line"><span>1.</span><span>User enters desired quantity</span></div>
-          <div class="summary-line"><span>2.</span><span>System checks standard and expedited caps</span></div>
-          <div class="summary-line"><span>3.</span><span>Remaining units become backorder</span></div>
-          <div class="summary-line"><span>4.</span><span>All split values refresh live</span></div>
-        </div>
-
-        <div class="toolbar">
-          <button class="btn btn-secondary">Save Cart</button>
-          <button class="btn btn-primary">Checkout</button>
-        </div>
-      </aside>
     </div>
+    <div class="topbar-badge" id="cartCountBadge">0 items</div>
   </div>
 
-  <script>
-    const catalog = {
-      'AX-100': {
-        name: 'Stainless Steel Fasteners',
-        price: 2.0,
-        standardMax: 800,
-        expeditedMax: 300,
-        standardETA: '3–5 business days',
-        expeditedETA: '1–2 business days',
-        backorderETA: '2–3 weeks'
-      },
-      'BR-200': {
-        name: 'Brass Check Valve',
-        price: 5.0,
-        standardMax: 400,
-        expeditedMax: 150,
-        standardETA: '3–5 business days',
-        expeditedETA: 'Next day',
-        backorderETA: '10–14 days'
-      },
-      'MX-900': {
-        name: 'Hydraulic Pump Assembly',
-        price: 25.0,
-        standardMax: 200,
-        expeditedMax: 50,
-        standardETA: '4 business days',
-        expeditedETA: '1–2 business days',
-        backorderETA: '3–4 weeks'
-      },
-      'PL-310': {
-        name: 'Aluminum Sheet Plate',
-        price: 7.5,
-        standardMax: 100,
-        expeditedMax: 100,
-        standardETA: '3–5 business days',
-        expeditedETA: '2 business days',
-        backorderETA: '2 weeks'
+  <!-- Add item bar -->
+  <div class="add-bar">
+    <div class="field grow">
+      <label for="partNumber">Part number</label>
+      <input id="partNumber" type="text" placeholder="AX-100, BR-200, MX-900, PL-310" />
+    </div>
+    <div class="field w-qty">
+      <label for="orderQty">Quantity</label>
+      <input id="orderQty" type="number" min="1" value="100" />
+    </div>
+
+    <label class="exp-toggle" id="expeditedLabel">
+      <input type="checkbox" id="expeditedToggle" checked />
+      <div class="toggle-track on" id="toggleTrack">
+        <div class="toggle-thumb"></div>
+      </div>
+      <span class="exp-label">Expedited shipping</span>
+    </label>
+
+    <button class="btn-add" id="addToCartBtn">Add to cart</button>
+  </div>
+
+  <!-- Main grid -->
+  <div class="main-grid">
+
+    <!-- Cart column -->
+    <div>
+      <div class="cart-wrap" id="cartWrap">
+        <div class="cart-empty" id="cartEmpty">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 8px; display: block; color: var(--text-3)">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <p>No items in cart. Add a part number above to get started.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary column -->
+    <aside class="summary-panel">
+      <div class="summary-card">
+        <div class="sum-head">Order Summary</div>
+        <div class="sum-body">
+          <div class="sum-row"><span>Requested units</span><strong id="sumRequested">0</strong></div>
+          <div class="sum-row"><span><span class="sum-dot standard"></span>Standard</span><strong id="sumStandard">0</strong></div>
+          <div class="sum-row"><span><span class="sum-dot expedited"></span>Expedited</span><strong id="sumExpedited">0</strong></div>
+          <div class="sum-row"><span><span class="sum-dot backorder"></span>Backorder</span><strong id="sumBackorder">0</strong></div>
+        </div>
+        <div class="sum-total">
+          <div class="sum-total-row">
+            <span class="sum-total-label">Total</span>
+            <span class="sum-total-amount" id="sumAmount">$0.00</span>
+          </div>
+        </div>
+        <div class="sum-actions">
+          <button class="btn-checkout">Checkout</button>
+          <button class="btn-save">Save Cart</button>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<script>
+  const catalog = {
+    'AX-100': { name: 'Stainless Steel Fasteners', price: 2.0, standardMax: 800, expeditedMax: 300, standardETA: '3–5 days', expeditedETA: '1–2 days', backorderETA: '2–3 weeks' },
+    'BR-200': { name: 'Brass Check Valve', price: 5.0, standardMax: 400, expeditedMax: 150, standardETA: '3–5 days', expeditedETA: 'Next day', backorderETA: '10–14 days' },
+    'MX-900': { name: 'Hydraulic Pump Assembly', price: 25.0, standardMax: 200, expeditedMax: 50, standardETA: '4 days', expeditedETA: '1–2 days', backorderETA: '3–4 weeks' },
+    'PL-310': { name: 'Aluminum Sheet Plate', price: 7.5, standardMax: 100, expeditedMax: 100, standardETA: '3–5 days', expeditedETA: '2 days', backorderETA: '2 weeks' }
+  };
+
+  let cart = [];
+  const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+  function computePlan(item) {
+    const p = catalog[item.partNumber];
+    if (!p) return null;
+    const qty = Math.max(0, Number(item.quantity) || 0);
+    const stdCap = p.standardMax;
+    const expCap = item.expeditedEnabled ? p.expeditedMax : 0;
+    let std = item.manualStandard;
+    let exp = item.manualExpedited;
+    const manual = std !== null || exp !== null;
+
+    if (manual) {
+      std = clamp(Number(std) || 0, 0, Math.min(qty, stdCap));
+      exp = clamp(Number(exp) || 0, 0, expCap);
+      if (std + exp > qty) exp = Math.max(0, qty - std);
+      if (std + exp < qty) {
+        const rem = qty - std - exp;
+        if (item.expeditedEnabled && expCap - exp > 0) exp += Math.min(rem, expCap - exp);
+        const rem2 = qty - std - exp;
+        if (rem2 > 0 && stdCap - std > 0) std += Math.min(rem2, stdCap - std);
       }
-    };
-
-    let cart = [
-      { id: crypto.randomUUID(), partNumber: 'AX-100', quantity: 1200, expeditedEnabled: true, manualStandard: null, manualExpedited: null },
-      { id: crypto.randomUUID(), partNumber: 'BR-200', quantity: 600, expeditedEnabled: false, manualStandard: null, manualExpedited: null }
-    ];
-
-    const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
-
-    function clamp(value, min, max) {
-      return Math.max(min, Math.min(max, value));
+    } else {
+      std = Math.min(qty, stdCap);
+      exp = Math.min(qty - std, expCap);
     }
+    const bo = Math.max(0, qty - std - exp);
+    return { p, qty, stdCap, expCap, std, exp, bo, amount: qty * p.price };
+  }
 
-    function getProduct(partNumber) {
-      return catalog[partNumber.toUpperCase()];
-    }
+  function renderCart() {
+    const wrap = document.getElementById('cartWrap');
+    const empty = document.getElementById('cartEmpty');
 
-    function computePlan(item) {
-      const product = getProduct(item.partNumber);
-      if (!product) return null;
+    // Remove all line cards
+    wrap.querySelectorAll('.line-card').forEach(el => el.remove());
 
-      const qty = Math.max(0, Number(item.quantity) || 0);
-      const standardCap = product.standardMax;
-      const expeditedCap = item.expeditedEnabled ? product.expeditedMax : 0;
-
-      let standard = item.manualStandard;
-      let expedited = item.manualExpedited;
-
-      const usingManual = standard !== null || expedited !== null;
-
-      if (usingManual) {
-        standard = clamp(Number(standard) || 0, 0, Math.min(qty, standardCap));
-        expedited = clamp(Number(expedited) || 0, 0, expeditedCap);
-
-        if (standard + expedited > qty) {
-          expedited = Math.max(0, qty - standard);
-        }
-
-        if (standard + expedited < qty) {
-          const remaining = qty - standard - expedited;
-          const expeditedRoom = expeditedCap - expedited;
-          const standardRoom = standardCap - standard;
-
-          if (item.expeditedEnabled && expeditedRoom > 0) {
-            const addExp = Math.min(remaining, expeditedRoom);
-            expedited += addExp;
-          }
-
-          const stillRemaining = qty - standard - expedited;
-          if (stillRemaining > 0 && standardRoom > 0) {
-            standard += Math.min(stillRemaining, standardRoom);
-          }
-        }
-      } else {
-        standard = Math.min(qty, standardCap);
-        const remainingAfterStandard = qty - standard;
-        expedited = Math.min(remainingAfterStandard, expeditedCap);
-      }
-
-      const backorder = Math.max(0, qty - standard - expedited);
-      return {
-        product,
-        qty,
-        standardCap,
-        expeditedCap,
-        standard,
-        expedited,
-        backorder,
-        amount: qty * product.price
-      };
-    }
-
-    function renderCart() {
-      const container = document.getElementById('cartItems');
-      container.innerHTML = '';
-
-      cart.forEach(item => {
-        const plan = computePlan(item);
-        const product = plan.product;
-
-        const standardPct = plan.qty ? (plan.standard / plan.qty) * 100 : 0;
-        const expeditedPct = plan.qty ? (plan.expedited / plan.qty) * 100 : 0;
-        const backorderPct = plan.qty ? (plan.backorder / plan.qty) * 100 : 0;
-
-        const el = document.createElement('article');
-        el.className = 'line-item';
-        el.innerHTML = `
-          <div class="item-top">
-            <div>
-              <h3 class="item-title">${product.name}</h3>
-              <div class="item-meta">Part number: <strong>${item.partNumber}</strong><br>Max standard: <strong>${plan.standardCap}</strong> · Max expedited: <strong>${plan.expeditedCap}</strong></div>
-            </div>
-            <div class="qty-box">
-              <label>Order quantity</label>
-              <input type="number" min="0" value="${plan.qty}" data-action="qty" data-id="${item.id}" />
-            </div>
-            <div class="price-box">
-              <span class="label">Line total</span>
-              <div class="amount">${money.format(plan.amount)}</div>
-            </div>
-          </div>
-
-          <div class="availability-grid">
-            <div class="avail-card standard">
-              <div class="avail-head"><strong>Standard shipping</strong><span>${product.standardETA}</span></div>
-              <div class="meta">Maximum available through normal shipping before backorder is needed.</div>
-              <div class="stat"><span>Max available</span><span>${plan.standardCap}</span></div>
-              <div class="stat"><span>Allocated now</span><span>${plan.standard}</span></div>
-            </div>
-
-            <div class="avail-card expedited">
-              <div class="avail-head"><strong>Expedited shipping</strong><span>${product.expeditedETA}</span></div>
-              <div class="meta">Nearby inventory eligible for faster fulfillment when expedited is enabled.</div>
-              <div class="stat"><span>Max available</span><span>${plan.expeditedCap}</span></div>
-              <div class="stat"><span>Allocated now</span><span>${plan.expedited}</span></div>
-            </div>
-
-            <div class="avail-card backorder">
-              <div class="avail-head"><strong>Backorder</strong><span>${product.backorderETA}</span></div>
-              <div class="meta">Units that cannot be covered by standard or expedited inventory.</div>
-              <div class="stat"><span>Projected backorder</span><span>${plan.backorder}</span></div>
-              <div class="stat"><span>Requested quantity</span><span>${plan.qty}</span></div>
-            </div>
-          </div>
-
-          <div class="split-row">
-            <div class="split-head">
-              <div class="split-title">Fulfillment plan <small>updates in real time</small></div>
-              <div class="split-pills">
-                <span class="pill standard">${plan.standard} standard</span>
-                <span class="pill expedited">${plan.expedited} expedited</span>
-                <span class="pill backorder">${plan.backorder} backorder</span>
-              </div>
-            </div>
-
-            <div class="split-controls">
-              <div class="split-field">
-                <label>Standard allocation</label>
-                <input type="number" min="0" max="${plan.standardCap}" value="${plan.standard}" data-action="standard" data-id="${item.id}" />
-              </div>
-              <div class="split-field">
-                <label>Expedited allocation ${item.expeditedEnabled ? '' : '(disabled)'}</label>
-                <input type="number" min="0" max="${plan.expeditedCap}" value="${plan.expedited}" ${item.expeditedEnabled ? '' : 'disabled'} data-action="expedited" data-id="${item.id}" />
-              </div>
-              <div class="split-field">
-                <label>Backorder</label>
-                <input type="number" value="${plan.backorder}" disabled />
-              </div>
-            </div>
-
-            <div class="split-summary">
-              <div class="bar" aria-label="fulfillment distribution">
-                <div class="seg-standard" style="width:${standardPct}%"></div>
-                <div class="seg-expedited" style="width:${expeditedPct}%"></div>
-                <div class="seg-backorder" style="width:${backorderPct}%"></div>
-              </div>
-              <div class="summary-points">
-                <span class="chip">Standard max ${plan.standardCap}</span>
-                <span class="chip">Expedited max ${plan.expeditedCap}</span>
-                <span class="chip">Backorder ${plan.backorder}</span>
-              </div>
-            </div>
-
-            <div class="error" id="error-${item.id}"></div>
-          </div>
-        `;
-        container.appendChild(el);
-      });
-
-      document.getElementById('itemCount').textContent = cart.length;
+    if (cart.length === 0) {
+      empty.style.display = '';
       updateSummary();
+      document.getElementById('cartCountBadge').textContent = '0 items';
+      return;
     }
 
-    function updateSummary() {
-      let requested = 0;
-      let standard = 0;
-      let expedited = 0;
-      let backorder = 0;
-      let amount = 0;
+    empty.style.display = 'none';
+    document.getElementById('cartCountBadge').textContent = `${cart.length} item${cart.length === 1 ? '' : 's'}`;
 
-      cart.forEach(item => {
-        const plan = computePlan(item);
-        requested += plan.qty;
-        standard += plan.standard;
-        expedited += plan.expedited;
-        backorder += plan.backorder;
-        amount += plan.amount;
-      });
+    cart.forEach(item => {
+      const pl = computePlan(item);
+      const { p, qty, stdCap, expCap, std, exp, bo } = pl;
+      const stdPct = qty ? (std / qty * 100).toFixed(1) : 0;
+      const expPct = qty ? (exp / qty * 100).toFixed(1) : 0;
+      const boPct  = qty ? (bo  / qty * 100).toFixed(1) : 0;
 
-      document.getElementById('sumRequested').textContent = requested;
-      document.getElementById('sumStandard').textContent = standard;
-      document.getElementById('sumExpedited').textContent = expedited;
-      document.getElementById('sumBackorder').textContent = backorder;
-      document.getElementById('sumAmount').textContent = money.format(amount);
-    }
+      const card = document.createElement('div');
+      card.className = 'line-card';
+      card.dataset.id = item.id;
 
-    function addItem() {
-      const partNumberInput = document.getElementById('partNumber');
-      const qtyInput = document.getElementById('orderQty');
-      const expeditedToggle = document.getElementById('expeditedToggle');
+      const planOpen = item.planOpen || false;
 
-      const partNumber = partNumberInput.value.trim().toUpperCase();
-      const quantity = Math.max(1, Number(qtyInput.value) || 1);
-      const product = getProduct(partNumber);
+      card.innerHTML = `
+        <div class="lc-head">
+          <div>
+            <div class="lc-part">${item.partNumber}</div>
+            <div class="lc-name">${p.name}</div>
+          </div>
+          <div class="lc-right">
+            <div class="lc-qty-wrap">
+              <label>Quantity</label>
+              <input type="number" min="0" value="${qty}" data-action="qty" data-id="${item.id}" />
+            </div>
+            <div class="lc-price">
+              <div class="lc-price-label">Line total</div>
+              <div class="lc-price-amount">${money.format(pl.amount)}</div>
+            </div>
+            <button class="btn-remove" data-action="remove" data-id="${item.id}" title="Remove item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
 
-      if (!product) {
-        alert('Unknown part number. Try AX-100, BR-200, MX-900, or PL-310.');
-        return;
-      }
+        <div class="avail-row">
+          <div class="avail-cell">
+            <div class="avail-cell-head">
+              <span class="avail-type standard">Standard</span>
+              <span class="avail-eta">${p.standardETA}</span>
+            </div>
+            <div class="avail-stat"><span>Max available</span><strong>${stdCap}</strong></div>
+            <div class="avail-stat"><span>Allocated</span><strong>${std}</strong></div>
+          </div>
+          <div class="avail-cell">
+            <div class="avail-cell-head">
+              <span class="avail-type expedited">Expedited</span>
+              <span class="avail-eta">${item.expeditedEnabled ? p.expeditedETA : 'disabled'}</span>
+            </div>
+            <div class="avail-stat"><span>Max available</span><strong>${item.expeditedEnabled ? expCap : '—'}</strong></div>
+            <div class="avail-stat"><span>Allocated</span><strong>${item.expeditedEnabled ? exp : '—'}</strong></div>
+          </div>
+          <div class="avail-cell">
+            <div class="avail-cell-head">
+              <span class="avail-type backorder">Backorder</span>
+              <span class="avail-eta">${bo > 0 ? p.backorderETA : 'none'}</span>
+            </div>
+            <div class="avail-stat"><span>Projected</span><strong>${bo}</strong></div>
+            <div class="avail-stat"><span>Requested</span><strong>${qty}</strong></div>
+          </div>
+        </div>
 
-      cart.unshift({
-        id: crypto.randomUUID(),
-        partNumber,
-        quantity,
-        expeditedEnabled: expeditedToggle.checked,
-        manualStandard: null,
-        manualExpedited: null
-      });
+        <div class="plan-bar-row">
+          <div class="prog-bar">
+            <div class="prog-standard" style="width:${stdPct}%"></div>
+            <div class="prog-expedited" style="width:${expPct}%"></div>
+            <div class="prog-backorder" style="width:${boPct}%"></div>
+          </div>
+          <button class="btn-edit-plan ${planOpen ? 'open' : ''}" data-action="toggle-plan" data-id="${item.id}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-5m-1.414-9.414a2 2 0 1 1 2.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            ${planOpen ? 'Collapse' : 'Edit plan'}
+          </button>
+        </div>
 
-      partNumberInput.value = '';
-      qtyInput.value = 100;
-      renderCart();
-    }
+        <div class="split-panel ${planOpen ? 'open' : ''}">
+          <div class="split-inputs">
+            <div class="split-field green">
+              <label>Standard allocation</label>
+              <input type="number" min="0" max="${stdCap}" value="${std}" data-action="standard" data-id="${item.id}" />
+            </div>
+            <div class="split-field ${item.expeditedEnabled ? 'amber' : ''}">
+              <label>Expedited allocation${item.expeditedEnabled ? '' : ' (disabled)'}</label>
+              <input type="number" min="0" max="${expCap}" value="${exp}" ${item.expeditedEnabled ? '' : 'disabled'} data-action="expedited" data-id="${item.id}" />
+            </div>
+            <div class="split-field">
+              <label>Backorder</label>
+              <input type="number" value="${bo}" disabled />
+            </div>
+          </div>
+        </div>
+      `;
 
-    document.getElementById('addToCartBtn').addEventListener('click', addItem);
-
-    document.getElementById('partNumber').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') addItem();
+      wrap.appendChild(card);
     });
 
-    document.getElementById('orderQty').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') addItem();
+    updateSummary();
+  }
+
+  function updateSummary() {
+    let req = 0, std = 0, exp = 0, bo = 0, amt = 0;
+    cart.forEach(item => {
+      const pl = computePlan(item);
+      req += pl.qty; std += pl.std; exp += pl.exp; bo += pl.bo; amt += pl.amount;
     });
+    document.getElementById('sumRequested').textContent = req;
+    document.getElementById('sumStandard').textContent = std;
+    document.getElementById('sumExpedited').textContent = exp;
+    document.getElementById('sumBackorder').textContent = bo;
+    document.getElementById('sumAmount').textContent = money.format(amt);
+  }
 
-    document.getElementById('cartItems').addEventListener('input', (e) => {
-      const action = e.target.dataset.action;
-      const id = e.target.dataset.id;
-      if (!action || !id) return;
+  // Toggle UI
+  const expCheckbox = document.getElementById('expeditedToggle');
+  const toggleTrack = document.getElementById('toggleTrack');
+  expCheckbox.addEventListener('change', () => {
+    toggleTrack.classList.toggle('on', expCheckbox.checked);
+  });
 
-      const item = cart.find(x => x.id === id);
-      if (!item) return;
-
-      const value = Math.max(0, Number(e.target.value) || 0);
-
-      if (action === 'qty') {
-        item.quantity = value;
-        item.manualStandard = null;
-        item.manualExpedited = null;
-      }
-
-      if (action === 'standard') {
-        item.manualStandard = value;
-        if (item.manualExpedited === null) {
-          const plan = computePlan(item);
-          item.manualExpedited = plan.expedited;
-        }
-      }
-
-      if (action === 'expedited') {
-        item.manualExpedited = value;
-        if (item.manualStandard === null) {
-          const plan = computePlan(item);
-          item.manualStandard = plan.standard;
-        }
-      }
-
-      renderCart();
-    });
-
+  function addItem() {
+    const pnInput = document.getElementById('partNumber');
+    const qtyInput = document.getElementById('orderQty');
+    const pn = pnInput.value.trim().toUpperCase();
+    const qty = Math.max(1, Number(qtyInput.value) || 1);
+    const product = catalog[pn];
+    if (!product) { alert('Unknown part number. Try: AX-100, BR-200, MX-900, PL-310'); return; }
+    cart.unshift({ id: crypto.randomUUID(), partNumber: pn, quantity: qty, expeditedEnabled: expCheckbox.checked, manualStandard: null, manualExpedited: null });
+    pnInput.value = '';
+    qtyInput.value = 100;
     renderCart();
-  </script>
+  }
+
+  document.getElementById('addToCartBtn').addEventListener('click', addItem);
+  document.getElementById('partNumber').addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+  document.getElementById('orderQty').addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+
+  document.getElementById('cartWrap').addEventListener('input', e => {
+    const { action, id } = e.target.dataset;
+    if (!action || !id) return;
+    const item = cart.find(x => x.id === id);
+    if (!item) return;
+    const val = Math.max(0, Number(e.target.value) || 0);
+    if (action === 'qty') { item.quantity = val; item.manualStandard = null; item.manualExpedited = null; }
+    if (action === 'standard') { item.manualStandard = val; if (item.manualExpedited === null) item.manualExpedited = computePlan(item).exp; }
+    if (action === 'expedited') { item.manualExpedited = val; if (item.manualStandard === null) item.manualStandard = computePlan(item).std; }
+    renderCart();
+  });
+
+  document.getElementById('cartWrap').addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    if (btn.dataset.action === 'remove') {
+      cart = cart.filter(x => x.id !== btn.dataset.id);
+      renderCart();
+    }
+    if (btn.dataset.action === 'toggle-plan') {
+      const item = cart.find(x => x.id === btn.dataset.id);
+      if (item) { item.planOpen = !item.planOpen; renderCart(); }
+    }
+  });
+
+  // Seed two items
+  cart = [
+    { id: crypto.randomUUID(), partNumber: 'AX-100', quantity: 1200, expeditedEnabled: true, manualStandard: null, manualExpedited: null },
+    { id: crypto.randomUUID(), partNumber: 'BR-200', quantity: 600, expeditedEnabled: false, manualStandard: null, manualExpedited: null }
+  ];
+  renderCart();
+</script>
+
+<!-- ═══════════════════════════════════════════════
+     DEMO SLIDES
+     ═══════════════════════════════════════════════ -->
+<style>
+  .demo-section {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 24px 64px;
+  }
+
+  .demo-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .demo-divider-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .demo-divider-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .demo-divider-label span {
+    width: 6px; height: 6px;
+    background: var(--border-strong);
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  /* Slide wrapper */
+  .demo-slides {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  /* Slide nav bar */
+  .ds-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+    gap: 16px;
+  }
+
+  .ds-tabs {
+    display: flex;
+    gap: 4px;
+  }
+
+  .ds-tab {
+    height: 30px;
+    padding: 0 14px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-3);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .ds-tab:hover { color: var(--text-2); background: var(--border); }
+
+  .ds-tab.active {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .ds-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ds-counter {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-3);
+  }
+
+  .ds-btn {
+    height: 30px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--text);
+    transition: all 0.15s;
+  }
+  .ds-btn:hover { background: var(--surface-2); }
+  .ds-btn:disabled { opacity: 0.35; cursor: default; }
+  .ds-btn.ds-primary {
+    background: var(--text);
+    color: var(--surface);
+    border-color: transparent;
+  }
+  .ds-btn.ds-primary:hover { opacity: 0.85; }
+
+  /* Slides */
+  .ds-slide { display: none; }
+  .ds-slide.active { display: block; }
+
+  /* ── Slide 1: Overview ── */
+  .ds-slide-head {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ds-slide-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+  .ds-slide-sub { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+
+  .flow-diagram {
+    display: flex;
+    align-items: stretch;
+    padding: 24px;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  .fd-box {
+    flex: 1;
+    min-width: 120px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 14px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .fd-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    margin-bottom: 4px;
+  }
+
+  .fd-icon.blue { background: var(--blue-bg); }
+  .fd-icon.green { background: var(--green-bg); }
+  .fd-icon.amber { background: var(--amber-bg); }
+  .fd-icon.slate { background: var(--slate-bg); }
+
+  .fd-label { font-size: 13px; font-weight: 700; }
+  .fd-sub { font-size: 11px; color: var(--text-3); line-height: 1.4; }
+  .fd-eta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-3); margin-top: 2px; }
+
+  .fd-arr {
+    width: 32px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-3);
+    font-size: 18px;
+    padding-bottom: 8px;
+  }
+
+  .flow-legend {
+    display: flex;
+    gap: 8px;
+    padding: 0 24px 20px;
+    flex-wrap: wrap;
+  }
+
+  .fl-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+  }
+  .fl-pill.green { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+  .fl-pill.amber { background: var(--amber-bg); color: var(--amber); border-color: var(--amber-border); }
+  .fl-pill.slate { background: var(--slate-bg); color: var(--slate); border-color: var(--slate-border); }
+
+  /* ── Slide 2: Logic ── */
+  .alloc-demo {
+    padding: 20px 24px;
+  }
+
+  .alloc-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 14px 16px;
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+
+  .alloc-toggle-label { font-size: 13px; color: var(--text-2); }
+
+  .demo-tog {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .demo-tog-track {
+    width: 36px; height: 20px;
+    border-radius: 999px;
+    background: var(--border-strong);
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .demo-tog-track.on { background: var(--blue); }
+  .demo-tog-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: white;
+    position: absolute;
+    top: 3px; left: 3px;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .demo-tog-track.on .demo-tog-thumb { transform: translateX(16px); }
+  .demo-tog-text { font-size: 13px; font-weight: 600; }
+
+  .alloc-hint { font-size: 12px; color: var(--text-3); margin-left: auto; font-style: italic; }
+
+  .alloc-scenario {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .alloc-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    position: relative;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .alloc-card.hi {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(26,86,219,0.06);
+  }
+
+  .alloc-card-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+  .alloc-card.hi .alloc-card-label { color: var(--blue); }
+
+  .alloc-bar-wrap { margin-bottom: 10px; }
+  .alloc-bar-track {
+    height: 18px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--surface-2);
+    display: flex;
+  }
+  .alloc-seg {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: white;
+    transition: width 0.4s ease;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .alloc-seg.std { background: #2da866; }
+  .alloc-seg.exp { background: #f59e0b; }
+  .alloc-seg.bko { background: #94a3b8; }
+
+  .alloc-stats {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .alloc-stat {
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-2);
+  }
+  .alloc-stat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  .alloc-legend-row {
+    display: flex;
+    gap: 16px;
+    padding: 12px 16px;
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    flex-wrap: wrap;
+  }
+
+  .al-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-2); }
+  .al-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ── Slide 3: Hidden panel ── */
+  .mock-wrap { padding: 20px 24px; }
+
+  .mock-line-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .mlc-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .mlc-info .mlc-part {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-3);
+    margin-bottom: 2px;
+  }
+  .mlc-info .mlc-name { font-size: 14px; font-weight: 600; }
+
+  .mlc-tags { display: flex; gap: 6px; }
+
+  .mlc-edit-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 5px 10px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .mlc-edit-btn:hover { border-color: var(--border-strong); color: var(--text); }
+  .mlc-edit-btn.open { background: var(--blue-bg); border-color: var(--blue); color: var(--blue); }
+
+  .mlc-plan {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.3s ease;
+    padding: 0 16px;
+  }
+  .mlc-plan.open {
+    max-height: 200px;
+    opacity: 1;
+    padding: 14px 16px;
+  }
+
+  .mlc-inputs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .mlc-field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .mlc-field input {
+    width: 100%;
+    height: 34px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--surface);
+  }
+  .mlc-field.gf input { border-color: var(--green-border); background: var(--green-bg); }
+  .mlc-field.af input { border-color: var(--amber-border); background: var(--amber-bg); }
+  .mlc-field input:disabled { background: var(--surface-2); color: var(--text-2); }
+
+  .mlc-prog {
+    height: 5px; border-radius: 999px; overflow: hidden; display: flex;
+    background: var(--surface-2);
+  }
+
+  .demo-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--blue-bg);
+    border: 1px solid rgba(26,86,219,0.15);
+    border-radius: var(--radius);
+    font-size: 12px;
+    color: var(--blue);
+    line-height: 1.5;
+  }
+  .demo-note-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── Slide 4: Rules ── */
+  .rules-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 20px 24px;
+  }
+
+  .rule-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+  .rule-card.hi {
+    background: var(--blue-bg);
+    border-color: rgba(26,86,219,0.2);
+  }
+
+  .rule-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-3);
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+  }
+  .rule-card.hi .rule-num { color: rgba(26,86,219,0.5); }
+
+  .rule-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .rule-card.hi .rule-title { color: var(--blue); }
+
+  .rule-desc { font-size: 12px; color: var(--text-2); line-height: 1.55; }
+  .rule-card.hi .rule-desc { color: rgba(26,86,219,0.75); }
+</style>
+
+<div class="demo-section">
+  <!-- Divider -->
+  <div class="demo-divider">
+    <div class="demo-divider-line"></div>
+    <div class="demo-divider-label"><span></span>Feature walkthrough<span></span></div>
+    <div class="demo-divider-line"></div>
+  </div>
+
+  <div class="demo-slides">
+
+    <!-- Nav bar -->
+    <div class="ds-nav">
+      <div class="ds-tabs">
+        <button class="ds-tab active" onclick="demoGoTo(0)">Overview</button>
+        <button class="ds-tab" onclick="demoGoTo(1)">Allocation logic</button>
+        <button class="ds-tab" onclick="demoGoTo(2)">On-demand editing</button>
+        <button class="ds-tab" onclick="demoGoTo(3)">Core rules</button>
+      </div>
+      <div class="ds-nav-right">
+        <span class="ds-counter" id="dsCounter">1 / 4</span>
+        <button class="ds-btn" id="dsPrev" onclick="demoGo(-1)" disabled>← Prev</button>
+        <button class="ds-btn ds-primary" id="dsNext" onclick="demoGo(1)">Next →</button>
+      </div>
+    </div>
+
+    <!-- Slide 1: Overview -->
+    <div class="ds-slide active" id="ds0">
+      <div class="ds-slide-head">
+        <div class="ds-slide-title">Fulfillment planning at a glance</div>
+        <div class="ds-slide-sub">When a product is added to cart, units are distributed across three channels based on the shipping choice made at that moment.</div>
+      </div>
+      <div class="flow-diagram">
+        <div class="fd-box">
+          <div class="fd-icon blue">🛒</div>
+          <div class="fd-label">Add to cart</div>
+          <div class="fd-sub">Part number, quantity & shipping preference</div>
+        </div>
+        <div class="fd-arr">→</div>
+        <div class="fd-box">
+          <div class="fd-icon green">📦</div>
+          <div class="fd-label">Standard</div>
+          <div class="fd-sub">Fills first when expedited is off</div>
+          <div class="fd-eta">3–5 days</div>
+        </div>
+        <div class="fd-arr">→</div>
+        <div class="fd-box">
+          <div class="fd-icon amber">⚡</div>
+          <div class="fd-label">Expedited</div>
+          <div class="fd-sub">Fills first when expedited is on</div>
+          <div class="fd-eta">Next day</div>
+        </div>
+        <div class="fd-arr">→</div>
+        <div class="fd-box">
+          <div class="fd-icon slate">🕐</div>
+          <div class="fd-label">Backorder</div>
+          <div class="fd-sub">Auto-calculated remainder</div>
+          <div class="fd-eta">2–4 weeks</div>
+        </div>
+      </div>
+      <div class="flow-legend">
+        <span class="fl-pill green">Standard: fills to cap first (no expedited)</span>
+        <span class="fl-pill amber">Expedited: fills to cap first (if selected)</span>
+        <span class="fl-pill slate">Backorder: qty − standard − expedited</span>
+      </div>
+    </div>
+
+    <!-- Slide 2: Logic -->
+    <div class="ds-slide" id="ds1">
+      <div class="ds-slide-head">
+        <div class="ds-slide-title">The allocation logic</div>
+        <div class="ds-slide-sub">Toggle expedited on/off to see how 1,200 units of AX-100 (cap: 800 standard, 300 expedited) are redistributed in real time.</div>
+      </div>
+      <div class="alloc-demo">
+        <div class="alloc-toggle-row">
+          <span class="alloc-toggle-label">Expedited shipping:</span>
+          <div class="demo-tog" id="demoTog" onclick="demoToggleExp()">
+            <div class="demo-tog-track on" id="demoTogTrack"><div class="demo-tog-thumb"></div></div>
+            <span class="demo-tog-text" id="demoTogText">On</span>
+          </div>
+          <span class="alloc-hint">← try toggling this</span>
+        </div>
+
+        <div class="alloc-scenario">
+          <div class="alloc-card" id="demoCardExp">
+            <div class="alloc-card-label">Expedited ON</div>
+            <div class="alloc-bar-wrap">
+              <div class="alloc-bar-track">
+                <div class="alloc-seg exp" id="demoExpExp" style="width:25%">300</div>
+                <div class="alloc-seg std" id="demoExpStd" style="width:66.7%">800</div>
+                <div class="alloc-seg bko" id="demoExpBko" style="width:8.3%">100</div>
+              </div>
+            </div>
+            <div class="alloc-stats">
+              <div class="alloc-stat"><div class="alloc-stat-dot" style="background:#f59e0b"></div><span id="demoExpExpLbl">Expedited: 300</span></div>
+              <div class="alloc-stat"><div class="alloc-stat-dot" style="background:#2da866"></div><span id="demoExpStdLbl">Standard: 800</span></div>
+              <div class="alloc-stat"><div class="alloc-stat-dot" style="background:#94a3b8"></div><span id="demoExpBkoLbl">Backorder: 100</span></div>
+            </div>
+          </div>
+          <div class="alloc-card" id="demoCardStd">
+            <div class="alloc-card-label">Expedited OFF</div>
+            <div class="alloc-bar-wrap">
+              <div class="alloc-bar-track">
+                <div class="alloc-seg std" id="demoStdStd" style="width:66.7%">800</div>
+                <div class="alloc-seg bko" id="demoStdBko" style="width:33.3%">400</div>
+              </div>
+            </div>
+            <div class="alloc-stats">
+              <div class="alloc-stat"><div class="alloc-stat-dot" style="background:#2da866"></div><span id="demoStdStdLbl">Standard: 800</span></div>
+              <div class="alloc-stat"><div class="alloc-stat-dot" style="background:#94a3b8"></div><span id="demoStdBkoLbl">Backorder: 400</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="alloc-legend-row">
+          <div class="al-item"><div class="al-dot" style="background:#f59e0b"></div>Expedited fills first when on — max possible units go to fast shipping</div>
+          <div class="al-item"><div class="al-dot" style="background:#2da866"></div>Standard absorbs the rest up to its own cap</div>
+          <div class="al-item"><div class="al-dot" style="background:#94a3b8"></div>Backorder is always qty − standard − expedited (auto, read-only)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3: Hidden panel -->
+    <div class="ds-slide" id="ds2">
+      <div class="ds-slide-head">
+        <div class="ds-slide-title">On-demand plan editor</div>
+        <div class="ds-slide-sub">The fulfillment breakdown is hidden by default to keep the cart clean. Users expand and override it only when needed.</div>
+      </div>
+      <div class="mock-wrap">
+        <div class="mock-line-card">
+          <div class="mlc-head">
+            <div class="mlc-info">
+              <div class="mlc-part">AX-100</div>
+              <div class="mlc-name">Stainless Steel Fasteners</div>
+            </div>
+            <div class="mlc-tags">
+              <span class="tag standard">800 standard</span>
+              <span class="tag expedited">300 expedited</span>
+              <span class="tag backorder">100 backorder</span>
+            </div>
+            <button class="mlc-edit-btn" id="mockEditBtn" onclick="toggleMockPlan()">
+              <span id="mockEditIcon">▼</span>
+              Edit plan
+            </button>
+          </div>
+          <div class="mlc-plan" id="mockPlan">
+            <div class="mlc-inputs">
+              <div class="mlc-field gf">
+                <label>Standard</label>
+                <input type="number" value="800" />
+              </div>
+              <div class="mlc-field af">
+                <label>Expedited</label>
+                <input type="number" value="300" />
+              </div>
+              <div class="mlc-field">
+                <label>Backorder</label>
+                <input type="number" value="100" disabled />
+              </div>
+            </div>
+            <div class="mlc-prog">
+              <div class="alloc-seg std" style="width:66.7%"></div>
+              <div class="alloc-seg exp" style="width:25%"></div>
+              <div class="alloc-seg bko" style="width:8.3%"></div>
+            </div>
+          </div>
+        </div>
+        <div class="demo-note">
+          <span class="demo-note-icon">ℹ</span>
+          <span>Click <strong>Edit plan</strong> above to expand the override controls. The summary pills are always visible — the editable breakdown only appears on demand. Backorder recalculates automatically and is always read-only.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 4: Core rules -->
+    <div class="ds-slide" id="ds3">
+      <div class="ds-slide-head">
+        <div class="ds-slide-title">Four core rules</div>
+        <div class="ds-slide-sub">The entire fulfillment plan derives from these four decisions.</div>
+      </div>
+      <div class="rules-grid">
+        <div class="rule-card hi">
+          <div class="rule-num">RULE 01</div>
+          <div class="rule-title">Expedited-first when selected</div>
+          <div class="rule-desc">If expedited shipping is toggled on at the time of adding to cart, the system allocates as many units as the expedited cap allows — before touching standard inventory.</div>
+        </div>
+        <div class="rule-card">
+          <div class="rule-num">RULE 02</div>
+          <div class="rule-title">Standard-first otherwise</div>
+          <div class="rule-desc">Without expedited, standard allocation absorbs units up to its cap. Expedited stays at zero regardless of available capacity.</div>
+        </div>
+        <div class="rule-card">
+          <div class="rule-num">RULE 03</div>
+          <div class="rule-title">Backorder is always the remainder</div>
+          <div class="rule-desc">Backorder = qty − standard − expedited. It is read-only and recalculates instantly on every quantity or allocation change.</div>
+        </div>
+        <div class="rule-card">
+          <div class="rule-num">RULE 04</div>
+          <div class="rule-title">Plan is hidden until requested</div>
+          <div class="rule-desc">Default cart view shows only the summary pills. The editable breakdown is on-demand — expand per line item only when an override is needed.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  /* ── Demo slides logic ── */
+  let demoCur = 0;
+  const demoTotal = 4;
+
+  function demoGoTo(n) {
+    document.getElementById('ds' + demoCur).classList.remove('active');
+    document.querySelectorAll('.ds-tab')[demoCur].classList.remove('active');
+    demoCur = n;
+    document.getElementById('ds' + demoCur).classList.add('active');
+    document.querySelectorAll('.ds-tab')[demoCur].classList.add('active');
+    document.getElementById('dsCounter').textContent = (demoCur + 1) + ' / ' + demoTotal;
+    document.getElementById('dsPrev').disabled = demoCur === 0;
+    const nb = document.getElementById('dsNext');
+    if (demoCur === demoTotal - 1) {
+      nb.textContent = 'Done ✓';
+      nb.disabled = true;
+      nb.classList.remove('ds-primary');
+    } else {
+      nb.textContent = 'Next →';
+      nb.disabled = false;
+      nb.classList.add('ds-primary');
+    }
+  }
+
+  function demoGo(d) { demoGoTo(Math.max(0, Math.min(demoTotal - 1, demoCur + d))); }
+
+  /* Slide 2 toggle */
+  let demoExpOn = true;
+  function demoToggleExp() {
+    demoExpOn = !demoExpOn;
+    document.getElementById('demoTogTrack').classList.toggle('on', demoExpOn);
+    document.getElementById('demoTogText').textContent = demoExpOn ? 'On' : 'Off';
+
+    const qty = 1200, stdCap = 800, expCap = 300;
+    const pct = v => (v / qty * 100).toFixed(1) + '%';
+
+    // Highlight active card
+    document.getElementById('demoCardExp').classList.toggle('hi', demoExpOn);
+    document.getElementById('demoCardStd').classList.toggle('hi', !demoExpOn);
+
+    if (demoExpOn) {
+      const exp = 300, std = 800, bko = 100;
+      document.getElementById('demoExpExp').style.width = pct(exp);
+      document.getElementById('demoExpExp').textContent = exp;
+      document.getElementById('demoExpStd').style.width = pct(std);
+      document.getElementById('demoExpStd').textContent = std;
+      document.getElementById('demoExpBko').style.width = pct(bko);
+      document.getElementById('demoExpBko').textContent = bko;
+      document.getElementById('demoExpExpLbl').textContent = 'Expedited: ' + exp;
+      document.getElementById('demoExpStdLbl').textContent = 'Standard: ' + std;
+      document.getElementById('demoExpBkoLbl').textContent = 'Backorder: ' + bko;
+    } else {
+      document.getElementById('demoExpExp').style.width = '0%';
+      document.getElementById('demoExpExp').textContent = '';
+      document.getElementById('demoExpStd').style.width = pct(800);
+      document.getElementById('demoExpStd').textContent = 800;
+      document.getElementById('demoExpBko').style.width = pct(400);
+      document.getElementById('demoExpBko').textContent = 400;
+      document.getElementById('demoExpExpLbl').textContent = 'Expedited: 0';
+      document.getElementById('demoExpStdLbl').textContent = 'Standard: 800';
+      document.getElementById('demoExpBkoLbl').textContent = 'Backorder: 400';
+    }
+  }
+
+  // Init card highlights
+  document.getElementById('demoCardExp').classList.add('hi');
+
+  /* Slide 3 edit plan toggle */
+  let mockOpen = false;
+  function toggleMockPlan() {
+    mockOpen = !mockOpen;
+    document.getElementById('mockPlan').classList.toggle('open', mockOpen);
+    document.getElementById('mockEditIcon').textContent = mockOpen ? '▲' : '▼';
+    document.getElementById('mockEditBtn').classList.toggle('open', mockOpen);
+  }
+</script>
 </body>
 </html>
