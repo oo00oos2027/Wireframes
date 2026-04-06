@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HFA Franchise — Franchisee Portal</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+body { background: #0034A0; min-height: 100vh; display: flex; flex-direction: column; }
+.login-shell { flex: 1; display: flex; min-height: calc(100vh - 60px); }
+
+/* LEFT BRAND PANEL */
+.brand-panel {
+  flex: 0 0 480px; background: linear-gradient(160deg, #001F6B 0%, #0034A0 40%, #0052CC 100%);
+  display: flex; flex-direction: column; padding: 48px; color: white;
+  position: relative; overflow: hidden;
+}
+.brand-panel::before {
+  content: ''; position: absolute; top: -80px; right: -80px;
+  width: 300px; height: 300px; border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+}
+.brand-panel::after {
+  content: ''; position: absolute; bottom: -60px; left: -60px;
+  width: 250px; height: 250px; border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+}
+.brand-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 56px; }
+.brand-logo .icon { width: 44px; height: 44px; background: rgba(255,255,255,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.brand-logo .name { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+.brand-panel h2 { font-size: 32px; font-weight: 800; line-height: 1.2; margin-bottom: 16px; letter-spacing: -0.5px; }
+.brand-panel p { font-size: 15px; opacity: 0.8; line-height: 1.7; margin-bottom: 40px; }
+.brand-stats { display: flex; flex-direction: column; gap: 16px; margin-bottom: 48px; }
+.brand-stat { display: flex; align-items: center; gap: 14px; }
+.brand-stat .icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.brand-stat .info .val { font-size: 18px; font-weight: 800; }
+.brand-stat .info .lbl { font-size: 12px; opacity: 0.7; }
+.brand-quote { border-left: 3px solid rgba(255,255,255,0.3); padding-left: 16px; margin-top: auto; }
+.brand-quote p { font-size: 13px; font-style: italic; opacity: 0.7; margin-bottom: 6px; }
+.brand-quote .attr { font-size: 12px; opacity: 0.5; }
+
+/* RIGHT FORM PANEL */
+.form-panel { flex: 1; background: white; display: flex; align-items: center; justify-content: center; padding: 48px 32px; }
+.form-box { width: 100%; max-width: 420px; }
+.form-box h3 { font-size: 26px; font-weight: 800; color: var(--gray-900); margin-bottom: 4px; }
+.form-box .subtitle { font-size: 14px; color: var(--gray-500); margin-bottom: 32px; }
+.role-tabs { display: flex; gap: 0; background: var(--gray-100); border-radius: 8px; padding: 4px; margin-bottom: 28px; }
+.role-tab { flex: 1; text-align: center; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--gray-500); transition: all 0.15s; border: none; background: none; }
+.role-tab.active { background: white; color: var(--primary); box-shadow: var(--shadow-sm); }
+.divider-text { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--gray-400); font-size: 12px; }
+.divider-text::before, .divider-text::after { content: ''; flex: 1; height: 1px; background: var(--gray-200); }
+.demo-card { background: var(--gray-50); border: 1.5px solid var(--gray-200); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 20px; cursor: pointer; transition: all 0.15s; }
+.demo-card:hover { border-color: var(--primary-light); background: #F0F5FF; }
+.demo-card .demo-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 4px; }
+.demo-card .demo-creds { font-size: 13px; color: var(--gray-600); }
+.demo-card .demo-creds strong { color: var(--gray-800); }
+@media (max-width: 900px) { .brand-panel { display: none; } }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div style="height:60px;background:rgba(0,0,0,0.2);display:flex;align-items:center;padding:0 24px;gap:16px">
+  <a class="brand" href="index.html" style="color:white;text-decoration:none;display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px">
+    <div style="width:32px;height:32px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">🏪</div>
+    HFA Franchise
+  </a>
+  <div style="flex:1"></div>
+  <a href="index.html" style="color:rgba(255,255,255,0.7);font-size:13px;text-decoration:none">Corporate Admin →</a>
+</div>
+
+<div class="login-shell">
+
+  <!-- BRAND PANEL -->
+  <div class="brand-panel">
+    <div class="brand-logo">
+      <div class="icon">🏪</div>
+      <div class="name">HFA Franchisee Portal</div>
+    </div>
+    <h2>Your Franchise. Your Future.</h2>
+    <p>Manage your entire journey from application to grand opening — and track every store you own, all in one place.</p>
+    <div class="brand-stats">
+      <div class="brand-stat"><div class="icon">💰</div><div class="info"><div class="val">$185K – $627K</div><div class="lbl">Total investment range</div></div></div>
+      <div class="brand-stat"><div class="icon">📍</div><div class="info"><div class="val">18+ Markets</div><div class="lbl">Available territories in Texas</div></div></div>
+      <div class="brand-stat"><div class="icon">⚡</div><div class="info"><div class="val">~6 Months</div><div class="lbl">Average time from agreement to open</div></div></div>
+      <div class="brand-stat"><div class="icon">🤝</div><div class="info"><div class="val">Dedicated Rep</div><div class="lbl">Assigned from day one</div></div></div>
+    </div>
+    <div class="brand-quote">
+      <p>"The HFA team guided us through every step. We went from signing to grand opening in just 5 months!"</p>
+      <div class="attr">— Angela Brooks, Austin South Franchisee (Opened Feb 2026)</div>
+    </div>
+  </div>
+
+  <!-- FORM PANEL -->
+  <div class="form-panel">
+    <div class="form-box">
+      <h3 id="form-title">Welcome Back</h3>
+      <p class="subtitle" id="form-subtitle">Sign in to your franchisee account</p>
+
+      <!-- ROLE TABS -->
+      <div class="role-tabs">
+        <button class="role-tab active" onclick="setMode('login')" id="tab-login">Sign In</button>
+        <button class="role-tab" onclick="setMode('register')" id="tab-register">Create Account</button>
+      </div>
+
+      <!-- DEMO QUICK-FILL -->
+      <div class="demo-card" onclick="fillDemo()" id="demo-fill-card">
+        <div class="demo-title">🧪 Demo Account — Click to Auto-Fill</div>
+        <div class="demo-creds"><strong>Email:</strong> sarah@mitchellventures.com &nbsp;|&nbsp; <strong>Password:</strong> demo123</div>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="login-form">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-control" id="l-email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div style="position:relative">
+            <input type="password" class="form-control" id="l-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+            <button onclick="togglePwd('l-password',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:16px">👁</button>
+          </div>
+        </div>
+        <div id="login-error" style="display:none" class="alert alert-danger"><div class="alert-icon">⚠️</div><div class="alert-text"><p id="login-error-msg"></p></div></div>
+        <button class="btn btn-primary" style="width:100%;padding:12px;font-size:15px;margin-top:4px" onclick="doLogin()">Sign In →</button>
+        <div class="divider-text">or</div>
+        <button class="btn btn-ghost" style="width:100%;padding:11px" onclick="setMode('register')">Create a New Account</button>
+      </div>
+
+      <!-- REGISTER REDIRECT -->
+      <div id="register-form" style="display:none">
+        <div class="alert alert-info">
+          <div class="alert-icon">ℹ️</div>
+          <div class="alert-text">
+            <h5>Multi-Step Registration</h5>
+            <p>Creating your account takes about 5 minutes. We'll walk you through your business profile, financial info, and required documents.</p>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-lg" style="width:100%" onclick="window.location.href='franchisee-register.html'">Start Registration Wizard →</button>
+        <div class="divider-text">already have an account?</div>
+        <button class="btn btn-ghost" style="width:100%;padding:11px" onclick="setMode('login')">← Back to Sign In</button>
+      </div>
+
+      <div style="margin-top:24px;text-align:center;font-size:12px;color:var(--gray-400)">
+        Need help? Contact your HFA Development Rep or email <span style="color:var(--primary)">franchise@hfa.com</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script src="franchisee-app.js"></script>
+<script>
+// If already logged in, go to dashboard
+if (FranchiseeDB.getCurrentSession()) window.location.href = 'franchisee-dashboard.html';
+
+function setMode(mode) {
+  const isLogin = mode === 'login';
+  document.getElementById('tab-login').className = 'role-tab' + (isLogin ? ' active' : '');
+  document.getElementById('tab-register').className = 'role-tab' + (!isLogin ? ' active' : '');
+  document.getElementById('login-form').style.display = isLogin ? '' : 'none';
+  document.getElementById('register-form').style.display = !isLogin ? '' : 'none';
+  document.getElementById('demo-fill-card').style.display = isLogin ? '' : 'none';
+  document.getElementById('form-title').textContent = isLogin ? 'Welcome Back' : 'Create Your Account';
+  document.getElementById('form-subtitle').textContent = isLogin ? 'Sign in to your franchisee account' : 'Start your franchise journey today';
+}
+
+function fillDemo() {
+  document.getElementById('l-email').value = 'sarah@mitchellventures.com';
+  document.getElementById('l-password').value = 'demo123';
+  toast('Demo credentials filled — click Sign In', 'info');
+}
+
+function togglePwd(id, btn) {
+  const el = document.getElementById(id);
+  el.type = el.type === 'password' ? 'text' : 'password';
+  btn.textContent = el.type === 'password' ? '👁' : '🙈';
+}
+
+function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const password = document.getElementById('l-password').value;
+  const errEl = document.getElementById('login-error');
+  const errMsg = document.getElementById('login-error-msg');
+  errEl.style.display = 'none';
+  if (!email || !password) { errEl.style.display = 'flex'; errMsg.textContent = 'Please enter your email and password.'; return; }
+  const user = FranchiseeDB.login(email, password);
+  if (user) {
+    toast(`Welcome back, ${user.firstName}!`, 'success');
+    setTimeout(() => window.location.href = 'franchisee-dashboard.html', 600);
+  } else {
+    errEl.style.display = 'flex';
+    errMsg.textContent = 'Invalid email or password. Try the demo account above.';
+  }
+}
+</script>
+</body>
+</html>

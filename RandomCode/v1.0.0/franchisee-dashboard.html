@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HFA Franchise — My Dashboard</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.portal-topnav { background: #001F6B; height: 60px; display: flex; align-items: center; padding: 0 24px; gap: 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.portal-topnav .brand { color: white; text-decoration: none; font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 10px; margin-right: 32px; }
+.portal-topnav .brand .icon { width: 34px; height: 34px; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+.portal-topnav nav { display: flex; gap: 4px; flex: 1; }
+.portal-topnav nav a { color: rgba(255,255,255,0.75); text-decoration: none; padding: 7px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+.portal-topnav nav a:hover, .portal-topnav nav a.active { background: rgba(255,255,255,0.18); color: white; }
+.portal-topnav .user-info { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.85); font-size: 13px; cursor: pointer; }
+.portal-topnav .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; font-size: 12px; }
+
+.welcome-band { background: linear-gradient(90deg, #001F6B 0%, #0052CC 100%); padding: 28px 28px 0; color: white; }
+.welcome-band h2 { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+.welcome-band p { font-size: 14px; opacity: 0.8; }
+.profile-tabs { display: flex; gap: 0; margin-top: 20px; }
+.profile-tab { padding: 10px 20px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.15s; border: none; background: none; }
+.profile-tab.active { color: white; border-bottom-color: white; }
+
+.action-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: var(--radius); border: 1.5px solid var(--gray-200); margin-bottom: 8px; transition: all 0.15s; }
+.action-item:hover { border-color: var(--primary-light); box-shadow: var(--shadow-sm); }
+.action-item.high { border-left: 3px solid var(--danger); }
+.action-item.medium { border-left: 3px solid var(--warning); }
+.action-item.low { border-left: 3px solid var(--primary); }
+.action-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.action-dot.high { background: var(--danger); }
+.action-dot.medium { background: var(--warning); }
+.action-dot.low { background: var(--primary); }
+
+.store-card { background: white; border-radius: var(--radius-lg); border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm); overflow: hidden; transition: all 0.15s; cursor: pointer; }
+.store-card:hover { box-shadow: var(--shadow-md); border-color: var(--primary-light); transform: translateY(-2px); }
+.store-card .store-header { padding: 16px 18px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: flex-start; justify-content: space-between; }
+.store-card .store-body { padding: 16px 18px; }
+.store-card .store-footer { padding: 12px 18px; background: var(--gray-50); border-top: 1px solid var(--gray-100); display: flex; align-items: center; justify-content: space-between; }
+.open-store-card { border-color: #ABF5D1; border-left: 4px solid var(--secondary); }
+.open-store-card .store-header { background: linear-gradient(90deg, #E3FCEF, white); }
+
+.doc-status-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+.doc-status-row:last-child { border-bottom: none; }
+.doc-check { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+.doc-check.done { background: var(--secondary); color: white; }
+.doc-check.pending { background: var(--gray-100); color: var(--gray-400); font-size: 9px; border: 2px solid var(--gray-300); }
+
+.mini-journey { display: flex; align-items: center; overflow-x: auto; padding: 2px 0; }
+.mini-stage { display: flex; align-items: center; flex-shrink: 0; }
+.mini-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--gray-200); display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; }
+.mini-connector { width: 18px; height: 2px; background: var(--gray-200); }
+
+@media(max-width:900px) { .dashboard-layout { flex-direction: column !important; } }
+</style>
+</head>
+<body>
+
+<!-- PORTAL TOP NAV -->
+<header class="portal-topnav">
+  <a class="brand" href="franchisee-dashboard.html">
+    <div class="icon">🏪</div>My Franchise Portal
+  </a>
+  <nav>
+    <a href="franchisee-dashboard.html" class="active">🏠 Dashboard</a>
+    <a href="franchisee-store.html" id="nav-stores">🏪 My Stores</a>
+    <a href="index.html">📊 Corporate View</a>
+  </nav>
+  <div class="user-info" onclick="showProfileMenu()">
+    <div class="avatar" id="user-avatar">?</div>
+    <span id="user-name-nav">Loading...</span>
+    <span style="opacity:0.5">▾</span>
+  </div>
+</header>
+
+<!-- WELCOME BAND + TABS -->
+<div class="welcome-band">
+  <div style="max-width:1300px;margin:0 auto">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px">
+      <div>
+        <h2 id="welcome-name">Welcome back!</h2>
+        <p id="welcome-sub">Here's your franchise journey at a glance.</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+        <div id="profile-completion-badge"></div>
+        <a href="franchisee-store.html?action=new" class="btn btn-secondary" style="background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.3);color:white">+ Apply for New Store</a>
+      </div>
+    </div>
+    <div class="profile-tabs" id="profile-tabs">
+      <button class="profile-tab active" onclick="showTab('overview')" id="tab-overview">Overview</button>
+      <button class="profile-tab" onclick="showTab('stores')" id="tab-stores">My Stores</button>
+      <button class="profile-tab" onclick="showTab('documents')" id="tab-documents">Documents</button>
+      <button class="profile-tab" onclick="showTab('profile')" id="tab-profile">My Profile</button>
+    </div>
+  </div>
+</div>
+
+<div style="padding:24px;max-width:1300px;margin:0 auto">
+
+  <!-- ── TAB: OVERVIEW ── -->
+  <div id="view-overview">
+    <!-- METRICS -->
+    <div class="metrics-grid" id="my-metrics" style="margin-bottom:20px"></div>
+
+    <!-- REQUIRED ACTIONS BANNER -->
+    <div id="action-banner"></div>
+
+    <!-- LAYOUT: stores left, sidebar right -->
+    <div class="dashboard-layout" style="display:flex;gap:20px;align-items:flex-start">
+      <!-- STORES -->
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 style="font-size:16px;font-weight:700">My Store Pipeline</h3>
+          <a href="franchisee-store.html?action=new" class="btn btn-sm btn-secondary">+ New Store</a>
+        </div>
+        <div id="my-stores-list"></div>
+      </div>
+      <!-- SIDEBAR -->
+      <div style="flex:0 0 300px">
+        <!-- Rep Contact -->
+        <div class="card mb-16" id="rep-card"></div>
+        <!-- Profile Completion -->
+        <div class="card mb-16" id="completion-card"></div>
+        <!-- Quick Stats -->
+        <div class="card" id="quick-stats-card"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB: STORES ── -->
+  <div id="view-stores" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div><h2 style="font-size:20px;font-weight:800">My Store Applications & Open Stores</h2><p style="color:var(--gray-500);font-size:13px">Track progress for each location you're opening or already own</p></div>
+      <a href="franchisee-store.html?action=new" class="btn btn-primary">+ Apply for New Store</a>
+    </div>
+    <div id="stores-full-list"></div>
+  </div>
+
+  <!-- ── TAB: DOCUMENTS ── -->
+  <div id="view-documents" style="display:none" id="documents">
+    <div class="grid-2" style="gap:20px;align-items:start">
+      <div class="card">
+        <div class="card-header"><h3>Profile Documents</h3><span id="doc-pct-badge" class="badge badge-blue">0%</span></div>
+        <div class="card-body" id="doc-list"></div>
+      </div>
+      <div>
+        <div class="card mb-16">
+          <div class="card-header"><h3>FDD & Agreements</h3></div>
+          <div class="card-body" id="fdd-status"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Compliance Checklist</h3></div>
+          <div class="card-body" id="compliance-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB: PROFILE ── -->
+  <div id="view-profile" style="display:none">
+    <div class="grid-2" style="gap:20px;align-items:start">
+      <div class="card">
+        <div class="card-header"><h3>Personal Information</h3><button class="btn btn-sm btn-secondary" onclick="toggleEdit('personal')">Edit</button></div>
+        <div class="card-body" id="profile-personal"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Business Profile</h3><button class="btn btn-sm btn-secondary" onclick="toggleEdit('business')">Edit</button></div>
+        <div class="card-body" id="profile-business"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Financial Profile</h3></div>
+        <div class="card-body" id="profile-financial"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Account Settings</h3></div>
+        <div class="card-body">
+          <button class="btn btn-ghost btn-sm" onclick="changePassword()">Change Password</button>
+          <hr class="divider">
+          <button class="btn btn-ghost btn-sm" onclick="doLogout()" style="color:var(--danger)">Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NEW STORE MODAL -->
+<div class="modal-overlay" id="new-store-modal" onclick="if(event.target===this)closeNewStoreModal()">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header"><h3>Apply for New Store Location</h3><button class="modal-close" onclick="closeNewStoreModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="alert alert-info"><div class="alert-icon">ℹ️</div><div class="alert-text"><h5>Second Location?</h5><p>Multi-unit franchisees must have their first location open or in build-out before opening a second territory.</p></div></div>
+      <div class="form-group">
+        <label class="form-label">Preferred Territory <span class="required">*</span></label>
+        <select class="form-control" id="ns-territory"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Store Name (working title)</label>
+        <input type="text" class="form-control" id="ns-name" placeholder="e.g. Austin North — HFA">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Investment Budget <span class="required">*</span></label>
+          <div style="position:relative">
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-weight:700;color:var(--gray-400)">$</span>
+            <input type="number" class="form-control" id="ns-budget" placeholder="350000" style="padding-left:24px">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Funding Source</label>
+          <select class="form-control" id="ns-funding">
+            <option>Personal savings</option><option>SBA Loan</option>
+            <option>HELOC</option><option>401k Rollover</option><option>Investor</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes for your Development Rep</label>
+        <textarea class="form-control" id="ns-notes" rows="2" placeholder="Any specific site preferences, timeline requirements, etc."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeNewStoreModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitNewStore()">Submit Store Application →</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script src="franchisee-app.js"></script>
+<script>
+if (!FranchiseeDB.requireAuth()) throw new Error('redirect');
+
+const session = FranchiseeDB.getCurrentSession();
+let profile = FranchiseeDB.getProfile(session.id);
+let storeApps = FranchiseeDB.getStoreApps(session.id);
+
+// NAV
+document.getElementById('user-avatar').textContent = session.name.split(' ').map(n=>n[0]).join('');
+document.getElementById('user-name-nav').textContent = session.name;
+
+function init() {
+  profile = FranchiseeDB.getProfile(session.id);
+  storeApps = FranchiseeDB.getStoreApps(session.id);
+  const completion = FranchiseeDB.getProfileCompletion(profile);
+
+  document.getElementById('welcome-name').textContent = `Welcome back, ${profile.firstName}! 👋`;
+  document.getElementById('welcome-sub').textContent = `${profile.city}, ${profile.state} · Member since ${fmtDate(profile.createdAt)} · Rep: ${profile.repName}`;
+  document.getElementById('profile-completion-badge').innerHTML = `<span class="badge ${completion >= 80 ? 'badge-green' : completion >= 50 ? 'badge-yellow' : 'badge-red'}" style="font-size:12px">${completion}% Profile Complete</span>`;
+
+  renderMetrics();
+  renderActionBanner();
+  renderStoreCards('my-stores-list');
+  renderStoreCards('stores-full-list', true);
+  renderSidebar();
+  renderDocuments();
+  renderProfileTab();
+}
+
+function renderMetrics() {
+  const open = storeApps.filter(s => s.stage === 'open').length;
+  const inPipeline = storeApps.filter(s => s.stage !== 'open').length;
+  const totalInvestment = storeApps.reduce((s,a) => s + (a.investmentBudget || 0), 0);
+  const actions = FranchiseeDB.getMissingActions(profile);
+  document.getElementById('my-metrics').innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Stores in Pipeline</div>
+      <div class="metric-value">${inPipeline}</div>
+      <div class="metric-icon">🔀</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Open Stores</div>
+      <div class="metric-value" style="color:var(--secondary)">${open}</div>
+      <div class="metric-icon">🎉</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Total Investment</div>
+      <div class="metric-value" style="font-size:20px">${fmt$$(totalInvestment)}</div>
+      <div class="metric-icon">💰</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Action Items</div>
+      <div class="metric-value" style="color:${actions.length>0?'var(--danger)':'var(--secondary)'}">${actions.length}</div>
+      <div class="metric-icon">⚡</div>
+    </div>`;
+}
+
+function renderActionBanner() {
+  const actions = FranchiseeDB.getMissingActions(profile);
+  if (!actions.length) { document.getElementById('action-banner').innerHTML = `<div class="alert alert-success mb-16"><div class="alert-icon">✅</div><div class="alert-text"><h5>All clear!</h5><p>No pending action items. Your development rep will be in touch about next steps.</p></div></div>`; return; }
+  document.getElementById('action-banner').innerHTML = `
+    <div class="card mb-20">
+      <div class="card-header" style="background:#FFF5F5;border-bottom-color:#FFBDAD">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:18px">⚡</span>
+          <div><h3 style="color:var(--danger)">Action Required — ${actions.length} item${actions.length>1?'s':''} need your attention</h3><div style="font-size:12px;color:var(--gray-500)">Complete these to move your application forward</div></div>
+        </div>
+        <span class="badge badge-red">${actions.length} pending</span>
+      </div>
+      <div class="card-body" style="padding:12px 16px">
+        ${actions.map(a => `
+          <div class="action-item ${a.priority}" style="cursor:pointer" onclick="showTab('documents')">
+            <div class="action-dot ${a.priority}"></div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">${a.label}</div><div style="font-size:11px;color:var(--gray-400)">Click to complete in Documents tab</div></div>
+            <span class="badge ${a.priority==='high'?'badge-red':'badge-yellow'}">${a.priority}</span>
+            <span style="color:var(--primary);font-size:13px;margin-left:8px">→</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderStoreCards(containerId, showAll = false) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (!storeApps.length) {
+    container.innerHTML = `<div class="card" style="text-align:center;padding:40px"><div style="font-size:36px;margin-bottom:12px">🏗️</div><h3 style="font-size:17px;margin-bottom:8px">No store applications yet</h3><p style="color:var(--gray-500);margin-bottom:20px">Submit your first store application to start your journey</p><a href="franchisee-store.html?action=new" class="btn btn-primary">+ Apply for First Store</a></div>`;
+    return;
+  }
+  container.innerHTML = storeApps.map(store => {
+    const isOpen = store.stage === 'open';
+    const stageInfo = STAGES.find(s => s.id === store.stage) || STAGES[0];
+    const stageIdx = stageIndex(store.stage);
+    const pct = Math.round(stageIdx / (STAGES.length - 1) * 100);
+    const nextAction = getNextAction(store);
+    const status = storeStatusLabel(store.stage);
+    const milestonesDone = FranchiseeDB.getFMilestones(store.id).length;
+    const totalMilestones = NSO_MILESTONES.flatMap(ph => ph.items).length;
+
+    const miniJourney = STAGES.map((s,i) => `
+      <div class="mini-stage">
+        <div class="mini-dot" style="background:${i<stageIdx?'var(--secondary)':i===stageIdx?stageInfo.color:'var(--gray-200)'};border-color:${i<stageIdx?'var(--secondary)':i===stageIdx?stageInfo.color:'var(--gray-200)'};color:${i<=stageIdx?'white':'var(--gray-300)'}">
+          ${i < stageIdx ? '✓' : ''}
+        </div>
+        ${i < STAGES.length-1 ? `<div class="mini-connector" style="background:${i<stageIdx?'var(--secondary-light)':'var(--gray-200)'}"></div>` : ''}
+      </div>`).join('');
+
+    return `
+      <div class="store-card ${isOpen ? 'open-store-card' : ''} mb-16" onclick="window.location.href='franchisee-store.html?id=${store.id}'">
+        <div class="store-header">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span style="font-size:20px">${isOpen ? '🏪' : '🏗️'}</span>
+              <div>
+                <div style="font-size:16px;font-weight:800">${store.storeName}</div>
+                <div style="font-size:12px;color:var(--gray-500)">${store.territory} · Applied ${fmtDate(store.createdAt)}</div>
+              </div>
+            </div>
+          </div>
+          <span class="badge ${status.cls}">${status.label}</span>
+        </div>
+        <div class="store-body">
+          <!-- Mini Journey -->
+          <div style="overflow-x:auto;margin-bottom:12px"><div class="mini-journey">${miniJourney}</div></div>
+          <!-- Progress -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <div style="flex:1">
+              <div class="progress-bar-wrap"><div class="progress-bar-fill ${isOpen?'success':''}" style="width:${pct}%;background:${stageInfo.color}"></div></div>
+            </div>
+            <div style="font-size:12px;font-weight:700;color:${stageInfo.color};white-space:nowrap">${pct}% — ${stageInfo.label}</div>
+          </div>
+          <div class="form-row" style="gap:8px">
+            <div><div class="form-label">Investment</div><strong style="font-size:14px">${fmt$$(store.investmentBudget)}</strong></div>
+            <div><div class="form-label">Milestones</div><strong style="font-size:14px">${milestonesDone}/${totalMilestones}</strong></div>
+            ${store.estimatedOpenDate ? `<div><div class="form-label">Est. Opening</div><strong style="font-size:14px">${fmtDate(store.estimatedOpenDate)}</strong></div>` : ''}
+            <div><div class="form-label">Rep</div><strong style="font-size:13px">${store.repName.split(' ')[0]}</strong></div>
+          </div>
+        </div>
+        <div class="store-footer">
+          ${nextAction ? `
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:14px">${nextAction.type==='action'?'⚡':'⏳'}</span>
+              <div><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:${nextAction.type==='action'?'var(--danger)':'var(--gray-500)'}">${nextAction.type==='action'?'Action Required':'Awaiting'}</div><div style="font-size:12px;color:var(--gray-700)">${nextAction.label}</div></div>
+            </div>` : '<span style="font-size:12px;color:var(--secondary)">✓ No pending actions</span>'}
+          <a href="franchisee-store.html?id=${store.id}" class="btn btn-sm btn-secondary" onclick="event.stopPropagation()">View Details →</a>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderSidebar() {
+  // Rep Card
+  document.getElementById('rep-card').innerHTML = `
+    <div class="card-header"><h3>Your Development Rep</h3></div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="width:44px;height:44px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700">${(profile.repName||'JO').split(' ').map(n=>n[0]).join('')}</div>
+        <div><div style="font-weight:700;font-size:14px">${profile.repName || 'James Okafor'}</div><div style="font-size:12px;color:var(--gray-500)">Franchise Development Manager</div></div>
+      </div>
+      <a href="mailto:${profile.repEmail}" class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;margin-bottom:6px">✉ ${profile.repEmail || 'james.okafor@hfa.com'}</a>
+      <a href="tel:${profile.repPhone}" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center">${profile.repPhone || '(512) 555-9900'}</a>
+    </div>`;
+
+  // Completion Card
+  const completion = FranchiseeDB.getProfileCompletion(profile);
+  const actions = FranchiseeDB.getMissingActions(profile);
+  document.getElementById('completion-card').innerHTML = `
+    <div class="card-header"><h3>Profile Completion</h3></div>
+    <div class="card-body">
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="font-size:36px;font-weight:900;color:${completion>=80?'var(--secondary)':completion>=50?'var(--primary)':'var(--warning)'}">${completion}%</div>
+        <div style="font-size:12px;color:var(--gray-500)">complete</div>
+      </div>
+      <div class="progress-bar-wrap" style="height:8px;margin-bottom:14px"><div class="progress-bar-fill ${completion>=100?'success':''}" style="width:${completion}%"></div></div>
+      ${actions.length > 0 ? `<div style="font-size:12px;color:var(--danger);font-weight:600;margin-bottom:8px">⚡ ${actions.length} action${actions.length>1?'s':''} required</div>
+        ${actions.slice(0,3).map(a=>`<div style="font-size:11px;color:var(--gray-600);padding:4px 0;border-bottom:1px solid var(--gray-100)">· ${a.label}</div>`).join('')}
+        <button class="btn btn-secondary btn-sm" style="width:100%;margin-top:10px" onclick="showTab('documents')">Complete Documents →</button>`
+        : `<div class="alert alert-success" style="padding:8px 12px"><div style="font-size:12px">✅ Profile is complete!</div></div>`}
+    </div>`;
+
+  // Quick stats
+  const totalInv = storeApps.reduce((s,a) => s+(a.investmentBudget||0), 0);
+  document.getElementById('quick-stats-card').innerHTML = `
+    <div class="card-header"><h3>Quick Stats</h3></div>
+    <div class="card-body" style="padding:12px 16px">
+      ${[
+        ['Total Applications', storeApps.length],
+        ['Open Stores', storeApps.filter(s=>s.stage==='open').length],
+        ['Total Committed', fmt$$(totalInv)],
+        ['Account Since', fmtDate(profile.createdAt)],
+      ].map(([l,v]) => `<div class="review-row"><span class="label" style="font-size:12px">${l}</span><span class="value" style="font-size:13px">${v}</span></div>`).join('')}
+    </div>`;
+}
+
+function renderDocuments() {
+  const docs = profile.documents || {};
+  const docDefs = [
+    { key: 'personalFinancial', name: 'Personal Financial Statement', icon: '📊', required: true },
+    { key: 'taxReturns', name: 'Last 2 Years Tax Returns', icon: '🧾', required: true },
+    { key: 'bankStatement', name: 'Bank Statement (90 days)', icon: '🏦', required: true },
+    { key: 'govId', name: 'Government-Issued ID', icon: '🪪', required: true },
+    { key: 'businessLicense', name: 'Business License / Formation', icon: '📋', required: false },
+  ];
+  const doneCount = docDefs.filter(d => docs[d.key]).length;
+  const pct = Math.round(doneCount / docDefs.length * 100);
+  document.getElementById('doc-pct-badge').textContent = `${doneCount}/${docDefs.length}`;
+  document.getElementById('doc-pct-badge').className = `badge ${doneCount === docDefs.length ? 'badge-green' : 'badge-yellow'}`;
+  document.getElementById('doc-list').innerHTML = docDefs.map(d => `
+    <div class="doc-status-row">
+      <div class="doc-check ${docs[d.key] ? 'done' : 'pending'}">${docs[d.key] ? '✓' : '!'}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${d.icon} ${d.name}</div>
+        <div style="font-size:11px;color:var(--gray-400)">${docs[d.key] ? 'Uploaded' : d.required ? 'Required — not yet uploaded' : 'Optional — not uploaded'}</div>
+      </div>
+      ${!docs[d.key] ? `<button class="btn btn-sm btn-primary" onclick="uploadProfileDoc('${d.key}')">Upload</button>` : `<span class="badge badge-green">✓</span>`}
+    </div>`).join('');
+
+  document.getElementById('fdd-status').innerHTML = `
+    <div class="doc-status-row">
+      <div class="doc-check ${profile.fddSigned ? 'done' : 'pending'}">${profile.fddSigned ? '✓' : '!'}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">📄 Franchise Disclosure Document (FDD)</div>
+        <div style="font-size:11px;color:var(--gray-400)">${profile.fddSigned ? `Signed ${fmtDate(profile.fddSignedDate)}` : '14-day review required before signing'}</div></div>
+      ${!profile.fddSigned ? `<button class="btn btn-sm btn-primary" onclick="signFDD()">Review & Sign</button>` : `<span class="badge badge-green">✓ Signed</span>`}
+    </div>
+    <div class="doc-status-row">
+      <div class="doc-check ${profile.backgroundCheckAuth ? 'done' : 'pending'}">${profile.backgroundCheckAuth ? '✓' : '!'}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">🔍 Background & Credit Check Authorization</div>
+        <div style="font-size:11px;color:var(--gray-400)">${profile.backgroundCheckAuth ? 'Authorized' : 'Required — pending your authorization'}</div></div>
+      ${!profile.backgroundCheckAuth ? `<button class="btn btn-sm btn-primary" onclick="authBG()">Authorize</button>` : `<span class="badge badge-green">✓</span>`}
+    </div>`;
+
+  document.getElementById('compliance-list').innerHTML = [
+    { label: 'Financial qualification verified', done: (profile.netWorth||0) >= 300000 },
+    { label: 'Personal Financial Statement', done: docs.personalFinancial },
+    { label: 'Tax returns uploaded', done: docs.taxReturns },
+    { label: 'Background check authorized', done: profile.backgroundCheckAuth },
+    { label: 'FDD received and reviewed', done: profile.fddSigned },
+    { label: 'Franchise Agreement signed', done: profile.fddSigned },
+  ].map(c => `
+    <div class="doc-status-row">
+      <div class="doc-check ${c.done ? 'done' : 'pending'}">${c.done ? '✓' : ''}</div>
+      <div style="font-size:13px;${!c.done ? 'color:var(--gray-500)' : ''}">${c.label}</div>
+      ${c.done ? '' : '<span class="badge badge-yellow">Pending</span>'}
+    </div>`).join('');
+}
+
+function renderProfileTab() {
+  document.getElementById('profile-personal').innerHTML = [
+    ['Name', `${profile.firstName} ${profile.lastName}`],
+    ['Email', profile.email],
+    ['Phone', profile.phone || '—'],
+    ['Address', profile.address || '—'],
+    ['City / State', `${profile.city || '—'}, ${profile.state || ''}`],
+    ['ZIP', profile.zip || '—'],
+  ].map(([l,v]) => `<div class="review-row"><span class="label">${l}</span><span class="value">${v}</span></div>`).join('');
+
+  document.getElementById('profile-business').innerHTML = [
+    ['Business Name', profile.businessName || '—'],
+    ['Entity Type', profile.entityType || '—'],
+    ['EIN / Tax ID', profile.ein || '—'],
+    ['Description', profile.bio ? profile.bio.slice(0,80)+'...' : '—'],
+  ].map(([l,v]) => `<div class="review-row"><span class="label">${l}</span><span class="value" style="max-width:180px;word-break:break-word">${v}</span></div>`).join('');
+
+  const qual = qualifyProspect(profile.netWorth||0, profile.liquidAssets||0, profile.investmentBudget||0);
+  document.getElementById('profile-financial').innerHTML = `
+    ${[
+      ['Net Worth', fmt$$(profile.netWorth)],
+      ['Liquid Assets', fmt$$(profile.liquidAssets)],
+      ['Investment Budget', fmt$$(profile.investmentBudget)],
+      ['Funding Source', profile.fundingSource || '—'],
+    ].map(([l,v]) => `<div class="review-row"><span class="label">${l}</span><span class="value">${v}</span></div>`).join('')}
+    <div style="margin-top:12px">${qual.pass ? '<span class="badge badge-green">✓ Financially Qualified</span>' : '<span class="badge badge-red">⚠ Does Not Meet Minimums</span>'}</div>`;
+}
+
+// ── DOCUMENT ACTIONS ──
+function uploadProfileDoc(key) {
+  FranchiseeDB.uploadDoc(session.id, key);
+  profile = FranchiseeDB.getProfile(session.id);
+  toast('Document uploaded successfully', 'success');
+  init();
+}
+
+function signFDD() {
+  if (confirm('Confirm: I have reviewed the HFA Franchise Disclosure Document and agree to proceed.\n\nThis signature is legally binding under the ESIGN Act.')) {
+    profile.fddSigned = true;
+    profile.fddSignedDate = new Date().toISOString().split('T')[0];
+    FranchiseeDB.saveProfile(profile);
+    toast('FDD signed successfully!', 'success');
+    init();
+  }
+}
+
+function authBG() {
+  if (confirm('Authorize HFA Franchise to conduct a background and credit check?')) {
+    profile.backgroundCheckAuth = true;
+    FranchiseeDB.saveProfile(profile);
+    toast('Background check authorized', 'success');
+    init();
+  }
+}
+
+// ── TAB SWITCHING ──
+function showTab(tab) {
+  ['overview','stores','documents','profile'].forEach(t => {
+    document.getElementById(`view-${t}`).style.display = t === tab ? '' : 'none';
+    const btn = document.getElementById(`tab-${t}`);
+    if (btn) btn.className = 'profile-tab' + (t === tab ? ' active' : '');
+  });
+  if (tab === 'documents') renderDocuments();
+  if (tab === 'profile') renderProfileTab();
+  if (tab === 'stores') renderStoreCards('stores-full-list', true);
+}
+
+// ── NEW STORE MODAL ──
+function openNewStoreModal() {
+  const tsel = document.getElementById('ns-territory');
+  tsel.innerHTML = '<option value="">Select territory...</option>';
+  DB.getTerritories().filter(t => t.status === 'available').forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.name; opt.textContent = `${t.name} (Available)`;
+    tsel.appendChild(opt);
+  });
+  document.getElementById('new-store-modal').classList.add('open');
+}
+
+function closeNewStoreModal() { document.getElementById('new-store-modal').classList.remove('open'); }
+
+function submitNewStore() {
+  const territory = document.getElementById('ns-territory').value;
+  const name = document.getElementById('ns-name').value.trim();
+  const budget = Number(document.getElementById('ns-budget').value) || 0;
+  if (!territory) { toast('Please select a territory', 'error'); return; }
+  if (!budget) { toast('Please enter your investment budget', 'error'); return; }
+  const app = {
+    franchiseeId: session.id,
+    storeName: name || `${territory} — HFA`,
+    territory, stage: 'inquiry',
+    investmentBudget: budget,
+    fundingSource: document.getElementById('ns-funding').value,
+    notes: document.getElementById('ns-notes').value,
+    repName: profile.repName, repEmail: profile.repEmail, repPhone: profile.repPhone,
+    status: 'pending_approval',
+    storeDocuments: { loi: false, leaseExec: false, buildoutPlans: false, gcContract: false, staffRoster: false },
+  };
+  FranchiseeDB.saveStoreApp(app);
+  closeNewStoreModal();
+  toast(`Store application for "${territory}" submitted!`, 'success');
+  init();
+}
+
+// Check for ?action=new
+if (new URLSearchParams(window.location.search).get('action') === 'new') {
+  setTimeout(openNewStoreModal, 300);
+}
+
+function doLogout() { FranchiseeDB.logout(); window.location.href = 'franchisee-login.html'; }
+function showProfileMenu() { /* simple toggle */ }
+function toggleEdit(section) { toast('Edit mode coming soon — fields are editable in demo', 'info'); }
+function changePassword() { toast('Password change flow would open here', 'info'); }
+
+// Link new store button properly
+document.querySelectorAll('[href="franchisee-store.html?action=new"]').forEach(a => {
+  a.addEventListener('click', e => { e.preventDefault(); openNewStoreModal(); });
+});
+
+init();
+</script>
+</body>
+</html>

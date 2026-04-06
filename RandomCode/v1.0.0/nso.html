@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HFA Franchise — NSO Tracker</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topnav">
+  <a class="brand" href="index.html"><div class="logo-icon">🏪</div>HFA Franchise</a>
+  <nav id="main-nav"></nav>
+  <div class="user-info"><div class="avatar">JO</div><span>James Okafor</span></div>
+</header>
+
+<div class="page-header">
+  <h1>New Store Opening (NSO) Tracker</h1>
+  <p class="subtitle">Action plan milestones · Lead to Grand Opening checklist</p>
+  <div class="page-actions">
+    <select class="form-control" style="width:240px;padding:8px 12px" id="prospect-select" onchange="loadProspect(this.value)">
+      <option value="">— Select a Candidate —</option>
+    </select>
+    <button class="btn btn-ghost" onclick="exportMilestones()">⬇ Export</button>
+  </div>
+</div>
+
+<!-- JOURNEY BAR -->
+<div class="journey-bar" id="journey-bar-wrap">
+  <div style="padding:8px 24px 0;font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.5px">Current Journey Stage</div>
+  <div id="journey-bar"></div>
+</div>
+
+<div class="main-content">
+
+  <!-- PLACEHOLDER (no selection) -->
+  <div id="no-selection" class="empty-state card" style="max-width:500px;margin:0 auto">
+    <div class="empty-icon">🏗️</div>
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">Select a Candidate</h3>
+    <p>Choose a candidate from the dropdown above to view and manage their NSO milestones and journey progress.</p>
+    <div style="margin-top:20px">
+      <a href="pipeline.html" class="btn btn-secondary">← Back to Pipeline</a>
+    </div>
+  </div>
+
+  <!-- NSO CONTENT (shown when prospect selected) -->
+  <div id="nso-content" style="display:none">
+
+    <!-- CANDIDATE INFO CARD -->
+    <div id="candidate-banner" class="card mb-24"></div>
+
+    <!-- OVERALL PROGRESS -->
+    <div class="card mb-24" id="overall-progress-card">
+      <div class="card-header">
+        <h3>Overall NSO Progress</h3>
+        <span id="progress-badge" class="badge badge-blue">0% Complete</span>
+      </div>
+      <div class="card-body">
+        <div class="progress-bar-wrap" style="height:12px">
+          <div class="progress-bar-fill" id="overall-progress-bar" style="width:0%"></div>
+        </div>
+        <div class="progress-label" id="progress-label">
+          <span>0 milestones completed</span><span id="days-to-open">—</span>
+        </div>
+        <div id="phase-summary" style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap"></div>
+      </div>
+    </div>
+
+    <!-- MILESTONE PHASES -->
+    <div class="grid-2" style="gap:24px;align-items:start" id="milestones-container"></div>
+
+  </div>
+</div>
+
+<!-- MILESTONE DETAIL MODAL -->
+<div class="modal-overlay" id="milestone-modal" onclick="if(event.target===this)closeMilestoneModal()">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h3 id="mm-title">Milestone</h3>
+      <button class="modal-close" onclick="closeMilestoneModal()">✕</button>
+    </div>
+    <div class="modal-body" id="mm-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeMilestoneModal()">Close</button>
+      <button class="btn btn-success" id="mm-toggle" onclick="toggleFromModal()">Mark Complete</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+document.getElementById('main-nav').innerHTML = buildNav('nso');
+
+let currentProspectId = null;
+let currentMilestoneId = null;
+
+function init() {
+  const prospects = DB.getProspects();
+  const sel = document.getElementById('prospect-select');
+
+  // Sort by stage proximity to build-out/opening
+  const ordered = [...prospects].sort((a,b) => stageIndex(b.stage) - stageIndex(a.stage));
+  ordered.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    const stageLabel = STAGES.find(s => s.id === p.stage)?.label || p.stage;
+    opt.textContent = `${p.firstName} ${p.lastName} — ${stageLabel}`;
+    sel.appendChild(opt);
+  });
+
+  // Check URL param
+  const params = new URLSearchParams(window.location.search);
+  const idParam = params.get('id');
+  if (idParam) {
+    sel.value = idParam;
+    loadProspect(idParam);
+  }
+}
+
+function loadProspect(id) {
+  if (!id) {
+    document.getElementById('no-selection').style.display = '';
+    document.getElementById('nso-content').style.display = 'none';
+    buildJourneyBar('inquiry', 'journey-bar');
+    return;
+  }
+  currentProspectId = id;
+  const p = DB.getProspect(id);
+
+  document.getElementById('no-selection').style.display = 'none';
+  document.getElementById('nso-content').style.display = '';
+
+  buildJourneyBar(p.stage, 'journey-bar');
+  renderCandidateBanner(p);
+  renderMilestones(id);
+}
+
+function renderCandidateBanner(p) {
+  const qual = qualifyProspect(p.netWorth||0, p.liquidAssets||0, p.investmentBudget||0);
+  const stage = STAGES.find(s => s.id === p.stage) || STAGES[0];
+  const stageIdx = stageIndex(p.stage);
+  const pct = Math.round(stageIdx / (STAGES.length - 1) * 100);
+
+  document.getElementById('candidate-banner').innerHTML = `
+    <div class="card-body">
+      <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <div style="width:48px;height:48px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0">
+              ${p.firstName[0]}${p.lastName[0]}
+            </div>
+            <div>
+              <div style="font-size:20px;font-weight:800">${p.firstName} ${p.lastName}</div>
+              <div style="font-size:13px;color:var(--gray-500)">${p.city}, ${p.state} · ${p.email}</div>
+            </div>
+          </div>
+          <div class="form-label">Journey Progress</div>
+          <div class="progress-bar-wrap" style="height:8px;margin-bottom:4px">
+            <div class="progress-bar-fill" style="width:${pct}%;background:${stage.color}"></div>
+          </div>
+          <div style="font-size:11px;color:var(--gray-500)">${pct}% through franchise journey · Current: <strong>${stage.label}</strong></div>
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div style="text-align:center;min-width:80px">
+            <div class="form-label">Investment</div>
+            <div style="font-size:18px;font-weight:800;color:var(--primary)">${fmt$$(p.investmentBudget)}</div>
+          </div>
+          <div style="text-align:center;min-width:80px">
+            <div class="form-label">Net Worth</div>
+            <div style="font-size:18px;font-weight:800">${fmt$$(p.netWorth)}</div>
+          </div>
+          <div style="text-align:center;min-width:80px">
+            <div class="form-label">Territory</div>
+            <div style="font-size:14px;font-weight:700;color:var(--gray-700)">${p.territory || 'TBD'}</div>
+          </div>
+          <div style="text-align:center;min-width:80px">
+            <div class="form-label">Status</div>
+            ${stageBadge(p.stage)}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderMilestones(prospectId) {
+  const done = DB.getMilestones(prospectId);
+  const allItems = NSO_MILESTONES.flatMap(ph => ph.items);
+  const totalDone = done.length;
+  const totalItems = allItems.length;
+  const pct = Math.round(totalDone / totalItems * 100);
+
+  // Overall progress
+  document.getElementById('overall-progress-bar').style.width = pct + '%';
+  document.getElementById('overall-progress-bar').className = `progress-bar-fill ${pct >= 100 ? 'success' : pct >= 50 ? '' : 'warning'}`;
+  document.getElementById('progress-label').innerHTML = `<span>${totalDone} of ${totalItems} milestones completed</span><span>${pct}% complete</span>`;
+  document.getElementById('progress-badge').textContent = `${pct}% Complete`;
+  document.getElementById('progress-badge').className = `badge ${pct >= 100 ? 'badge-green' : pct >= 50 ? 'badge-blue' : 'badge-yellow'}`;
+
+  // Phase summary
+  document.getElementById('phase-summary').innerHTML = NSO_MILESTONES.map(ph => {
+    const phDone = ph.items.filter(it => done.includes(it.id)).length;
+    const phPct = Math.round(phDone / ph.items.length * 100);
+    return `<div style="flex:1;min-width:120px;background:var(--gray-50);border-radius:var(--radius);padding:10px 12px;border:1px solid var(--gray-200)">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--gray-500);margin-bottom:4px">${ph.phase}</div>
+      <div style="font-size:16px;font-weight:800">${phDone}/${ph.items.length}</div>
+      <div class="progress-bar-wrap" style="height:4px;margin-top:4px">
+        <div class="progress-bar-fill ${phDone===ph.items.length?'success':''}" style="width:${phPct}%"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Render phases in 2-col grid
+  const container = document.getElementById('milestones-container');
+  container.innerHTML = '';
+
+  NSO_MILESTONES.forEach((phase, pi) => {
+    const phDone = phase.items.filter(it => done.includes(it.id)).length;
+    const phPct = Math.round(phDone / phase.items.length * 100);
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h3>${phase.phase}</h3>
+            <div style="font-size:12px;color:var(--gray-500);margin-top:2px">${phDone} of ${phase.items.length} complete</div>
+          </div>
+          <span class="badge ${phDone===phase.items.length?'badge-green':'badge-blue'}">${phPct}%</span>
+        </div>
+        <div class="card-body" style="padding:12px">
+          ${phase.items.map(item => {
+            const isDone = done.includes(item.id);
+            return `
+              <div class="milestone-item ${isDone ? 'done' : ''}" onclick="showMilestoneDetail('${item.id}', '${phase.phase}')">
+                <div class="milestone-cb">${isDone ? '✓' : ''}</div>
+                <div class="milestone-info">
+                  <div class="milestone-title">${item.title}</div>
+                  <div class="milestone-sub">Owner: ${item.owner}</div>
+                </div>
+                <div class="milestone-due">
+                  ${isDone ? '<span class="badge badge-green" style="font-size:9px">Done</span>' : `<span style="font-size:10px;color:var(--gray-400)">Day ${item.due}</span>`}
+                </div>
+              </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+function showMilestoneDetail(milestoneId, phase) {
+  currentMilestoneId = milestoneId;
+  const done = DB.getMilestones(currentProspectId);
+  const isDone = done.includes(milestoneId);
+  const item = NSO_MILESTONES.flatMap(ph => ph.items).find(it => it.id === milestoneId);
+
+  document.getElementById('mm-title').textContent = item.title;
+  document.getElementById('mm-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <div style="width:36px;height:36px;border-radius:50%;background:${isDone?'var(--secondary)':'var(--gray-300)'};display:flex;align-items:center;justify-content:center;font-size:16px;color:white">${isDone?'✓':'○'}</div>
+      <div>
+        <div style="font-weight:700">${item.title}</div>
+        <div style="font-size:12px;color:var(--gray-500)">${phase}</div>
+      </div>
+    </div>
+    <div class="grid-2" style="gap:12px">
+      <div><div class="form-label">Owner / Responsible</div><strong>${item.owner}</strong></div>
+      <div><div class="form-label">Target Day</div><strong>Day ${item.due} after Agreement</strong></div>
+      <div><div class="form-label">Status</div>${isDone ? '<span class="badge badge-green">Completed</span>' : '<span class="badge badge-yellow">Pending</span>'}</div>
+      <div><div class="form-label">Phase</div><span class="badge badge-blue">${phase}</span></div>
+    </div>
+    ${isDone ? `<div class="alert alert-success mt-16"><div class="alert-icon">✅</div><div class="alert-text"><h5>Completed</h5><p>This milestone has been marked as done.</p></div></div>` : `<div class="alert alert-warning mt-16"><div class="alert-icon">⏳</div><div class="alert-text"><h5>Pending</h5><p>Mark as complete when the task has been finished and verified.</p></div></div>`}
+  `;
+  const btn = document.getElementById('mm-toggle');
+  btn.textContent = isDone ? '↩ Unmark' : '✓ Mark Complete';
+  btn.className = isDone ? 'btn btn-ghost' : 'btn btn-success';
+  document.getElementById('milestone-modal').classList.add('open');
+}
+
+function toggleFromModal() {
+  DB.toggleMilestone(currentProspectId, currentMilestoneId);
+  const done = DB.getMilestones(currentProspectId).includes(currentMilestoneId);
+  toast(done ? 'Milestone completed!' : 'Milestone unmarked', done ? 'success' : 'info');
+  closeMilestoneModal();
+  renderMilestones(currentProspectId);
+}
+
+function closeMilestoneModal() { document.getElementById('milestone-modal').classList.remove('open'); }
+
+function exportMilestones() {
+  if (!currentProspectId) { toast('Select a candidate first', 'warning'); return; }
+  const p = DB.getProspect(currentProspectId);
+  const done = DB.getMilestones(currentProspectId);
+  const rows = NSO_MILESTONES.flatMap(ph => ph.items.map(it => ({
+    candidateName: `${p.firstName} ${p.lastName}`,
+    phase: ph.phase,
+    milestone: it.title,
+    owner: it.owner,
+    targetDay: it.due,
+    status: done.includes(it.id) ? 'Complete' : 'Pending'
+  })));
+  exportCSV(rows, `nso_${p.lastName.toLowerCase()}_milestones.csv`);
+  toast('NSO milestones exported');
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HFA Franchise — Dashboard</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- TOP NAV -->
+<header class="topnav">
+  <a class="brand" href="index.html">
+    <div class="logo-icon">🏪</div>
+    HFA Franchise
+  </a>
+  <nav id="main-nav"></nav>
+  <div class="user-info">
+    <div class="avatar">JO</div>
+    <span>James Okafor</span>
+  </div>
+</header>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1>Franchise Development Dashboard</h1>
+  <p class="subtitle">Lead-to-Grand-Opening pipeline · Investment range: $185,000 – $627,000</p>
+  <div class="page-actions">
+    <a href="portal.html" class="btn btn-primary">+ New Application</a>
+    <button class="btn btn-ghost" onclick="exportAll()">⬇ Export CSV</button>
+    <button class="btn btn-ghost" onclick="resetData()" style="color:#DE350B;border-color:#FFBDAD">↺ Reset Demo Data</button>
+  </div>
+</div>
+
+<div class="main-content">
+
+  <!-- METRICS -->
+  <div class="metrics-grid" id="metrics"></div>
+
+  <!-- INVESTMENT RANGE BANNER -->
+  <div class="investment-range">
+    <div>
+      <div class="range-label">INVESTMENT RANGE</div>
+      <div class="range-value">$185,000</div>
+    </div>
+    <div class="range-arrow">→</div>
+    <div>
+      <div class="range-label">MAXIMUM INVESTMENT</div>
+      <div class="range-value">$627,000</div>
+    </div>
+    <div style="margin-left:auto;text-align:right">
+      <div class="range-label">TOTAL PIPELINE VALUE</div>
+      <div class="range-value" id="total-pipeline-value">—</div>
+    </div>
+  </div>
+
+  <!-- PIPELINE STAGE FUNNEL -->
+  <div class="card mb-24">
+    <div class="card-header">
+      <h3>Pipeline by Stage</h3>
+      <a href="pipeline.html" class="btn btn-sm btn-secondary">Full Kanban View →</a>
+    </div>
+    <div class="card-body" id="stage-funnel"></div>
+  </div>
+
+  <!-- RECENT PROSPECTS TABLE -->
+  <div class="card">
+    <div class="card-header">
+      <h3>All Candidates</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" class="form-control" style="width:200px;padding:6px 10px;font-size:12px" placeholder="🔍 Search..." oninput="filterTable(this.value)" id="search-input">
+        <select class="form-control" style="width:160px;padding:6px 10px;font-size:12px" onchange="filterStage(this.value)" id="stage-filter">
+          <option value="">All Stages</option>
+        </select>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0;overflow-x:auto">
+      <table class="data-table" id="prospects-table">
+        <thead>
+          <tr>
+            <th>Candidate</th><th>Location</th><th>Stage</th>
+            <th>Net Worth</th><th>Budget</th><th>Territory</th>
+            <th>Assigned To</th><th>Last Updated</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+<script>
+// Build navigation
+document.getElementById('main-nav').innerHTML = buildNav('index');
+
+let allProspects = [];
+
+function init() {
+  allProspects = DB.getProspects();
+  renderMetrics();
+  renderFunnel();
+  renderTable(allProspects);
+  populateStageFilter();
+}
+
+function renderMetrics() {
+  const p = allProspects;
+  const active = p.filter(x => x.stage !== 'inquiry' && x.stage !== 'open').length;
+  const open = p.filter(x => x.stage === 'open').length;
+  const totalValue = p.reduce((s, x) => s + (Number(x.investmentBudget) || 0), 0);
+  const pending = p.filter(x => x.stage === 'fdd_review' || x.stage === 'agreement').length;
+
+  document.getElementById('total-pipeline-value').textContent = fmt$$(totalValue);
+
+  document.getElementById('metrics').innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Total Candidates</div>
+      <div class="metric-value">${p.length}</div>
+      <div class="metric-delta">↑ 3 this month</div>
+      <div class="metric-icon">👥</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Active Pipeline</div>
+      <div class="metric-value">${active}</div>
+      <div class="metric-delta">In progress</div>
+      <div class="metric-icon">🔀</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Stores Open</div>
+      <div class="metric-value">${open}</div>
+      <div class="metric-delta">↑ 1 this quarter</div>
+      <div class="metric-icon">🎉</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Awaiting Signature</div>
+      <div class="metric-value">${pending}</div>
+      <div class="metric-delta">Action required</div>
+      <div class="metric-icon">✍️</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Total Pipeline Value</div>
+      <div class="metric-value" style="font-size:20px">${fmt$$(totalValue)}</div>
+      <div class="metric-delta">Projected investment</div>
+      <div class="metric-icon">💰</div>
+    </div>
+  `;
+}
+
+function renderFunnel() {
+  const summary = getPipelineSummary();
+  const rows = STAGES.map(s => {
+    const d = summary[s.id];
+    const pct = allProspects.length ? Math.round(d.count / allProspects.length * 100) : 0;
+    return `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <div style="width:120px;font-size:12px;font-weight:600;color:var(--gray-700);text-align:right">${s.label}</div>
+        <div style="flex:1">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill ${s.id==='open'?'success':''}" style="width:${pct}%;background:${s.color}"></div>
+          </div>
+        </div>
+        <div style="width:60px;text-align:right">
+          <span class="badge" style="background:${s.bg};color:${s.color}">${d.count} ${d.count===1?'lead':'leads'}</span>
+        </div>
+        <div style="width:90px;text-align:right;font-size:12px;color:var(--gray-500)">${d.value > 0 ? fmt$$(d.value) : ''}</div>
+      </div>`;
+  }).join('');
+  document.getElementById('stage-funnel').innerHTML = rows;
+}
+
+function renderTable(data) {
+  if (!data.length) {
+    document.getElementById('table-body').innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--gray-400);padding:32px">No candidates found</td></tr>`;
+    return;
+  }
+  document.getElementById('table-body').innerHTML = data.map(p => `
+    <tr>
+      <td>
+        <div style="font-weight:600">${p.firstName} ${p.lastName}</div>
+        <div style="font-size:11px;color:var(--gray-500)">${p.email}</div>
+      </td>
+      <td>${p.city}, ${p.state}</td>
+      <td>${stageBadge(p.stage)}</td>
+      <td>${fmt$$(p.netWorth)}</td>
+      <td>${fmt$$(p.investmentBudget)}</td>
+      <td>${p.territory || '<span class="text-muted">—</span>'}</td>
+      <td>${p.assignedTo || '<span class="text-muted">Unassigned</span>'}</td>
+      <td>${fmtDate(p.stageDate)}</td>
+      <td>
+        <a href="nso.html?id=${p.id}" class="btn btn-sm btn-secondary" style="margin-right:4px">NSO</a>
+        <button class="btn btn-sm btn-ghost" onclick="quickView('${p.id}')">View</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function populateStageFilter() {
+  const sel = document.getElementById('stage-filter');
+  STAGES.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id; opt.textContent = s.label;
+    sel.appendChild(opt);
+  });
+}
+
+function filterTable(q) {
+  const stage = document.getElementById('stage-filter').value;
+  let data = allProspects;
+  if (stage) data = data.filter(p => p.stage === stage);
+  if (q) { const lq = q.toLowerCase(); data = data.filter(p => `${p.firstName} ${p.lastName} ${p.city} ${p.territory} ${p.email}`.toLowerCase().includes(lq)); }
+  renderTable(data);
+}
+
+function filterStage(s) {
+  const q = document.getElementById('search-input').value;
+  filterTable(q);
+}
+
+function quickView(id) {
+  const p = DB.getProspect(id);
+  const qual = qualifyProspect(p.netWorth || 0, p.liquidAssets || 0, p.investmentBudget || 0);
+  const stageIdx = stageIndex(p.stage);
+  document.getElementById('quick-view-body').innerHTML = `
+    <div style="margin-bottom:16px">
+      ${buildJourneyHTML(p.stage)}
+    </div>
+    <div class="grid-2" style="gap:12px;margin-bottom:16px">
+      <div><div class="form-label">Name</div><strong>${p.firstName} ${p.lastName}</strong></div>
+      <div><div class="form-label">Stage</div>${stageBadge(p.stage)}</div>
+      <div><div class="form-label">Email</div>${p.email}</div>
+      <div><div class="form-label">Phone</div>${p.phone}</div>
+      <div><div class="form-label">Net Worth</div><strong>${fmt$$(p.netWorth)}</strong></div>
+      <div><div class="form-label">Liquid Assets</div><strong>${fmt$$(p.liquidAssets)}</strong></div>
+      <div><div class="form-label">Budget</div><strong>${fmt$$(p.investmentBudget)}</strong></div>
+      <div><div class="form-label">Territory</div>${p.territory || '—'}</div>
+    </div>
+    <div class="form-label">Qualification Check</div>
+    ${qual.results.map(r => `
+      <div class="alert alert-${r.status === 'pass' ? 'success' : r.status === 'warn' ? 'warning' : 'danger'}" style="margin-bottom:6px;padding:8px 12px">
+        <div style="font-size:12px"><strong>${r.field}:</strong> ${r.msg}</div>
+      </div>`).join('')}
+    ${p.notes ? `<div class="form-label" style="margin-top:12px">Notes</div><p style="font-size:13px;color:var(--gray-700)">${p.notes}</p>` : ''}
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="advanceStage('${p.id}')">Advance Stage →</button>
+      <a href="nso.html?id=${p.id}" class="btn btn-secondary">Open NSO Tracker</a>
+    </div>
+  `;
+  document.getElementById('quick-view-title').textContent = `${p.firstName} ${p.lastName}`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function buildJourneyHTML(currentStage) {
+  const ci = stageIndex(currentStage);
+  return `<div style="display:flex;align-items:center;overflow-x:auto;padding:4px 0">
+    ${STAGES.map((s,i) => `
+      <div style="display:flex;align-items:center;flex-shrink:0">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 8px;border-radius:6px;background:${i===ci?s.bg:'transparent'}">
+          <div style="width:20px;height:20px;border-radius:50%;background:${i<ci?'#00875A':i===ci?s.color:'#DFE1E6'};display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:700">${i<ci?'✓':i+1}</div>
+          <div style="font-size:9px;font-weight:${i===ci?700:500};color:${i<ci?'#00875A':i===ci?s.color:'#6B778C'};white-space:nowrap">${s.label}</div>
+        </div>
+        ${i<STAGES.length-1?`<div style="width:16px;height:2px;background:${i<ci?'#ABF5D1':'#DFE1E6'}"></div>`:''}
+      </div>`).join('')}
+  </div>`;
+}
+
+function advanceStage(id) {
+  const p = DB.getProspect(id);
+  const ci = stageIndex(p.stage);
+  if (ci < STAGES.length - 1) {
+    p.stage = STAGES[ci + 1].id;
+    p.stageDate = new Date().toISOString().split('T')[0];
+    DB.saveProspect(p);
+    toast(`${p.firstName} advanced to ${STAGES[ci+1].label}`);
+    closeModal();
+    init();
+  } else {
+    toast('Already at Grand Opening!', 'info');
+  }
+}
+
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+function exportAll() {
+  exportCSV(allProspects, 'hfa_franchise_pipeline.csv');
+  toast('CSV exported successfully');
+}
+
+function resetData() {
+  if (confirm('Reset all demo data to defaults?')) { DB.reset(); init(); toast('Demo data reset', 'info'); }
+}
+
+init();
+</script>
+
+<!-- QUICK VIEW MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <h3 id="quick-view-title">Candidate Details</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="quick-view-body"></div>
+  </div>
+</div>
+
+</body>
+</html>

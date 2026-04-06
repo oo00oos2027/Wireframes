@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HFA Franchise — Pipeline</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topnav">
+  <a class="brand" href="index.html"><div class="logo-icon">🏪</div>HFA Franchise</a>
+  <nav id="main-nav"></nav>
+  <div class="user-info"><div class="avatar">JO</div><span>James Okafor</span></div>
+</header>
+
+<div class="page-header">
+  <h1>Franchise Pipeline</h1>
+  <p class="subtitle">Drag candidates between stages · Click a card to manage</p>
+  <div class="page-actions">
+    <a href="portal.html" class="btn btn-primary">+ Add Candidate</a>
+    <button class="btn btn-ghost" onclick="exportPipeline()">⬇ Export CSV</button>
+    <select class="form-control" style="width:160px;padding:6px 10px;font-size:12px" onchange="filterByAssignee(this.value)" id="assignee-filter">
+      <option value="">All Reps</option>
+      <option>James Okafor</option><option>Lisa Park</option>
+    </select>
+  </div>
+</div>
+
+<!-- PIPELINE SUMMARY STRIP -->
+<div style="background:white;border-bottom:1px solid var(--gray-200);padding:12px 24px;display:flex;gap:24px;overflow-x:auto">
+  <div id="pipeline-summary" style="display:flex;gap:24px"></div>
+</div>
+
+<div class="main-content" style="overflow-x:auto;max-width:none">
+  <div class="pipeline-board" id="pipeline-board"></div>
+</div>
+
+<!-- CANDIDATE DETAIL MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <h3 id="modal-title">Candidate</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+      <a id="modal-nso-link" href="#" class="btn btn-secondary">Open NSO Tracker</a>
+      <button class="btn btn-primary" id="modal-advance" onclick="advanceCurrent()">Advance Stage →</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+document.getElementById('main-nav').innerHTML = buildNav('pipeline');
+
+let allProspects = [];
+let currentId = null;
+
+function init(filterAssignee = '') {
+  allProspects = DB.getProspects();
+  let data = allProspects;
+  if (filterAssignee) data = data.filter(p => p.assignedTo === filterAssignee);
+  renderSummary(data);
+  renderBoard(data);
+}
+
+function renderSummary(data) {
+  const totals = { count: data.length, value: data.reduce((s,p)=>s+(p.investmentBudget||0),0) };
+  const active = data.filter(p => !['inquiry','open'].includes(p.stage));
+  document.getElementById('pipeline-summary').innerHTML = `
+    <div style="flex-shrink:0">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray-500)">Total Candidates</div>
+      <div style="font-size:20px;font-weight:800;color:var(--gray-900)">${totals.count}</div>
+    </div>
+    <div style="width:1px;background:var(--gray-200)"></div>
+    <div style="flex-shrink:0">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray-500)">Active Pipeline</div>
+      <div style="font-size:20px;font-weight:800;color:var(--primary)">${active.length}</div>
+    </div>
+    <div style="width:1px;background:var(--gray-200)"></div>
+    <div style="flex-shrink:0">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray-500)">Total Pipeline Value</div>
+      <div style="font-size:20px;font-weight:800;color:var(--secondary)">${fmt$$(totals.value)}</div>
+    </div>
+    <div style="width:1px;background:var(--gray-200)"></div>
+    <div style="flex-shrink:0">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray-500)">Avg Investment</div>
+      <div style="font-size:20px;font-weight:800;color:var(--gray-700)">${totals.count ? fmt$$(Math.round(totals.value/totals.count)) : '—'}</div>
+    </div>
+  `;
+}
+
+function renderBoard(data) {
+  const grouped = {};
+  STAGES.forEach(s => grouped[s.id] = []);
+  data.forEach(p => { if (grouped[p.stage]) grouped[p.stage].push(p); });
+
+  document.getElementById('pipeline-board').innerHTML = STAGES.map(s => {
+    const cards = grouped[s.id];
+    const stageValue = cards.reduce((sum,p) => sum + (p.investmentBudget||0), 0);
+    return `
+      <div class="pipeline-col">
+        <div class="pipeline-col-header" style="background:${s.color}">
+          <div class="col-title" style="color:white">${s.label}</div>
+          <span class="col-count">${cards.length}</span>
+        </div>
+        ${stageValue > 0 ? `<div style="font-size:10px;color:var(--gray-500);margin-bottom:6px;text-align:center">${fmt$$(stageValue)}</div>` : ''}
+        <div class="pipeline-col-cards" id="col-${s.id}">
+          ${cards.length === 0 ? `<div style="text-align:center;padding:20px 0;font-size:12px;color:var(--gray-300)">No candidates</div>` : ''}
+          ${cards.map(p => renderCard(p)).join('')}
+        </div>
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;font-size:11px;color:var(--gray-400)" onclick="addToStage('${s.id}')">+ Add</button>
+      </div>`;
+  }).join('');
+}
+
+function renderCard(p) {
+  const qual = qualifyProspect(p.netWorth||0, p.liquidAssets||0, p.investmentBudget||0);
+  const qualBadge = qual.pass
+    ? `<span class="badge badge-green" style="font-size:9px">✓ Qualified</span>`
+    : `<span class="badge badge-red" style="font-size:9px">⚠ Review</span>`;
+  const initials = `${p.firstName[0]}${p.lastName[0]}`;
+  const daysSince = Math.floor((new Date() - new Date(p.stageDate)) / 86400000);
+  const staleWarn = daysSince > 14 ? `<span style="font-size:9px;color:var(--warning)">⏰ ${daysSince}d in stage</span>` : '';
+
+  return `
+    <div class="pipeline-card" onclick="openDetail('${p.id}')">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--primary-light);color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${initials}</div>
+        <div>
+          <div class="card-name">${p.firstName} ${p.lastName}</div>
+          <div class="card-detail">${p.city}, ${p.state}</div>
+        </div>
+      </div>
+      <div class="card-amount">${fmt$$(p.investmentBudget)}</div>
+      <div style="font-size:11px;color:var(--gray-500);margin-top:2px">${p.territory || 'Territory TBD'}</div>
+      <div style="display:flex;align-items:center;gap:4px;margin-top:8px;flex-wrap:wrap">
+        ${qualBadge}
+        ${p.assignedTo ? `<span class="badge badge-gray" style="font-size:9px">${p.assignedTo.split(' ')[0]}</span>` : ''}
+        ${staleWarn}
+      </div>
+    </div>`;
+}
+
+function openDetail(id) {
+  currentId = id;
+  const p = DB.getProspect(id);
+  const ci = stageIndex(p.stage);
+  const nextStage = ci < STAGES.length - 1 ? STAGES[ci + 1] : null;
+  const qual = qualifyProspect(p.netWorth||0, p.liquidAssets||0, p.investmentBudget||0);
+
+  document.getElementById('modal-title').textContent = `${p.firstName} ${p.lastName}`;
+  document.getElementById('modal-nso-link').href = `nso.html?id=${id}`;
+
+  const advBtn = document.getElementById('modal-advance');
+  if (nextStage) { advBtn.textContent = `Move to ${nextStage.label} →`; advBtn.disabled = false; }
+  else { advBtn.textContent = '✓ At Grand Opening'; advBtn.disabled = true; }
+
+  // Build journey bar HTML
+  const journeyHtml = STAGES.map((s,i) => `
+    <div style="display:flex;align-items:center;flex-shrink:0">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 6px;border-radius:4px;background:${i===ci?s.bg:'transparent'}">
+        <div style="width:18px;height:18px;border-radius:50%;background:${i<ci?'#00875A':i===ci?s.color:'#DFE1E6'};display:flex;align-items:center;justify-content:center;font-size:9px;color:white;font-weight:700">${i<ci?'✓':i+1}</div>
+        <div style="font-size:9px;font-weight:${i===ci?700:500};color:${i<ci?'#00875A':i===ci?s.color:'#6B778C'};white-space:nowrap">${s.label}</div>
+      </div>
+      ${i<STAGES.length-1?`<div style="width:12px;height:2px;background:${i<ci?'#ABF5D1':'#DFE1E6'}"></div>`:''}
+    </div>`).join('');
+
+  document.getElementById('modal-body').innerHTML = `
+    <div style="overflow-x:auto;margin-bottom:16px;padding:8px;background:var(--gray-50);border-radius:var(--radius)">
+      <div style="display:flex;align-items:center">${journeyHtml}</div>
+    </div>
+    <div class="grid-2" style="gap:12px;margin-bottom:16px">
+      <div><div class="form-label">Contact</div><strong>${p.firstName} ${p.lastName}</strong><div style="font-size:12px;color:var(--gray-500)">${p.email}</div><div style="font-size:12px;color:var(--gray-500)">${p.phone || ''}</div></div>
+      <div><div class="form-label">Location</div>${p.city}, ${p.state}</div>
+      <div><div class="form-label">Net Worth</div><strong style="font-size:16px">${fmt$$(p.netWorth)}</strong></div>
+      <div><div class="form-label">Liquid Assets</div><strong style="font-size:16px">${fmt$$(p.liquidAssets)}</strong></div>
+      <div><div class="form-label">Investment Budget</div><strong style="font-size:16px;color:var(--primary)">${fmt$$(p.investmentBudget)}</strong></div>
+      <div><div class="form-label">Territory</div>${p.territory || '<em style="color:var(--gray-400)">Not selected</em>'}</div>
+      <div><div class="form-label">Assigned To</div>${p.assignedTo || '<em style="color:var(--gray-400)">Unassigned</em>'}</div>
+      <div><div class="form-label">Applied</div>${fmtDate(p.appliedDate)}</div>
+    </div>
+
+    <div class="form-label">Qualification Status</div>
+    <div style="margin-bottom:12px">
+      ${qual.results.map(r => `
+        <div class="alert alert-${r.status==='pass'?'success':r.status==='warn'?'warning':'danger'}" style="margin-bottom:4px;padding:6px 10px">
+          <div style="font-size:11px"><strong>${r.field}:</strong> ${r.msg}</div>
+        </div>`).join('')}
+    </div>
+
+    ${p.notes ? `<div class="form-label">Notes</div><p style="font-size:13px;color:var(--gray-700);background:var(--gray-50);padding:10px;border-radius:var(--radius)">${p.notes}</p>` : ''}
+
+    <div class="form-label mt-16">Update Stage Manually</div>
+    <select class="form-control" id="stage-select" style="margin-bottom:4px" onchange="updateStage(this.value)">
+      ${STAGES.map(s => `<option value="${s.id}" ${s.id===p.stage?'selected':''}>${s.label}</option>`).join('')}
+    </select>
+
+    <div class="form-label mt-16">Assign To</div>
+    <select class="form-control" id="assignee-select" onchange="updateAssignee(this.value)">
+      <option value="">Unassigned</option>
+      <option ${p.assignedTo==='James Okafor'?'selected':''}>James Okafor</option>
+      <option ${p.assignedTo==='Lisa Park'?'selected':''}>Lisa Park</option>
+    </select>
+  `;
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function updateStage(stageId) {
+  const p = DB.getProspect(currentId);
+  p.stage = stageId;
+  p.stageDate = new Date().toISOString().split('T')[0];
+  DB.saveProspect(p);
+  const filterVal = document.getElementById('assignee-filter').value;
+  init(filterVal);
+  toast(`Moved to ${STAGES.find(s=>s.id===stageId).label}`);
+}
+
+function updateAssignee(name) {
+  const p = DB.getProspect(currentId);
+  p.assignedTo = name || null;
+  DB.saveProspect(p);
+  toast(`Assigned to ${name || 'nobody'}`);
+  const filterVal = document.getElementById('assignee-filter').value;
+  init(filterVal);
+}
+
+function advanceCurrent() {
+  const p = DB.getProspect(currentId);
+  const ci = stageIndex(p.stage);
+  if (ci < STAGES.length - 1) {
+    p.stage = STAGES[ci + 1].id;
+    p.stageDate = new Date().toISOString().split('T')[0];
+    DB.saveProspect(p);
+    toast(`${p.firstName} moved to ${STAGES[ci+1].label}`, 'success');
+    closeModal();
+    const filterVal = document.getElementById('assignee-filter').value;
+    init(filterVal);
+  }
+}
+
+function addToStage(stageId) {
+  window.location.href = `portal.html`;
+}
+
+function filterByAssignee(v) { init(v); }
+
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+function exportPipeline() {
+  exportCSV(DB.getProspects(), 'hfa_pipeline.csv');
+  toast('Pipeline exported');
+}
+
+init();
+</script>
+</body>
+</html>

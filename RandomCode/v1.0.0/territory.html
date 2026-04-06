@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HFA Franchise — Territory Map</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.map-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--gray-700); }
+.legend-dot { width: 14px; height: 14px; border-radius: 3px; }
+.proximity-ring {
+  position: absolute; border-radius: 50%; border: 2px dashed;
+  pointer-events: none; transform: translate(-50%, -50%);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:0.9} }
+.map-container { position: relative; background: #EEF2FF; border-radius: var(--radius-lg); padding: 24px; border: 1px solid var(--gray-200); }
+.city-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--gray-600); margin-bottom: 6px; margin-top: 16px; }
+.city-section { margin-bottom: 12px; }
+.store-pin { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #DE350B; margin-right: 4px; }
+
+/* SVG Map */
+.svg-map-wrap { position: relative; width: 100%; }
+.svg-map-wrap svg { width: 100%; height: auto; }
+</style>
+</head>
+<body>
+
+<header class="topnav">
+  <a class="brand" href="index.html"><div class="logo-icon">🏪</div>HFA Franchise</a>
+  <nav id="main-nav"></nav>
+  <div class="user-info"><div class="avatar">JO</div><span>James Okafor</span></div>
+</header>
+
+<div class="page-header">
+  <h1>Territory Availability Map</h1>
+  <p class="subtitle">Visual territory explorer · Salesforce Maps analog for demo purposes</p>
+  <div class="page-actions">
+    <button class="btn btn-primary" id="btn-request" onclick="openRequestModal()" disabled>Request Territory</button>
+    <button class="btn btn-ghost" onclick="exportTerritories()">⬇ Export CSV</button>
+    <select class="form-control" style="width:160px;padding:8px 12px" onchange="filterStatus(this.value)" id="status-filter">
+      <option value="">All Statuses</option>
+      <option value="available">Available Only</option>
+      <option value="pending">Pending Only</option>
+      <option value="taken">Taken Only</option>
+    </select>
+  </div>
+</div>
+
+<div class="main-content">
+
+  <div class="grid-2" style="gap:24px;align-items:start">
+
+    <!-- LEFT: MAP + GRID -->
+    <div>
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#A3F7BF;border:1.5px solid #ABF5D1"></div> Available</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#FFE380;border:1.5px solid #FFD700"></div> Pending / In Review</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#FFBDAD;border:1.5px solid #FF8F73"></div> Taken</div>
+        <div class="legend-item"><span style="color:#DE350B;font-size:14px">●</span> Existing Store</div>
+      </div>
+
+      <!-- SVG TEXAS TERRITORY MAP (simplified schematic) -->
+      <div class="map-container">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray-500);margin-bottom:12px;letter-spacing:0.5px">Texas Market — Available Territories</div>
+        <div id="territory-map"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: TERRITORY LIST & DETAILS -->
+    <div>
+      <!-- STATS -->
+      <div class="metrics-grid" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:16px" id="territory-stats"></div>
+
+      <!-- SELECTED TERRITORY DETAIL -->
+      <div id="territory-detail" class="card mb-16" style="display:none"></div>
+
+      <!-- TERRITORY LIST -->
+      <div class="card">
+        <div class="card-header">
+          <h3>All Territories</h3>
+          <input type="text" class="form-control" style="width:160px;padding:6px 10px;font-size:12px" placeholder="🔍 Search..." oninput="searchTerritories(this.value)">
+        </div>
+        <div style="overflow-y:auto;max-height:480px">
+          <table class="data-table" id="territory-table">
+            <thead>
+              <tr><th>Territory</th><th>City</th><th>Status</th><th>Stores</th><th></th></tr>
+            </thead>
+            <tbody id="territory-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- REQUEST TERRITORY MODAL -->
+<div class="modal-overlay" id="req-modal" onclick="if(event.target===this)closeReqModal()">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h3>Request Territory</h3>
+      <button class="modal-close" onclick="closeReqModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info">
+        <div class="alert-icon">ℹ️</div>
+        <div class="alert-text">
+          <h5>Territory Request</h5>
+          <p>Submitting a request places this territory in "Pending" status while we conduct a market analysis and verify exclusivity. You'll be notified within 5 business days.</p>
+        </div>
+      </div>
+      <div id="req-territory-info" style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius);padding:16px;margin-bottom:16px"></div>
+      <div class="form-group">
+        <label class="form-label">Your Name <span class="required">*</span></label>
+        <select class="form-control" id="req-candidate">
+          <option value="">Select candidate...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes / Special Requests</label>
+        <textarea class="form-control" id="req-notes" rows="3" placeholder="Any specific requirements or questions about this territory..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeReqModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitRequest()">Submit Territory Request</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+document.getElementById('main-nav').innerHTML = buildNav('territory');
+
+let territories = [];
+let selectedTerritoryId = null;
+let statusFilter = '';
+
+function init() {
+  territories = DB.getTerritories();
+  renderStats();
+  renderMap();
+  renderTable(territories);
+  populateCandidates();
+}
+
+function renderStats() {
+  const avail = territories.filter(t => t.status === 'available').length;
+  const pend = territories.filter(t => t.status === 'pending').length;
+  const taken = territories.filter(t => t.status === 'taken').length;
+  document.getElementById('territory-stats').innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Available</div>
+      <div class="metric-value" style="color:var(--secondary)">${avail}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Pending</div>
+      <div class="metric-value" style="color:var(--warning)">${pend}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Taken</div>
+      <div class="metric-value" style="color:var(--danger)">${taken}</div>
+    </div>
+  `;
+}
+
+function renderMap() {
+  // Group by city
+  const cities = {
+    'Austin': territories.filter(t => t.name.startsWith('Austin')),
+    'Houston': territories.filter(t => t.name.startsWith('Houston')),
+    'Dallas': territories.filter(t => t.name.startsWith('Dallas') || t.name.startsWith('Plano')),
+    'Fort Worth': territories.filter(t => t.name.startsWith('Fort Worth')),
+    'San Antonio': territories.filter(t => t.name.startsWith('San Antonio')),
+    'Other': territories.filter(t => t.name.startsWith('The Woodlands')),
+  };
+
+  let html = '';
+  Object.entries(cities).forEach(([city, ters]) => {
+    if (!ters.length) return;
+    html += `<div class="city-section">
+      <div class="city-label">📍 ${city}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        ${ters.map(t => renderMapCell(t)).join('')}
+      </div>
+    </div>`;
+  });
+  document.getElementById('territory-map').innerHTML = html;
+}
+
+function renderMapCell(t) {
+  const selected = t.id === selectedTerritoryId ? 'selected' : '';
+  const icon = t.status === 'available' ? '✓' : t.status === 'pending' ? '⏳' : `●`;
+  const storeIndicator = t.stores > 0 ? `<div style="position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#DE350B" title="${t.stores} existing store"></div>` : '';
+  return `<div class="territory-cell ${t.status} ${selected}" onclick="selectTerritory('${t.id}')" style="position:relative;min-height:70px">
+    ${storeIndicator}
+    <div style="font-size:18px">${icon}</div>
+    <div class="t-name">${t.name}</div>
+    <div class="t-status">${t.status === 'available' ? 'Available' : t.status === 'pending' ? 'Pending' : 'Taken'}</div>
+    ${t.stores > 0 ? `<div class="t-stores">${t.stores} store${t.stores>1?'s':''}</div>` : ''}
+  </div>`;
+}
+
+function selectTerritory(id) {
+  selectedTerritoryId = id;
+  const t = territories.find(x => x.id === id);
+
+  // Enable request button only for available
+  const btn = document.getElementById('btn-request');
+  btn.disabled = t.status !== 'available';
+  btn.textContent = t.status === 'available' ? `Request "${t.name}"` : t.status === 'pending' ? 'Territory Pending' : 'Territory Taken';
+
+  renderMap(); // re-render to show selection
+
+  // Show detail card
+  const prospects = DB.getProspects();
+  const assigned = prospects.filter(p => p.territory === t.name);
+  const nearby = territories.filter(x => {
+    if (x.id === id) return false;
+    return x.name.split(' ')[0] === t.name.split(' ')[0]; // same city
+  });
+
+  const statusColors = { available: 'badge-green', pending: 'badge-yellow', taken: 'badge-red' };
+  const statusLabels = { available: '✓ Available', pending: '⏳ Pending', taken: '✗ Taken' };
+
+  document.getElementById('territory-detail').style.display = '';
+  document.getElementById('territory-detail').innerHTML = `
+    <div class="card-header">
+      <div>
+        <h3>${t.name}</h3>
+        <div style="font-size:12px;color:var(--gray-500)">ZIP: ${t.zip}</div>
+      </div>
+      <span class="badge ${statusColors[t.status]}">${statusLabels[t.status]}</span>
+    </div>
+    <div class="card-body">
+      <div class="grid-2" style="gap:12px;margin-bottom:16px">
+        <div><div class="form-label">Status</div><span class="badge ${statusColors[t.status]}">${statusLabels[t.status]}</span></div>
+        <div><div class="form-label">Existing Stores</div><strong>${t.stores > 0 ? `${t.stores} store${t.stores>1?'s':''}` : 'None yet'}</strong></div>
+      </div>
+      ${assigned.length > 0 ? `
+        <div class="form-label">Assigned Candidate(s)</div>
+        ${assigned.map(p => `<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--gray-50);border-radius:var(--radius);margin-bottom:4px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">${p.firstName[0]}${p.lastName[0]}</div>
+          <div><div style="font-weight:600;font-size:13px">${p.firstName} ${p.lastName}</div><div style="font-size:11px;color:var(--gray-500)">${STAGES.find(s=>s.id===p.stage)?.label}</div></div>
+          ${stageBadge(p.stage)}
+        </div>`).join('')}
+      ` : ''}
+      ${nearby.length > 0 ? `
+        <div class="form-label mt-16">Nearby Territories (Same City)</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${nearby.map(n => `<span class="badge ${statusColors[n.status]}" style="cursor:pointer" onclick="selectTerritory('${n.id}')">${n.name}</span>`).join('')}
+        </div>` : ''}
+      <div style="margin-top:16px">
+        ${t.status === 'available' ? `<button class="btn btn-primary btn-sm" onclick="openRequestModal()">Request This Territory →</button>` :
+          t.status === 'pending' ? `<span class="badge badge-yellow">Under review — contact your rep for updates</span>` :
+          `<span class="badge badge-red">Territory not available</span>`}
+      </div>
+    </div>`;
+}
+
+function renderTable(data) {
+  const statusColors = { available: 'badge-green', pending: 'badge-yellow', taken: 'badge-red' };
+  document.getElementById('territory-tbody').innerHTML = data.map(t => `
+    <tr style="cursor:pointer" onclick="selectTerritory('${t.id}')">
+      <td><strong>${t.name}</strong></td>
+      <td style="font-size:12px;color:var(--gray-500)">${t.name.split(' ').slice(0,-1).join(' ')}</td>
+      <td><span class="badge ${statusColors[t.status]}">${t.status}</span></td>
+      <td>${t.stores > 0 ? `<span style="color:#DE350B">● ${t.stores}</span>` : '<span style="color:var(--gray-400)">—</span>'}</td>
+      <td>${t.status === 'available' ? `<button class="btn btn-sm btn-primary" onclick="event.stopPropagation();selectedTerritoryId='${t.id}';openRequestModal()">Request</button>` : ''}</td>
+    </tr>`).join('');
+}
+
+function filterStatus(s) {
+  statusFilter = s;
+  const data = s ? territories.filter(t => t.status === s) : territories;
+  renderTable(data);
+}
+
+function searchTerritories(q) {
+  let data = statusFilter ? territories.filter(t => t.status === statusFilter) : territories;
+  if (q) { const lq = q.toLowerCase(); data = data.filter(t => t.name.toLowerCase().includes(lq) || t.zip.includes(q)); }
+  renderTable(data);
+}
+
+function populateCandidates() {
+  const prospects = DB.getProspects().filter(p => !['open'].includes(p.stage));
+  const sel = document.getElementById('req-candidate');
+  prospects.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = `${p.firstName} ${p.lastName}`;
+    sel.appendChild(opt);
+  });
+}
+
+function openRequestModal() {
+  if (!selectedTerritoryId) { toast('Please select a territory first', 'warning'); return; }
+  const t = territories.find(x => x.id === selectedTerritoryId);
+  if (t.status !== 'available') { toast('This territory is not available', 'error'); return; }
+  document.getElementById('req-territory-info').innerHTML = `
+    <div style="font-weight:700;font-size:15px;margin-bottom:6px">${t.name}</div>
+    <div style="font-size:12px;color:var(--gray-500)">ZIP: ${t.zip} · Status: <span class="badge badge-green">Available</span></div>`;
+  document.getElementById('req-modal').classList.add('open');
+}
+
+function submitRequest() {
+  const candidateId = document.getElementById('req-candidate').value;
+  if (!candidateId) { toast('Please select a candidate', 'error'); return; }
+
+  const db = DB.load();
+  const tIdx = db.territories.findIndex(t => t.id === selectedTerritoryId);
+  if (tIdx >= 0) db.territories[tIdx].status = 'pending';
+  DB.save(db);
+
+  const p = DB.getProspect(candidateId);
+  p.territory = territories.find(t => t.id === selectedTerritoryId).name;
+  if (p.stage === 'inquiry' || p.stage === 'qualification') p.stage = 'site_selection';
+  p.stageDate = new Date().toISOString().split('T')[0];
+  DB.saveProspect(p);
+
+  territories = DB.getTerritories();
+  renderStats(); renderMap(); renderTable(territories);
+  closeReqModal();
+  toast(`Territory "${p.territory}" requested for ${p.firstName} ${p.lastName}!`, 'success');
+}
+
+function closeReqModal() { document.getElementById('req-modal').classList.remove('open'); }
+
+function exportTerritories() {
+  exportCSV(territories, 'hfa_territories.csv');
+  toast('Territories exported');
+}
+
+init();
+</script>
+</body>
+</html>

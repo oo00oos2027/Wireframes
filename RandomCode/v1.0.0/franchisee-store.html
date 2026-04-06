@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HFA Franchise — Store Detail</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.portal-topnav { background: #001F6B; height: 60px; display: flex; align-items: center; padding: 0 24px; gap: 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.portal-topnav .brand { color: white; text-decoration: none; font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 10px; margin-right: 32px; }
+.portal-topnav .brand .icon { width: 34px; height: 34px; background: rgba(255,255,255,0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; }
+.portal-topnav nav a { color: rgba(255,255,255,0.75); text-decoration: none; padding: 7px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+.portal-topnav nav a:hover, .portal-topnav nav a.active { background: rgba(255,255,255,0.18); color: white; }
+.portal-topnav .user-info { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.85); font-size: 13px; }
+.portal-topnav .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white; font-size: 12px; }
+
+.store-hero { background: linear-gradient(90deg, #001F6B, #0052CC); color: white; padding: 28px; }
+.store-hero h1 { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+.store-hero .sub { font-size: 14px; opacity: 0.8; margin-bottom: 20px; }
+
+.req-card { border-radius: var(--radius); border: 1.5px solid var(--gray-200); padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 12px; transition: all 0.15s; }
+.req-card:hover { border-color: var(--primary-light); }
+.req-card.done { background: var(--success-bg); border-color: #ABF5D1; }
+.req-card.waiting { background: var(--gray-50); border-color: var(--gray-200); }
+.req-card.needed { background: white; border-left: 3px solid var(--danger); }
+.req-card .req-icon { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.req-card.done .req-icon { background: var(--secondary); color: white; }
+.req-card.waiting .req-icon { background: var(--gray-200); color: var(--gray-500); }
+.req-card.needed .req-icon { background: #FFEBE6; color: var(--danger); }
+
+.store-list-item { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--gray-100); cursor: pointer; transition: all 0.15s; }
+.store-list-item:hover { background: var(--gray-50); }
+.store-list-item:last-child { border-bottom: none; }
+.store-list-item.selected { background: #EEF3FF; }
+
+.tab-bar { display: flex; gap: 0; border-bottom: 1px solid var(--gray-200); background: white; padding: 0 24px; }
+.tab-btn { padding: 12px 18px; font-size: 13px; font-weight: 600; color: var(--gray-500); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.15s; border: none; background: none; }
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+.tab-btn:hover { color: var(--gray-700); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<header class="portal-topnav">
+  <a class="brand" href="franchisee-dashboard.html">
+    <div class="icon">🏪</div>My Franchise Portal
+  </a>
+  <nav style="display:flex;gap:4px;flex:1">
+    <a href="franchisee-dashboard.html">🏠 Dashboard</a>
+    <a href="franchisee-store.html" class="active">🏪 My Stores</a>
+    <a href="index.html">📊 Corporate View</a>
+  </nav>
+  <div class="user-info">
+    <div class="avatar" id="user-avatar">?</div>
+    <span id="user-name-nav"></span>
+  </div>
+</header>
+
+<div style="display:flex;min-height:calc(100vh - 60px)">
+
+  <!-- LEFT STORE LIST PANEL -->
+  <div style="width:260px;flex-shrink:0;background:white;border-right:1px solid var(--gray-200);display:flex;flex-direction:column">
+    <div style="padding:16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:13px;font-weight:700;color:var(--gray-700)">My Stores</span>
+      <button class="btn btn-sm btn-primary" onclick="openNewStoreModal()">+ New</button>
+    </div>
+    <div style="flex:1;overflow-y:auto" id="store-list-panel"></div>
+    <div style="padding:12px;border-top:1px solid var(--gray-100)">
+      <a href="franchisee-dashboard.html" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div style="flex:1;overflow:auto;display:flex;flex-direction:column">
+
+    <!-- EMPTY STATE -->
+    <div id="no-store-selected" style="flex:1;display:flex;align-items:center;justify-content:center">
+      <div class="empty-state">
+        <div class="empty-icon">🏗️</div>
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">Select a Store</h3>
+        <p>Choose a store from the left to view details and track progress</p>
+        <div style="margin-top:20px"><button class="btn btn-primary" onclick="openNewStoreModal()">+ Apply for New Store</button></div>
+      </div>
+    </div>
+
+    <!-- STORE DETAIL -->
+    <div id="store-detail" style="display:none;flex:1;overflow:auto">
+
+      <!-- STORE HERO -->
+      <div class="store-hero">
+        <div style="max-width:1000px">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div>
+              <h1 id="detail-store-name">Store Name</h1>
+              <div class="sub" id="detail-store-sub">Territory · Status</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap" id="detail-header-actions"></div>
+          </div>
+          <!-- JOURNEY BAR -->
+          <div id="detail-journey" style="overflow-x:auto;padding-bottom:4px"></div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="showStoreTab('overview')" id="stab-overview">Overview</button>
+        <button class="tab-btn" onclick="showStoreTab('requirements')" id="stab-requirements">My Checklist</button>
+        <button class="tab-btn" onclick="showStoreTab('milestones')" id="stab-milestones">Full Milestones</button>
+        <button class="tab-btn" onclick="showStoreTab('documents')" id="stab-documents">Documents</button>
+      </div>
+
+      <div style="padding:24px;max-width:1000px">
+
+        <!-- OVERVIEW TAB -->
+        <div id="stab-view-overview">
+          <div class="grid-2" style="gap:20px;margin-bottom:20px">
+            <!-- PROGRESS + NEXT ACTION -->
+            <div class="card">
+              <div class="card-header"><h3>Journey Progress</h3><span id="ov-stage-badge" class="badge badge-blue"></span></div>
+              <div class="card-body">
+                <div style="text-align:center;margin-bottom:16px">
+                  <div style="font-size:42px;font-weight:900" id="ov-pct"></div>
+                  <div style="font-size:13px;color:var(--gray-500)">of your franchise journey complete</div>
+                </div>
+                <div class="progress-bar-wrap" style="height:10px;margin-bottom:6px">
+                  <div class="progress-bar-fill" id="ov-pct-bar" style="width:0%"></div>
+                </div>
+                <div id="ov-next-action" style="margin-top:16px"></div>
+              </div>
+            </div>
+            <!-- KEY DETAILS -->
+            <div class="card">
+              <div class="card-header"><h3>Store Details</h3></div>
+              <div class="card-body" id="ov-details"></div>
+            </div>
+          </div>
+          <!-- WHAT COMES NEXT -->
+          <div class="card mb-20">
+            <div class="card-header"><h3>What Happens Next</h3></div>
+            <div class="card-body" id="ov-whats-next"></div>
+          </div>
+          <!-- NOTES FROM REP -->
+          <div class="card">
+            <div class="card-header"><h3>Notes & Updates</h3></div>
+            <div class="card-body">
+              <div id="ov-notes" style="font-size:13px;color:var(--gray-700);line-height:1.7;background:var(--gray-50);padding:12px;border-radius:var(--radius)"></div>
+              <div style="margin-top:12px;display:flex;gap:8px">
+                <a id="ov-rep-email" href="#" class="btn btn-secondary btn-sm">✉ Email Rep</a>
+                <a id="ov-rep-phone" href="#" class="btn btn-ghost btn-sm">📞 Call Rep</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REQUIREMENTS / CHECKLIST TAB -->
+        <div id="stab-view-requirements" style="display:none">
+          <div class="alert alert-info mb-16">
+            <div class="alert-icon">📋</div>
+            <div class="alert-text">
+              <h5>Your Action Checklist</h5>
+              <p>Items marked "Your Task" are things <strong>you</strong> need to complete. Items marked "Awaiting" are pending corporate or third-party action.</p>
+            </div>
+          </div>
+          <div id="req-list"></div>
+        </div>
+
+        <!-- MILESTONES TAB -->
+        <div id="stab-view-milestones" style="display:none">
+          <div style="margin-bottom:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <h3 style="font-size:16px;font-weight:700">NSO Milestone Tracker</h3>
+              <span id="ms-overall-badge" class="badge badge-blue"></span>
+            </div>
+            <div class="progress-bar-wrap" style="height:8px"><div class="progress-bar-fill" id="ms-overall-bar" style="width:0%"></div></div>
+            <div class="progress-label" id="ms-overall-label"><span></span></div>
+          </div>
+          <div id="ms-phases"></div>
+        </div>
+
+        <!-- DOCUMENTS TAB -->
+        <div id="stab-view-documents" style="display:none">
+          <div class="alert alert-info mb-16">
+            <div class="alert-icon">📁</div>
+            <div class="alert-text"><h5>Store-Specific Documents</h5><p>These documents are specific to this store location. Your profile documents are managed in your dashboard.</p></div>
+          </div>
+          <div id="store-doc-list"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEW STORE MODAL -->
+<div class="modal-overlay" id="new-store-modal" onclick="if(event.target===this)closeNewStoreModal()">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header"><h3>Apply for New Store Location</h3><button class="modal-close" onclick="closeNewStoreModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Preferred Territory <span class="required">*</span></label>
+        <select class="form-control" id="ns-territory"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Store Working Name</label>
+        <input type="text" class="form-control" id="ns-name" placeholder="e.g. Austin North — HFA">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Investment Budget <span class="required">*</span></label>
+          <div style="position:relative">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-weight:700;color:var(--gray-400)">$</span>
+            <input type="number" class="form-control" id="ns-budget" style="padding-left:22px" placeholder="350000">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Funding</label>
+          <select class="form-control" id="ns-funding">
+            <option>Personal savings</option><option>SBA Loan</option><option>HELOC</option><option>401k</option><option>Investor</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes for Rep</label>
+        <textarea class="form-control" id="ns-notes" rows="2" placeholder="Timeline, site preferences, questions..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeNewStoreModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitNewStore()">Submit Application →</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script src="franchisee-app.js"></script>
+<script>
+if (!FranchiseeDB.requireAuth()) throw new Error('redirect');
+
+const session = FranchiseeDB.getCurrentSession();
+let profile = FranchiseeDB.getProfile(session.id);
+let storeApps = [];
+let currentStoreId = null;
+
+document.getElementById('user-avatar').textContent = session.name.split(' ').map(n=>n[0]).join('');
+document.getElementById('user-name-nav').textContent = session.name;
+
+function init() {
+  storeApps = FranchiseeDB.getStoreApps(session.id);
+  renderStoreList();
+  const params = new URLSearchParams(window.location.search);
+  const idParam = params.get('id');
+  const action = params.get('action');
+  if (action === 'new') { setTimeout(openNewStoreModal, 300); }
+  else if (idParam) { loadStore(idParam); }
+  else if (storeApps.length) { loadStore(storeApps[0].id); }
+}
+
+function renderStoreList() {
+  const container = document.getElementById('store-list-panel');
+  if (!storeApps.length) {
+    container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--gray-400);font-size:13px">No stores yet.<br>Click + New to apply.</div>`;
+    return;
+  }
+  container.innerHTML = storeApps.map(s => {
+    const isOpen = s.stage === 'open';
+    const stageInfo = STAGES.find(x => x.id === s.stage) || STAGES[0];
+    const stageIdx = stageIndex(s.stage);
+    const pct = Math.round(stageIdx / (STAGES.length - 1) * 100);
+    return `
+      <div class="store-list-item ${s.id === currentStoreId ? 'selected' : ''}" onclick="loadStore('${s.id}')">
+        <div style="font-size:20px">${isOpen ? '🏪' : '🏗️'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.storeName}</div>
+          <div style="font-size:11px;color:var(--gray-500);margin:2px 0">${stageInfo.label}</div>
+          <div class="progress-bar-wrap" style="height:3px"><div class="progress-bar-fill ${isOpen?'success':''}" style="width:${pct}%;background:${stageInfo.color}"></div></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function loadStore(id) {
+  currentStoreId = id;
+  const store = FranchiseeDB.getStoreApp(id);
+  if (!store) return;
+
+  document.getElementById('no-store-selected').style.display = 'none';
+  document.getElementById('store-detail').style.display = '';
+
+  renderStoreList(); // update selection highlight
+
+  const stageInfo = STAGES.find(s => s.id === store.stage) || STAGES[0];
+  const stageIdx = stageIndex(store.stage);
+  const pct = Math.round(stageIdx / (STAGES.length - 1) * 100);
+  const isOpen = store.stage === 'open';
+
+  // HERO
+  document.getElementById('detail-store-name').textContent = store.storeName;
+  document.getElementById('detail-store-sub').textContent = `${store.territory} · ${stageInfo.label} · Applied ${fmtDate(store.createdAt)}`;
+  document.getElementById('detail-header-actions').innerHTML = `
+    ${stageBadge(store.stage)}
+    <a href="mailto:${store.repEmail}" class="btn btn-secondary btn-sm" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.3);color:white">✉ Email Rep</a>`;
+
+  // JOURNEY BAR in hero
+  document.getElementById('detail-journey').innerHTML = `
+    <div style="display:flex;align-items:center;padding:8px 0;gap:0">
+      ${STAGES.map((s,i) => `
+        <div style="display:flex;align-items:center;flex-shrink:0">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:6px;background:${i===stageIdx?'rgba(255,255,255,0.15)':'transparent'}">
+            <div style="width:20px;height:20px;border-radius:50%;background:${i<stageIdx?'#36B37E':i===stageIdx?'white':'rgba(255,255,255,0.2)'};display:flex;align-items:center;justify-content:center;font-size:9px;color:${i===stageIdx?stageInfo.color:'white'};font-weight:800">
+              ${i<stageIdx?'✓':i+1}
+            </div>
+            <div style="font-size:9px;font-weight:${i===stageIdx?800:400};color:${i===stageIdx?'white':'rgba(255,255,255,0.6)'};white-space:nowrap">${s.label}</div>
+          </div>
+          ${i<STAGES.length-1?`<div style="width:14px;height:2px;background:${i<stageIdx?'rgba(255,255,255,0.4)':'rgba(255,255,255,0.15)'}"></div>`:''}
+        </div>`).join('')}
+    </div>`;
+
+  // OVERVIEW
+  const nextAction = getNextAction(store);
+  document.getElementById('ov-stage-badge').textContent = stageInfo.label;
+  document.getElementById('ov-stage-badge').style.cssText = `background:${stageInfo.bg};color:${stageInfo.color}`;
+  document.getElementById('ov-pct').textContent = `${pct}%`;
+  document.getElementById('ov-pct').style.color = stageInfo.color;
+  document.getElementById('ov-pct-bar').style.width = pct + '%';
+  document.getElementById('ov-pct-bar').style.background = stageInfo.color;
+
+  if (nextAction) {
+    document.getElementById('ov-next-action').innerHTML = `
+      <div class="req-card ${nextAction.type === 'action' ? 'needed' : 'waiting'}">
+        <div class="req-icon">${nextAction.type === 'action' ? '⚡' : '⏳'}</div>
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:${nextAction.type==='action'?'var(--danger)':'var(--gray-500)'}">${nextAction.type==='action'?'Action Required':'Waiting On'}</div>
+          <div style="font-size:13px;font-weight:600;margin-top:2px">${nextAction.label}</div>
+          ${nextAction.type==='action'?`<button class="btn btn-sm btn-primary" style="margin-top:8px" onclick="showStoreTab('requirements')">View My Checklist →</button>`:''}
+        </div>
+      </div>`;
+  } else {
+    document.getElementById('ov-next-action').innerHTML = `<div class="alert alert-success"><div class="alert-icon">✅</div><div class="alert-text"><h5>No pending actions</h5><p>All items for this stage are complete. Your rep will contact you about next steps.</p></div></div>`;
+  }
+
+  document.getElementById('ov-details').innerHTML = [
+    ['Territory', store.territory],
+    ['Investment Budget', fmt$$(store.investmentBudget)],
+    ['Funding Source', store.fundingSource || '—'],
+    ['Current Stage', stageInfo.label],
+    ['Stage Since', fmtDate(store.stageDate)],
+    ['Est. Opening', store.estimatedOpenDate ? fmtDate(store.estimatedOpenDate) : 'TBD'],
+    ...(store.actualOpenDate ? [['Opened', fmtDate(store.actualOpenDate)]] : []),
+    ['Development Rep', store.repName],
+  ].map(([l,v]) => `<div class="review-row"><span style="color:var(--gray-500);font-size:12px">${l}</span><span style="font-weight:600;font-size:13px">${v}</span></div>`).join('');
+
+  // WHAT'S NEXT
+  const nextStages = STAGES.slice(stageIdx + 1, stageIdx + 4);
+  document.getElementById('ov-whats-next').innerHTML = nextStages.length > 0 ? nextStages.map((s,i) => `
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;${i<nextStages.length-1?'border-bottom:1px solid var(--gray-100)':''}">
+      <div style="width:24px;height:24px;border-radius:50%;background:var(--gray-100);border:2px solid var(--gray-200);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--gray-500);flex-shrink:0">${stageIdx+i+2}</div>
+      <div><div style="font-size:13px;font-weight:700">${s.label}</div><div style="font-size:12px;color:var(--gray-500);margin-top:2px">${(STAGE_REQUIREMENTS[s.id]||[]).filter(r=>!r.waitOnly).map(r=>r.label).slice(0,2).join(' · ')}</div></div>
+    </div>`).join('') : `<div style="text-align:center;color:var(--secondary);font-size:14px;padding:12px">🎉 You've reached Grand Opening!</div>`;
+
+  document.getElementById('ov-notes').textContent = store.notes || 'No notes yet. Your development rep will add updates here.';
+  document.getElementById('ov-rep-email').href = `mailto:${store.repEmail}`;
+  document.getElementById('ov-rep-phone').href = `tel:${store.repPhone}`;
+
+  // REQUIREMENTS
+  renderRequirements(store);
+
+  // MILESTONES
+  renderMilestonesTab(store);
+
+  // DOCUMENTS
+  renderStoreDocuments(store);
+}
+
+function renderRequirements(store) {
+  const reqs = STAGE_REQUIREMENTS[store.stage] || [];
+  const prevReqs = STAGE_IDS.slice(0, stageIndex(store.stage)).flatMap(sid => (STAGE_REQUIREMENTS[sid]||[]).map(r => ({ ...r, _prevStage: sid })));
+  let html = '';
+
+  // Current stage header
+  const stageInfo = STAGES.find(s => s.id === store.stage);
+  html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray-500);letter-spacing:0.5px;margin-bottom:10px">Current Stage: ${stageInfo?.label}</div>`;
+
+  if (reqs.length) {
+    html += reqs.map(r => {
+      let cls = 'waiting', icon = '⏳', label = 'Awaiting';
+      if (r.done) { cls = 'done'; icon = '✓'; label = 'Done'; }
+      else if (r.waitOnly) { cls = 'waiting'; icon = '⏳'; label = 'Awaiting'; }
+      else { cls = 'needed'; icon = '⚡'; label = 'Your Task'; }
+      return `
+        <div class="req-card ${cls}">
+          <div class="req-icon">${icon}</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+              <span style="font-size:11px;font-weight:700;text-transform:uppercase;color:${cls==='needed'?'var(--danger)':cls==='done'?'var(--secondary)':'var(--gray-500)'}">${label}</span>
+              ${r.owner !== 'You' && r.owner !== 'You/IT' && r.owner !== 'GC/You' ? `<span class="badge badge-gray" style="font-size:9px">${r.owner}</span>` : ''}
+            </div>
+            <div style="font-size:13px;font-weight:600">${r.label}</div>
+          </div>
+          ${cls === 'needed' && !r.waitOnly ? `<button class="btn btn-sm btn-primary" onclick="markReqDone('${r.id}', this)">Mark Done</button>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  // Completed stages summary
+  if (prevReqs.length) {
+    html += `<hr class="divider"><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--secondary);letter-spacing:0.5px;margin-bottom:10px">✓ Completed Stages</div>`;
+    const prevByStage = {};
+    prevReqs.forEach(r => { if (!prevByStage[r._prevStage]) prevByStage[r._prevStage] = []; prevByStage[r._prevStage].push(r); });
+    html += Object.entries(prevByStage).map(([sid, reqs]) => {
+      const s = STAGES.find(x => x.id === sid);
+      return `<div style="margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:var(--secondary);margin-bottom:4px">✓ ${s?.label}</div>
+        ${reqs.map(r => `<div class="req-card done" style="padding:8px 12px"><div class="req-icon" style="width:22px;height:22px;font-size:11px">✓</div><div style="font-size:12px;color:var(--secondary)">${r.label}</div></div>`).join('')}
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('req-list').innerHTML = html;
+}
+
+function markReqDone(reqId, btn) {
+  btn.textContent = '✓ Done'; btn.disabled = true; btn.className = 'btn btn-sm btn-success';
+  const card = btn.closest('.req-card');
+  card.className = 'req-card done';
+  card.querySelector('.req-icon').textContent = '✓';
+  toast('Requirement marked complete!', 'success');
+}
+
+function renderMilestonesTab(store) {
+  const done = FranchiseeDB.getFMilestones(store.id);
+  const allItems = NSO_MILESTONES.flatMap(ph => ph.items);
+  const totalDone = done.length;
+  const pct = Math.round(totalDone / allItems.length * 100);
+
+  document.getElementById('ms-overall-badge').textContent = `${pct}% · ${totalDone}/${allItems.length}`;
+  document.getElementById('ms-overall-badge').className = `badge ${pct >= 100 ? 'badge-green' : pct >= 50 ? 'badge-blue' : 'badge-yellow'}`;
+  document.getElementById('ms-overall-bar').style.width = pct + '%';
+  document.getElementById('ms-overall-bar').className = `progress-bar-fill ${pct >= 100 ? 'success' : ''}`;
+  document.getElementById('ms-overall-label').innerHTML = `<span>${totalDone} of ${allItems.length} milestones completed</span><span>${pct}%</span>`;
+
+  document.getElementById('ms-phases').innerHTML = NSO_MILESTONES.map(phase => {
+    const phDone = phase.items.filter(it => done.includes(it.id)).length;
+    return `
+      <div class="card mb-16">
+        <div class="card-header">
+          <div><h3>${phase.phase}</h3><div style="font-size:12px;color:var(--gray-500)">${phDone}/${phase.items.length} complete</div></div>
+          <span class="badge ${phDone===phase.items.length?'badge-green':'badge-blue'}">${Math.round(phDone/phase.items.length*100)}%</span>
+        </div>
+        <div class="card-body" style="padding:10px">
+          ${phase.items.map(item => {
+            const isDone = done.includes(item.id);
+            const isYours = ['Franchisee','You','GC/You','You/IT'].includes(item.owner);
+            return `
+              <div class="milestone-item ${isDone ? 'done' : ''}" onclick="toggleMilestone('${store.id}', '${item.id}', this)">
+                <div class="milestone-cb">${isDone ? '✓' : ''}</div>
+                <div class="milestone-info">
+                  <div class="milestone-title">${item.title}</div>
+                  <div class="milestone-sub">Owner: ${item.owner} ${isYours ? '· <strong style="color:var(--primary)">Your task</strong>' : ''}</div>
+                </div>
+                <div class="milestone-due">
+                  ${isDone ? '<span class="badge badge-green" style="font-size:9px">Done</span>' : `<span style="font-size:10px;color:var(--gray-400)">Day ${item.due}</span>`}
+                </div>
+              </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleMilestone(storeId, milestoneId, rowEl) {
+  FranchiseeDB.toggleFMilestone(storeId, milestoneId);
+  const done = FranchiseeDB.getFMilestones(storeId).includes(milestoneId);
+  rowEl.className = `milestone-item ${done ? 'done' : ''}`;
+  rowEl.querySelector('.milestone-cb').textContent = done ? '✓' : '';
+  rowEl.querySelector('.milestone-due').innerHTML = done ? '<span class="badge badge-green" style="font-size:9px">Done</span>' : rowEl.querySelector('.milestone-due').innerHTML;
+  const store = FranchiseeDB.getStoreApp(storeId);
+  renderMilestonesTab(store);
+  toast(done ? 'Milestone complete!' : 'Milestone unchecked', done ? 'success' : 'info');
+}
+
+function renderStoreDocuments(store) {
+  const storeDocs = store.storeDocuments || {};
+  const docDefs = [
+    { key: 'loi', name: 'Letter of Intent (LOI)', desc: 'Signed LOI for your selected site', icon: '📝', stage: 'site_selection' },
+    { key: 'leaseExec', name: 'Executed Lease Agreement', desc: 'Fully signed commercial lease', icon: '📋', stage: 'site_selection' },
+    { key: 'buildoutPlans', name: 'Build-Out Plans', desc: 'Approved by corporate', icon: '📐', stage: 'buildout' },
+    { key: 'gcContract', name: 'General Contractor Contract', desc: 'Signed GC agreement', icon: '🔨', stage: 'buildout' },
+    { key: 'staffRoster', name: 'Staff Roster', desc: 'Submitted to corporate before opening', icon: '👥', stage: 'training' },
+  ];
+  const stageIdx = stageIndex(store.stage);
+
+  document.getElementById('store-doc-list').innerHTML = docDefs.map(d => {
+    const reqStageIdx = stageIndex(d.stage);
+    const isRelevant = stageIdx >= reqStageIdx;
+    return `
+      <div class="doc-row ${storeDocs[d.key] ? 'uploaded' : ''}" ${isRelevant && !storeDocs[d.key] ? `onclick="uploadStoreDoc('${store.id}','${d.key}',this)"` : ''} style="${!isRelevant ? 'opacity:0.5;cursor:not-allowed' : ''}">
+        <div class="doc-icon">${d.icon}</div>
+        <div class="doc-info">
+          <div class="doc-name">${d.name}</div>
+          <div class="doc-desc">${d.desc} · Required at: ${STAGES.find(s=>s.id===d.stage)?.label || d.stage}</div>
+        </div>
+        <div class="doc-status" id="storedoc-${d.key}">
+          ${storeDocs[d.key] ? '<span class="badge badge-green">✓ Uploaded</span>' : isRelevant ? '<span class="req-tag">Required</span>' : '<span class="opt-tag">Not yet</span>'}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function uploadStoreDoc(storeId, key, rowEl) {
+  FranchiseeDB.uploadStoreDoc(storeId, key);
+  rowEl.classList.add('uploaded');
+  rowEl.querySelector(`[id^="storedoc-"]`).innerHTML = '<span class="badge badge-green">✓ Uploaded</span>';
+  toast('Document uploaded', 'success');
+  const store = FranchiseeDB.getStoreApp(storeId);
+  renderStoreDocuments(store);
+}
+
+function showStoreTab(tab) {
+  ['overview','requirements','milestones','documents'].forEach(t => {
+    document.getElementById(`stab-view-${t}`).style.display = t === tab ? '' : 'none';
+    document.getElementById(`stab-${t}`).className = 'tab-btn' + (t === tab ? ' active' : '');
+  });
+}
+
+// ── NEW STORE MODAL ──
+function openNewStoreModal() {
+  const tsel = document.getElementById('ns-territory');
+  tsel.innerHTML = '<option value="">Select territory...</option>';
+  DB.getTerritories().filter(t => t.status === 'available').forEach(t => {
+    const opt = document.createElement('option'); opt.value = t.name; opt.textContent = `${t.name} (Available)`; tsel.appendChild(opt);
+  });
+  document.getElementById('new-store-modal').classList.add('open');
+}
+
+function closeNewStoreModal() { document.getElementById('new-store-modal').classList.remove('open'); }
+
+function submitNewStore() {
+  const territory = document.getElementById('ns-territory').value;
+  const budget = Number(document.getElementById('ns-budget').value) || 0;
+  if (!territory) { toast('Please select a territory', 'error'); return; }
+  if (!budget) { toast('Please enter your investment budget', 'error'); return; }
+  const app = {
+    franchiseeId: session.id,
+    storeName: document.getElementById('ns-name').value.trim() || `${territory} — HFA`,
+    territory, stage: 'inquiry', investmentBudget: budget,
+    fundingSource: document.getElementById('ns-funding').value,
+    notes: document.getElementById('ns-notes').value,
+    repName: profile.repName, repEmail: profile.repEmail, repPhone: profile.repPhone,
+    status: 'pending_approval',
+    storeDocuments: { loi: false, leaseExec: false, buildoutPlans: false, gcContract: false, staffRoster: false },
+  };
+  const saved = FranchiseeDB.saveStoreApp(app);
+  closeNewStoreModal();
+  toast(`Application for "${territory}" submitted!`, 'success');
+  init();
+  setTimeout(() => loadStore(saved.id), 300);
+}
+
+init();
+</script>
+</body>
+</html>
