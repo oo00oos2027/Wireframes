@@ -1,0 +1,500 @@
+
+<h2 class="sr-only">Detailed requirements for all Pillar 3 Recovery scenarios for Auth0 MFA Salesforce Community implementation</h2>
+<style>
+  .wrap { padding: 1rem 0; font-size: 12px; }
+  .top-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; align-items: center; }
+  .top-bar input { flex: 1; min-width: 180px; padding: 7px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 13px; }
+  .pill { cursor: pointer; padding: 5px 13px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); font-size: 12px; }
+  .pill.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); font-weight: 500; }
+  .count { font-size: 12px; color: var(--color-text-secondary); white-space: nowrap; }
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1300px; }
+  thead th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 500; color: var(--color-text-secondary); border-bottom: 0.5px solid var(--color-border-secondary); text-transform: uppercase; letter-spacing: 0.04em; position: sticky; top: 0; background: var(--color-background-primary); z-index: 2; }
+  tbody tr { border-bottom: 0.5px solid var(--color-border-tertiary); }
+  tbody tr:hover { background: var(--color-background-secondary); }
+  tbody tr.hidden { display: none; }
+  td { padding: 9px 10px; vertical-align: top; line-height: 1.55; color: var(--color-text-primary); font-size: 12px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+  .p3 { background: #FAECE7; color: #993C1D; }
+  @media (prefers-color-scheme: dark) { .p3 { background: #4A1B0C; color: #F5C4B3; } }
+  .epic-reset { background: #FAEEDA; color: #854F0B; }
+  .epic-contact { background: #E6F1FB; color: #185FA5; }
+  .epic-bypass { background: #FBEAF0; color: #993556; }
+  .epic-audit { background: #EAF3DE; color: #3B6D11; }
+  .epic-selfserve { background: #EEEDFE; color: #3C3489; }
+  @media (prefers-color-scheme: dark) {
+    .epic-reset { background: #412402; color: #FAC775; }
+    .epic-contact { background: #042C53; color: #B5D4F4; }
+    .epic-bypass { background: #4B1528; color: #F4C0D1; }
+    .epic-audit { background: #173404; color: #C0DD97; }
+    .epic-selfserve { background: #26215C; color: #CECBF6; }
+  }
+  .prio { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 10px; font-weight: 500; }
+  .high { background: #FCEBEB; color: #A32D2D; }
+  .med { background: #FAEEDA; color: #854F0B; }
+  @media (prefers-color-scheme: dark) {
+    .high { background: #501313; color: #F7C1C1; }
+    .med { background: #412402; color: #FAC775; }
+  }
+  ul { margin: 0; padding-left: 14px; }
+  ul li { margin-bottom: 3px; }
+  .tag { display: inline-block; padding: 1px 6px; border-radius: 6px; font-size: 10px; margin: 1px 2px 1px 0; border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); }
+  .no-results { padding: 2rem; text-align: center; color: var(--color-text-secondary); }
+  .sc-id { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); }
+  .sc-title { font-weight: 500; font-size: 12px; }
+  .col-id { width: 36px; }
+  .col-pillar { width: 90px; }
+  .col-epic { width: 108px; }
+  .col-prio { width: 62px; }
+  .col-scenario { width: 118px; }
+  .col-story { width: 162px; }
+  .col-ac { width: 220px; }
+  .col-auth0 { width: 162px; }
+  .col-sf { width: 162px; }
+  .col-dep { width: 128px; }
+  .col-dod { width: 152px; }
+  .col-risk { width: 128px; }
+</style>
+
+<div class="wrap">
+  <div class="top-bar">
+    <input type="text" id="searchBox" placeholder="Search requirements, epics, stories..." oninput="filterRows()" />
+    <span class="pill active" data-f="all" onclick="setFilter(this,'all')">All (7)</span>
+    <span class="pill" data-f="reset" onclick="setFilter(this,'reset')">MFA reset</span>
+    <span class="pill" data-f="contact" onclick="setFilter(this,'contact')">Contact recovery</span>
+    <span class="pill" data-f="selfserve" onclick="setFilter(this,'selfserve')">Self-service</span>
+    <span class="pill" data-f="audit" onclick="setFilter(this,'audit')">Admin &amp; audit</span>
+    <span class="pill" data-f="bypass" onclick="setFilter(this,'bypass')">Emergency bypass</span>
+    <span class="count" id="cnt">7 of 7</span>
+  </div>
+  <div class="tbl-wrap">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th class="col-id">#</th>
+          <th class="col-pillar">Pillar</th>
+          <th class="col-epic">Epic</th>
+          <th class="col-prio">Priority</th>
+          <th class="col-scenario">Scenario</th>
+          <th class="col-story">User story</th>
+          <th class="col-ac">Acceptance criteria</th>
+          <th class="col-auth0">Auth0 requirements</th>
+          <th class="col-sf">Salesforce requirements</th>
+          <th class="col-dep">Dependencies</th>
+          <th class="col-dod">Definition of done</th>
+          <th class="col-risk">Risks &amp; notes</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="no-results" id="noRes" style="display:none;">No matching requirements found.</div>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {
+    id: 29, epicKey: 'reset', epic: 'MFA reset', epicCls: 'epic-reset', prio: 'high',
+    scenario: 'User loses MFA device (lost phone)',
+    story: 'As a support engineer, I need to implement an admin-triggered MFA reset flow for users who have lost their enrolled device so that their identity is verified out of band, their MFA factors are cleared in Auth0, and they are prompted to re-enroll on next login — with a full audit trail written in Salesforce.',
+    ac: [
+      'A "Reset MFA" button on the SF User record is visible only to users with the MFA Support Agent or MFA Admin permission set',
+      'Clicking the button opens a confirmation modal requiring: reason for reset (min 20 characters, mandatory), identity verification method used (dropdown: email confirmation / phone callback / manager approval / in-person), and the verifying agent\'s name',
+      'On confirmation, an Apex callout is made to Auth0 Management API DELETE /api/v2/users/{id}/authenticators to clear all enrolled factors',
+      'Auth0 confirms deletion — the user\'s multifactor array is empty on next Management API GET',
+      'A MFA_Reset_Log__c record is created with: affected user, initiating admin, reason, verification method, timestamp, and success/failure status',
+      'The user receives an email notification: "Your MFA has been reset. Please log in and set up a new verification method."',
+      'On next login, Auth0 Post-Login Action detects no enrolled factors and triggers fresh MFA enrollment',
+      'Support agent is prompted to link a Salesforce Case to the MFA_Reset_Log__c record before closing the modal'
+    ],
+    auth0: [
+      'Management API DELETE /api/v2/users/{id}/authenticators called from Salesforce via Named Credential',
+      'Scope required on Named Credential token: delete:guardian_enrollments or delete:users_authenticators',
+      'Auth0 logs the deletion event — Log Stream forwards to Salesforce for audit',
+      'Post-Login Action re-detects empty multifactor array and triggers enrollment on next login — no code change needed'
+    ],
+    sf: [
+      'Custom LWC button "Reset MFA" on User record — restricted to MFA Support Agent and MFA Admin permission sets via field-level visibility',
+      'LWC modal: Reason (text, required, minlength 20), Verification Method (picklist), Verifying Agent Name (text, required)',
+      'Apex controller calls Auth0 Management API via Named Credential on modal confirm',
+      'On API success: create MFA_Reset_Log__c, trigger Flow to send user notification email, prompt agent to link a Case',
+      'On API failure: display error toast with the Auth0 error message, log failure to MFA_Reset_Log__c with status = Failed',
+      'MFA_Enrolled__c set to false on the User record after successful reset',
+      'MFA_Reset_Count__c incremented on User — if count > 3 in 90 days, auto-escalate to MFA Admin for review'
+    ],
+    deps: [
+      'Auth0 Management API Named Credential configured with correct scopes',
+      'MFA_Reset_Log__c custom object with all required fields created',
+      'MFA Support Agent and MFA Admin permission sets defined',
+      'User notification email template approved by comms',
+      'Identity verification SOP documented and linked in the modal help text'
+    ],
+    dod: [
+      'End-to-end test: admin clicks reset → modal → confirm → Auth0 factors cleared → log created → notification email sent → user re-enrolls on next login',
+      'Reset button invisible to users without the correct permission set — confirmed via permission test',
+      'Reason field rejects submission if under 20 characters',
+      'Auth0 Management API GET confirms empty multifactor array after reset',
+      'MFA_Reset_Log__c record contains all required fields with correct values',
+      'Failure scenario tested: Auth0 API error handled gracefully with toast and failure log entry',
+      'Auto-escalation fires correctly when MFA_Reset_Count__c exceeds 3 in 90 days'
+    ],
+    risk: 'This is the highest-privilege support action in the system. The Named Credential token must be scoped to authenticator deletion only — never a full Management API token. Rotate the token on a schedule and store rotation dates in Salesforce.'
+  },
+  {
+    id: 30, epicKey: 'contact', epic: 'Contact recovery', epicCls: 'epic-contact', prio: 'high',
+    scenario: 'User loses access to email used for MFA',
+    story: 'As a support engineer, I need to implement a recovery flow for users who have lost access to the email address associated with their Auth0 account so that their identity is verified, their email is updated in both Auth0 and Salesforce, their MFA is reset if needed, and re-enrollment is triggered.',
+    ac: [
+      'Support agent opens a Case categorised as "Email Recovery" for the affected user',
+      'Case requires the agent to confirm out-of-band identity verification before any changes are made — verification method is recorded on the Case',
+      'Agent updates the user\'s email on the Salesforce User record via a dedicated "Update Email" quick action — not via the standard edit layout',
+      'The quick action triggers an Apex callout to Auth0 Management API PATCH /api/v2/users/{id} to update the email field in Auth0',
+      'Auth0 sends a new verification email to the updated address — MFA is not re-enabled until the new email is verified',
+      'If Email OTP was the user\'s only enrolled factor, MFA is reset automatically after the email update so the user must re-enroll with the new address',
+      'If the user had TOTP or SMS enrolled in addition to email, existing factors remain intact and only the email is updated',
+      'All changes are logged: Case, MFA_Reset_Log__c (if reset triggered), and a Contact_Update_Log__c record',
+      'User receives confirmation email at their new address confirming the change'
+    ],
+    auth0: [
+      'Management API PATCH /api/v2/users/{id} with body { email: newEmail, email_verified: false }',
+      'Auth0 sends verification email to new address automatically after PATCH',
+      'If Email OTP was sole factor: call DELETE /api/v2/users/{id}/authenticators after email update',
+      'Post-Login Action detects unverified email and blocks Email OTP until email_verified = true',
+      'Log Stream forwards email_changed and authenticator_deleted events to Salesforce'
+    ],
+    sf: [
+      '"Update Email" quick action on User record — visible to MFA Support Agent and above only',
+      'Quick action opens a modal: New Email (text, email validation), Reason (required), Verification Method confirmed (picklist)',
+      'Apex controller: (1) validate email format, (2) call Auth0 PATCH, (3) update User.Email in SF, (4) if Email OTP sole factor call Auth0 DELETE authenticators, (5) create log records',
+      'Contact_Update_Log__c object: User, Old Email, New Email, Changed By, Reason, Timestamp, Auth0 Update Status',
+      'Flow: send confirmation email to new address; update Auth0_Email_Verified__c = false until Log Stream verification event fires',
+      'Case linked to Contact_Update_Log__c and MFA_Reset_Log__c (if reset) for audit continuity'
+    ],
+    deps: [
+      'Auth0 Management API Named Credential with update:users and delete:users_authenticators scopes',
+      'Contact_Update_Log__c custom object created',
+      'MFA_Reset_Log__c custom object created (Scenario 29)',
+      'Identity verification SOP documented',
+      'Email template for new-address confirmation approved'
+    ],
+    dod: [
+      'Agent updates email via quick action — Auth0 user email updated within 10 seconds confirmed via Management API GET',
+      'Auth0 sends verification email to new address — confirmed by test receipt',
+      'If Email OTP was sole factor, MFA reset fires automatically and user must re-enroll on next login',
+      'If TOTP enrolled alongside, TOTP remains intact after email update',
+      'Contact_Update_Log__c record created with all fields populated',
+      'Case linked to log records — audit trail complete',
+      'Confirmation email received at new address'
+    ],
+    risk: 'Email changes in Auth0 set email_verified = false. Until verified, the user cannot use Email OTP. Communicate this clearly to the support agent and user so they know to click the verification link before attempting to log in.'
+  },
+  {
+    id: 31, epicKey: 'contact', epic: 'Contact recovery', epicCls: 'epic-contact', prio: 'high',
+    scenario: 'User loses both phone and email',
+    story: 'As a security engineer, I need to design a multi-level approval process in Salesforce for the most severe account recovery scenario — where a user has lost access to both their phone and email — requiring strong out-of-band identity verification and senior admin sign-off before any MFA reset is executed.',
+    ac: [
+      'A "Dual Recovery Request" case type is defined in Salesforce with a dedicated record type and page layout',
+      'The case requires the support agent to select and document the out-of-band verification method used — options: government-issued ID verified by agent, in-person identity check, manager written confirmation, security question set (if available)',
+      'On case submission, a Salesforce Approval Process is triggered requiring sign-off from a designated MFA Admin (Senior) before any action is taken',
+      'The approval request is sent via email and in-app Chatter notification to the MFA Admin approver queue',
+      'MFA Admin can approve or reject with a mandatory comment — rejection notifies the support agent and closes the case with reason',
+      'On approval, a "Execute Recovery" button becomes visible on the case — clicking it triggers: Auth0 MFA reset, new contact details update (email and/or phone), and re-verification outreach to the user at their new contact details',
+      'The entire process is logged: case, approval chain, identity verification method, reset log, and contact update log',
+      'SLA: approval must be completed within 4 business hours of submission — breached SLAs trigger an escalation alert'
+    ],
+    auth0: [
+      'Management API DELETE /api/v2/users/{id}/authenticators — called only after SF approval is granted',
+      'Management API PATCH /api/v2/users/{id} — updates email and/or phone after approval',
+      'No Auth0 changes until SF approval workflow completes — Apex callouts are gated behind approval status check',
+      'Log Stream forwards all resulting events (deletion, email change) to Salesforce audit log'
+    ],
+    sf: [
+      'New Case Record Type: "Dual Recovery Request" with custom page layout',
+      'Required case fields: Affected User lookup, Old Email, Old Phone, New Email, New Phone, Verification Method (picklist), Verification Evidence Description (long text)',
+      'Salesforce Approval Process: submitted by Support Agent → approved by MFA Admin (Senior) queue',
+      'Approval email template and Chatter notification configured',
+      '"Execute Recovery" button visible on Case only when Approval_Status__c = "Approved" and Recovery_Executed__c = false',
+      'Execute Recovery Apex: calls Auth0 API in sequence, sets Recovery_Executed__c = true, creates MFA_Reset_Log__c and Contact_Update_Log__c, sends user outreach email',
+      'SLA tracking via Case milestones: "Pending Approval" milestone with 4-hour breach alert',
+      'Dashboard: open Dual Recovery cases by status, average approval time, breach rate'
+    ],
+    deps: [
+      'MFA Admin (Senior) role and queue defined in Salesforce',
+      'Salesforce Approval Process design reviewed by security team',
+      'Out-of-band identity verification SOP formalised and linked in case instructions',
+      'Contact_Update_Log__c and MFA_Reset_Log__c objects created (Scenarios 29, 30)',
+      'Case milestone and SLA configuration complete',
+      'Auth0 Named Credential with required scopes available'
+    ],
+    dod: [
+      'Dual Recovery case submission triggers approval process — approver receives email and Chatter notification within 5 minutes',
+      'Rejection closes case and notifies support agent with rejection reason',
+      'Approval enables Execute Recovery button — button invisible before approval confirmed via permission check',
+      'Execute Recovery calls Auth0 APIs in sequence without errors — all actions logged',
+      'User receives outreach at new contact details confirming account recovery',
+      'SLA milestone breach alert fires correctly when approval exceeds 4 hours in test',
+      'Dashboard shows accurate data for open cases and approval times',
+      'Security team has reviewed and signed off the end-to-end process document'
+    ],
+    risk: 'This is your highest-risk recovery scenario — a social engineering vector. The out-of-band identity verification SOP must be strict and well-documented. Consider requiring government ID as the minimum standard and training all support agents on it before go-live.'
+  },
+  {
+    id: 32, epicKey: 'selfserve', epic: 'Self-service', epicCls: 'epic-selfserve', prio: 'med',
+    scenario: 'User changes phone but loses old number before updating MFA',
+    story: 'As a product engineer, I need to add a periodic phone re-verification prompt on the community profile page and track phone verification recency in Salesforce so that users are reminded to update their MFA phone before losing access to their old number.',
+    ac: [
+      'The community profile page displays the phone number currently registered for MFA alongside a "Verify phone" status indicator showing last verified date',
+      'If the phone has not been verified in more than 90 days, a yellow warning banner appears on the profile page: "Your verification phone number has not been confirmed recently. Please re-verify to avoid losing access."',
+      'If the phone has not been verified in more than 180 days, a red alert banner appears and a Case is auto-created for admin review',
+      'The "Re-verify phone" button sends a one-time SMS OTP to the current number — entry of the correct OTP updates Phone_Last_Verified_Date__c',
+      'User can update their phone number on the profile page — updating triggers a new verification OTP to the new number before the change is saved',
+      'Phone number update calls Auth0 Management API to patch user_metadata.phone and resets phone_verified = false until the OTP is confirmed',
+      'If the user has already lost their old number and cannot verify, they are directed to the support recovery flow (Scenario 29)'
+    ],
+    auth0: [
+      'Management API PATCH /api/v2/users/{id} updates user_metadata.phone and sets phone_verified = false on phone change',
+      'Auth0 sends OTP to new number via the configured SMS provider (Twilio) for re-verification',
+      'On OTP success, Post-Login Action or a dedicated verification page patches phone_verified = true via Management API',
+      'Log Stream forwards phone update events to Salesforce'
+    ],
+    sf: [
+      'Phone_Last_Verified_Date__c date field on User object — updated via Log Stream on verification success',
+      'Community profile page component: shows phone, last verified date, re-verify button, and staleness banner based on date calculation',
+      'Scheduled Flow runs nightly: users with Phone_Last_Verified_Date__c > 90 days → set Phone_Verification_Warning__c = true; > 180 days → create Case',
+      'Phone update action on profile page: LWC calls Auth0 PATCH via Apex, triggers OTP, waits for OTP entry, confirms change',
+      'Log Stream webhook updates Phone_Last_Verified_Date__c and MFA_Phone_Verified__c on verification events',
+      'Support link on red banner directs user to raise a Case pre-filled with "Phone Recovery" category'
+    ],
+    deps: [
+      'Auth0 Management API Named Credential',
+      'Phone_Last_Verified_Date__c, Phone_Verification_Warning__c fields on User object',
+      'Community profile page MFA section component built',
+      'Twilio SMS OTP delivery tested for the SMS re-verification flow',
+      'Scenario 29 (lost device recovery) complete — support flow linked from red banner'
+    ],
+    dod: [
+      'Profile page shows correct last verified date and status indicator for a test user',
+      'Yellow warning banner appears for a user whose Phone_Last_Verified_Date__c is > 90 days — confirmed by manually backdating the field in test',
+      'Red alert banner and Case auto-creation fire at > 180 days',
+      'Re-verify OTP flow works end-to-end: button click → SMS OTP → entry → Phone_Last_Verified_Date__c updated',
+      'Phone number update triggers Auth0 PATCH and re-verification OTP before change is confirmed',
+      'Scheduled Flow runs without errors and updates fields correctly in sandbox'
+    ],
+    risk: 'Users who have already lost their old number cannot complete the OTP re-verification — they will be stuck on the red banner with no self-service path. The support link on the banner must be prominent and direct.'
+  },
+  {
+    id: 33, epicKey: 'contact', epic: 'Contact recovery', epicCls: 'epic-contact', prio: 'high',
+    scenario: 'User changes email and it breaks MFA',
+    story: 'As a platform engineer, I need to build a Salesforce community profile email change flow that updates Auth0 via Management API, requires re-verification of the new email address, preserves existing non-email MFA factors, and handles failures gracefully so that email changes never silently break community access.',
+    ac: [
+      'The community profile page has an "Update email" section separate from other profile fields — not part of the inline edit layout',
+      'Clicking "Update email" opens a dedicated flow: new email entry → password confirmation → confirmation of intent → Apex callout to Auth0',
+      'Auth0 Management API PATCH updates the email and sets email_verified = false',
+      'Auth0 automatically sends a verification email to the new address',
+      'The profile page is blocked from saving until Auth0 confirms the PATCH was successful — if the API call fails, an error is shown and no change is made in Salesforce',
+      'Existing non-email MFA factors (TOTP, SMS) remain enrolled and are unaffected by the email change',
+      'Email OTP factor is suspended until new email is verified — user sees a banner: "Verify your new email to restore email-based login"',
+      'Auth0_Email_Verified__c on SF User is set to false immediately after PATCH and updated to true when Log Stream receives the verification completion event',
+      'If the user does not verify the new email within 7 days, a reminder email is sent to the new address',
+      'User receives a security alert to their old email address notifying them of the change'
+    ],
+    auth0: [
+      'Management API PATCH /api/v2/users/{id} with { email: newEmail, email_verified: false }',
+      'Auth0 sends verification email automatically — no custom trigger needed',
+      'Email OTP factor is automatically suspended for unverified emails — no Action change needed',
+      'Log Stream forwards email_verified event to Salesforce on verification completion',
+      'Log Stream forwards email_changed event for audit'
+    ],
+    sf: [
+      '"Update email" quick action / dedicated flow on community profile page — not in standard edit layout',
+      'Flow steps: new email input → format validation → Auth0 PATCH via Apex → on success update User.Email in SF → set Auth0_Email_Verified__c = false',
+      'Failure handling: if Auth0 PATCH fails, show error toast, do not update SF User.Email, log failure to Contact_Update_Log__c',
+      'Log Stream webhook sets Auth0_Email_Verified__c = true on email verified event',
+      'Suspension banner on community home: visible when Auth0_Email_Verified__c = false, links to "Resend verification email" action',
+      'Scheduled Flow: 7-day reminder email to new address for unverified email changes',
+      'Security alert email to old address triggered immediately after successful PATCH via Flow',
+      'Contact_Update_Log__c record: old email, new email, changed by (self-service), timestamp, verification status'
+    ],
+    deps: [
+      'Auth0 Management API Named Credential with update:users scope',
+      'Auth0 Log Stream webhook endpoint handling email_verified and email_changed events',
+      'Auth0_Email_Verified__c field on User object',
+      'Contact_Update_Log__c custom object created (Scenario 30)',
+      'Security alert and reminder email templates approved by comms',
+      'Community profile email update UI designed and approved by UX'
+    ],
+    dod: [
+      'Email update flow works end-to-end: new email entered → Auth0 PATCH → SF User.Email updated → verification email received at new address',
+      'Auth0 Management API GET confirms email = new email and email_verified = false immediately after update',
+      'TOTP and SMS factors remain enrolled and functional after email change — confirmed via test login with TOTP',
+      'Email OTP is suspended until new email verified — confirmed by attempting email OTP login on unverified account',
+      'Verification email received, clicked, and Auth0_Email_Verified__c updates to true in SF within 60 seconds via Log Stream',
+      'Failure scenario: Auth0 API error shows toast and does not change SF User.Email',
+      'Security alert received at old email address immediately after change',
+      '7-day reminder email tested by advancing scheduled Flow trigger date in sandbox'
+    ],
+    risk: 'If the Auth0 PATCH succeeds but the Salesforce update fails (e.g. validation rule blocks the new email), the two systems will be out of sync. Implement a reconciliation check or wrap both operations in a try-catch that rolls back the Auth0 change if SF fails.'
+  },
+  {
+    id: 34, epicKey: 'audit', epic: 'Admin & audit', epicCls: 'epic-audit', prio: 'high',
+    scenario: 'Admin needs to reset MFA on behalf of user',
+    story: 'As a security engineer, I need to implement a role-restricted, audited admin MFA reset capability in Salesforce that is the single authorised path for any support-initiated MFA reset, with mandatory reason capture, identity verification logging, and a complete audit trail across all reset events.',
+    ac: [
+      '"Reset MFA" action is accessible from two entry points: the User record detail page and from within a linked Case — both enforce the same permission check',
+      'Only users with MFA Support Agent or MFA Admin permission sets can see and trigger the reset action',
+      'The reset modal requires: Reason (text, min 20 characters, mandatory), Verification Method (picklist: email confirmation / phone callback / manager approval / in-person / government ID), Related Case number (lookup, mandatory — reset cannot proceed without a linked case)',
+      'Auth0 Management API DELETE /api/v2/users/{id}/authenticators is called on confirm',
+      'The API call is made synchronously — the agent sees success or failure before closing the modal',
+      'On success: MFA_Reset_Log__c created with all metadata, MFA_Enrolled__c set to false on User, Backup_Factor_Enrolled__c set to false, user notification email sent, linked Case updated with reset summary in comments',
+      'On failure: error toast shown with Auth0 error code, failure logged to MFA_Reset_Log__c, Case comment added noting the failure',
+      'MFA_Reset_Log__c records are immutable — no user or admin can edit or delete them after creation',
+      'A Salesforce report of all resets in the last 30/60/90 days is available to the MFA Admin role — includes reset initiator, affected user, reason, verification method, and outcome',
+      'If a single user has more than 3 resets in 90 days, an automatic Chatter alert is sent to the MFA Admin queue for review'
+    ],
+    auth0: [
+      'Management API DELETE /api/v2/users/{id}/authenticators — scope: delete:guardian_enrollments',
+      'Separate Named Credential token for reset operations — scoped narrowly, not shared with other callouts',
+      'Auth0 Log Stream forwards guardian_enrollment_delete events to Salesforce audit log endpoint',
+      'Auth0 logs reset event with timestamp, user ID, and calling application — matches MFA_Reset_Log__c for reconciliation'
+    ],
+    sf: [
+      'LWC "Reset MFA" component on User record and Case record — single shared component, context-aware',
+      'Component checks running user permission set before rendering — hidden if not MFA Support Agent or above',
+      'Modal: Reason (textarea, minlength 20), Verification Method (picklist), Related Case (lookup to Case, required)',
+      'Apex ResetMFAController: validate inputs → call Auth0 API via Named Credential → on success execute all post-reset actions → on failure log and surface error',
+      'Post-reset Apex actions (all in single transaction where possible): create MFA_Reset_Log__c, update User MFA fields, trigger Flow for notification email and Case comment',
+      'MFA_Reset_Log__c object-level security: Create only — no Edit or Delete for any profile or permission set',
+      'Scheduled Report (daily): all resets in last 30 days — delivered to MFA Admin queue inbox',
+      'Flow: if MFA_Reset_Count__c > 3 within 90 days, post Chatter alert to MFA Admin group with user name and link'
+    ],
+    deps: [
+      'Auth0 Management API Named Credential with delete:guardian_enrollments scope — separate from other Named Credentials',
+      'MFA_Reset_Log__c custom object with immutability enforced via object-level security and a no-edit Apex trigger',
+      'MFA Support Agent and MFA Admin permission sets defined (Scenario 29)',
+      'MFA_Reset_Count__c field on User object',
+      'User notification email template approved',
+      'Report and dashboard built and shared with MFA Admin role'
+    ],
+    dod: [
+      'Reset action invisible to users without the correct permission set — confirmed by logging in as a standard community user',
+      'Reset modal rejects submission if Reason < 20 characters or Related Case is empty',
+      'Auth0 Management API GET confirms empty authenticators array after successful reset',
+      'MFA_Reset_Log__c record created with all fields — attempt to edit the record results in an error',
+      'MFA_Enrolled__c and Backup_Factor_Enrolled__c both set to false on User after reset',
+      'User notification email received within 2 minutes of reset',
+      'Case comment added with reset summary automatically',
+      'Chatter alert fires when MFA_Reset_Count__c exceeds 3 in 90 days — confirmed by seeding test data',
+      'Daily scheduled report delivers correctly to MFA Admin queue inbox'
+    ],
+    risk: 'This action must never be exposed to community users or general internal users — it is a high-privilege operation. Conduct a permission set audit before go-live to confirm no unintended users have access. Review quarterly.'
+  },
+  {
+    id: 35, epicKey: 'bypass', epic: 'Emergency bypass', epicCls: 'epic-bypass', prio: 'med',
+    scenario: 'User requests temporary MFA bypass for emergency',
+    story: 'As a security engineer, I need to implement a time-limited MFA bypass mechanism in Auth0 Post-Login Actions that is gated behind a Salesforce senior admin approval process, automatically expires, and produces a complete audit trail, so that emergency access can be granted without creating a permanent security gap.',
+    ac: [
+      'A "Request MFA Bypass" option is available to MFA Admin (Senior) users only — not to support agents or community users',
+      'Bypass request requires: affected user lookup, business justification (min 50 characters, mandatory), bypass duration (picklist: 4 hours / 8 hours / 24 hours — no longer durations permitted), approver (second MFA Admin Senior — cannot self-approve)',
+      'A Salesforce Approval Process routes the request to a second MFA Admin Senior for sign-off',
+      'On approval, Apex writes user_metadata.mfa_bypass_until = ISO timestamp of expiry to Auth0 via Management API PATCH',
+      'Auth0 Post-Login Action reads mfa_bypass_until: if current UTC time is before the timestamp, MFA challenge is skipped for that login',
+      'When the bypass expires (timestamp is in the past), MFA is automatically re-enforced on next login — no manual cleanup needed',
+      'Bypass grant, login events during bypass, and bypass expiry are all logged to MFA_Bypass_Log__c in Salesforce',
+      'A Salesforce report lists all bypass grants in the last 90 days — reviewed monthly by the security team',
+      'Bypass cannot be extended — a new approval process must be initiated for any additional time',
+      'Maximum of one active bypass per user at any time — system blocks a second bypass request if one is already active'
+    ],
+    auth0: [
+      'Post-Login Action reads event.user.user_metadata.mfa_bypass_until (ISO string)',
+      'If mfa_bypass_until exists and new Date() < new Date(mfa_bypass_until): skip api.multifactor.enable() — login proceeds without MFA',
+      'If mfa_bypass_until is in the past or absent: enforce MFA normally',
+      'Action logs a custom event when bypass is applied: api.authentication.recordMethod("bypass") or custom log entry via Auth0 Management API',
+      'Management API PATCH /api/v2/users/{id} writes mfa_bypass_until to user_metadata on approval',
+      'Management API PATCH clears mfa_bypass_until on natural expiry (optional cleanup job) or when a new bypass is granted'
+    ],
+    sf: [
+      'Custom object MFA_Bypass_Request__c: Affected User (lookup), Justification (long text, min 50), Duration (picklist), Requested By, Approved By, Approval Status, Bypass_Until (datetime), Executed (checkbox)',
+      'Salesforce Approval Process: submitted by MFA Admin Senior → approved by a different MFA Admin Senior (cannot self-approve — enforced by Approval Process entry criteria)',
+      'On approval: Apex callout writes mfa_bypass_until to Auth0, sets Executed = true, logs to MFA_Bypass_Log__c',
+      'Block second bypass request: before submission, Apex checks if active bypass exists (mfa_bypass_until in Auth0 user_metadata is still in the future) — if yes, reject with message',
+      'MFA_Bypass_Log__c object: User, Bypass Granted By, Approver, Justification, Bypass Start, Bypass Until, Login Events During Bypass (number), Expiry Status',
+      'Login events during bypass period captured via Auth0 Log Stream — Login_Events_During_Bypass__c incremented on each login within the bypass window',
+      'Monthly scheduled report of all bypass grants — delivered to security team inbox',
+      'Flow: 30 minutes before bypass expiry, send user email: "Your temporary MFA bypass will expire in 30 minutes. Please ensure your verification method is ready."'
+    ],
+    deps: [
+      'Auth0 Post-Login Action updated to include bypass logic — must be deployed before any bypass can be granted',
+      'Auth0 Management API Named Credential with update:users scope for writing user_metadata',
+      'MFA_Bypass_Request__c and MFA_Bypass_Log__c custom objects created',
+      'MFA Admin Senior role defined and populated — minimum two users required for the two-approver model',
+      'Auth0 Log Stream forwarding login events to SF for bypass-period tracking',
+      'Expiry reminder email template approved',
+      'Security team sign-off on maximum bypass duration and approval process design'
+    ],
+    dod: [
+      'Post-Login Action correctly skips MFA when valid mfa_bypass_until is present — confirmed by test login during active bypass window',
+      'MFA is enforced immediately on the login after bypass expiry — confirmed by advancing system clock past expiry in test',
+      'Self-approval is blocked — submitter cannot also be the approver, confirmed via Approval Process test',
+      'Second bypass request blocked when an active bypass already exists — confirmed via test',
+      'MFA_Bypass_Log__c record created on approval with all fields populated',
+      'Login events during bypass period increment Login_Events_During_Bypass__c correctly',
+      '30-minute expiry warning email delivered at correct time',
+      'Monthly report delivers to security team inbox with correct data',
+      'Security team has reviewed and formally approved the bypass mechanism design and constraints'
+    ],
+    risk: 'An MFA bypass is a deliberate security reduction. Every bypass grant must be treated as a security event. Ensure the justification requirement and dual-approval model cannot be circumvented. Conduct a monthly review of the bypass log as a standing security team agenda item.'
+  }
+];
+
+let activeFilter = 'all';
+
+function setFilter(el, val) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  activeFilter = val;
+  filterRows();
+}
+
+function filterRows() {
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  const rows = document.querySelectorAll('#tbody tr');
+  let vis = 0;
+  rows.forEach(row => {
+    const pm = activeFilter === 'all' || row.dataset.epic === activeFilter;
+    const qm = !q || row.textContent.toLowerCase().includes(q);
+    if (pm && qm) { row.classList.remove('hidden'); vis++; }
+    else row.classList.add('hidden');
+  });
+  document.getElementById('cnt').textContent = vis + ' of ' + DATA.length;
+  document.getElementById('noRes').style.display = vis === 0 ? 'block' : 'none';
+}
+
+function ul(items) {
+  return '<ul>' + items.map(i => '<li>' + i + '</li>').join('') + '</ul>';
+}
+
+function tags(items) {
+  return items.map(i => '<span class="tag">' + i + '</span>').join('');
+}
+
+const tbody = document.getElementById('tbody');
+DATA.forEach(r => {
+  const tr = document.createElement('tr');
+  tr.dataset.epic = r.epicKey;
+  tr.innerHTML = `
+    <td class="sc-id">${r.id}</td>
+    <td><span class="badge p3">P3 · Recovery</span></td>
+    <td><span class="badge ${r.epicCls}" style="font-size:10px;">${r.epic}</span></td>
+    <td><span class="prio ${r.prio === 'high' ? 'high' : 'med'}">${r.prio === 'high' ? 'High' : 'Medium'}</span></td>
+    <td class="sc-title">${r.scenario}</td>
+    <td style="font-size:11px;">${r.story}</td>
+    <td style="font-size:11px;">${ul(r.ac)}</td>
+    <td style="font-size:11px;">${ul(r.auth0)}</td>
+    <td style="font-size:11px;">${ul(r.sf)}</td>
+    <td style="font-size:11px;">${tags(r.deps)}</td>
+    <td style="font-size:11px;">${ul(r.dod)}</td>
+    <td style="font-size:11px; color: var(--color-text-secondary);">${r.risk}</td>
+  `;
+  tbody.appendChild(tr);
+});
+</script>

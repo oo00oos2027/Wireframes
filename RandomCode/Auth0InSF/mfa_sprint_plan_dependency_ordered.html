@@ -1,0 +1,289 @@
+
+<h2 class="sr-only">Sprint plan for Auth0 MFA Salesforce Community implementation — 45 stories ordered by dependency across 12 sprints</h2>
+<style>
+  .wrap { padding: 1rem 0; font-size: 12px; }
+  .top-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 0.75rem; align-items: center; }
+  .top-bar input { padding: 7px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 13px; width: 220px; }
+  .pill { cursor: pointer; padding: 4px 11px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); font-size: 11px; white-space: nowrap; }
+  .pill.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); font-weight: 500; }
+  .count { font-size: 12px; color: var(--color-text-secondary); margin-left: 4px; white-space: nowrap; }
+  .filter-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 0.5rem; align-items: center; }
+  .filter-label { font-size: 11px; color: var(--color-text-secondary); margin-right: 2px; }
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1260px; }
+  thead th { text-align: left; padding: 7px 9px; font-size: 10px; font-weight: 500; color: var(--color-text-secondary); border-bottom: 0.5px solid var(--color-border-secondary); text-transform: uppercase; letter-spacing: 0.05em; position: sticky; top: 0; background: var(--color-background-primary); z-index: 3; }
+  tbody tr.story-row { border-bottom: 0.5px solid var(--color-border-tertiary); }
+  tbody tr.story-row:hover { background: var(--color-background-secondary); }
+  tbody tr.hidden { display: none; }
+  tbody tr.sprint-header-row { background: var(--color-background-secondary); border-top: 2px solid var(--color-border-secondary); border-bottom: 0.5px solid var(--color-border-secondary); }
+  tbody tr.sprint-header-row.hidden { display: none; }
+  td { padding: 8px 9px; vertical-align: middle; line-height: 1.45; color: var(--color-text-primary); font-size: 12px; }
+  td.story-title { font-size: 11px; font-weight: 500; vertical-align: top; padding-top: 10px; }
+  td.story-sub { font-size: 10px; color: var(--color-text-secondary); vertical-align: top; padding-top: 3px; }
+  .sc-id { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); }
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 500; white-space: nowrap; }
+  .p1 { background: #EEEDFE; color: #3C3489; } .p2 { background: #E1F5EE; color: #0F6E56; }
+  .p3 { background: #FAECE7; color: #993C1D; } .p4 { background: #E6F1FB; color: #185FA5; }
+  @media (prefers-color-scheme: dark) {
+    .p1 { background: #26215C; color: #CECBF6; } .p2 { background: #04342C; color: #9FE1CB; }
+    .p3 { background: #4A1B0C; color: #F5C4B3; } .p4 { background: #042C53; color: #B5D4F4; }
+  }
+  .prio-high { background: #FCEBEB; color: #A32D2D; }
+  .prio-med { background: #FAEEDA; color: #854F0B; }
+  @media (prefers-color-scheme: dark) {
+    .prio-high { background: #501313; color: #F7C1C1; }
+    .prio-med { background: #412402; color: #FAC775; }
+  }
+  .effort-s { background: #EAF3DE; color: #3B6D11; }
+  .effort-m { background: #FAEEDA; color: #854F0B; }
+  .effort-l { background: #FAECE7; color: #993C1D; }
+  @media (prefers-color-scheme: dark) {
+    .effort-s { background: #173404; color: #C0DD97; }
+    .effort-m { background: #412402; color: #FAC775; }
+    .effort-l { background: #4A1B0C; color: #F5C4B3; }
+  }
+  .dep-tag { display: inline-block; padding: 1px 5px; border-radius: 5px; font-size: 10px; margin: 1px 2px 1px 0; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); }
+  .gate-tag { display: inline-block; padding: 1px 6px; border-radius: 5px; font-size: 10px; font-weight: 500; background: #FCEBEB; color: #A32D2D; border: 0.5px solid #F09595; }
+  @media (prefers-color-scheme: dark) { .gate-tag { background: #501313; color: #F7C1C1; border-color: #791F1F; } }
+  .role-tag { display: inline-block; padding: 1px 6px; border-radius: 5px; font-size: 10px; background: var(--color-background-secondary); color: var(--color-text-secondary); border: 0.5px solid var(--color-border-tertiary); }
+  .sprint-goal-cell { font-size: 11px; font-weight: 500; color: var(--color-text-primary); padding: 8px 9px; }
+  .sprint-meta { font-size: 10px; color: var(--color-text-secondary); margin-left: 8px; font-weight: 400; }
+  .sprint-num { font-size: 12px; font-weight: 500; white-space: nowrap; color: var(--color-text-primary); }
+  .sp-badge { display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: 500; background: var(--color-background-secondary); color: var(--color-text-secondary); border: 0.5px solid var(--color-border-secondary); }
+  .no-results { padding: 2rem; text-align: center; color: var(--color-text-secondary); }
+  .col-id { width: 38px; }
+  .col-sprint { width: 64px; }
+  .col-pillar { width: 82px; }
+  .col-epic { width: 108px; }
+  .col-title { width: auto; }
+  .col-prio { width: 60px; }
+  .col-effort { width: 52px; }
+  .col-sp { width: 36px; }
+  .col-role { width: 118px; }
+  .col-dep { width: 130px; }
+  .col-gate { width: 110px; }
+  .summary-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1rem; padding: 10px 14px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); font-size: 11px; color: var(--color-text-secondary); }
+  .summary-item strong { color: var(--color-text-primary); font-weight: 500; }
+</style>
+
+<div class="wrap">
+  <div class="summary-bar">
+    <span><strong>45</strong> stories</span>
+    <span><strong>12</strong> sprints (24 weeks)</span>
+    <span><strong>265</strong> total story points</span>
+    <span><strong>P1+P4</strong> sprints 1–5 &nbsp;·&nbsp; <strong>P2</strong> sprints 6–8 &nbsp;·&nbsp; <strong>P3</strong> sprints 9–11 &nbsp;·&nbsp; <strong>Go-live</strong> sprint 12</span>
+  </div>
+  <div class="top-bar">
+    <input type="text" id="searchBox" placeholder="Search stories, roles, epics..." oninput="applyFilters()" />
+    <span class="count" id="cnt">45 of 45</span>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">Sprint:</span>
+    <span class="pill active" data-sprint="all" onclick="setSprint(this,'all')">All</span>
+    <span class="pill" data-sprint="1" onclick="setSprint(this,'1')">S1</span>
+    <span class="pill" data-sprint="2" onclick="setSprint(this,'2')">S2</span>
+    <span class="pill" data-sprint="3" onclick="setSprint(this,'3')">S3</span>
+    <span class="pill" data-sprint="4" onclick="setSprint(this,'4')">S4</span>
+    <span class="pill" data-sprint="5" onclick="setSprint(this,'5')">S5</span>
+    <span class="pill" data-sprint="6" onclick="setSprint(this,'6')">S6</span>
+    <span class="pill" data-sprint="7" onclick="setSprint(this,'7')">S7</span>
+    <span class="pill" data-sprint="8" onclick="setSprint(this,'8')">S8</span>
+    <span class="pill" data-sprint="9" onclick="setSprint(this,'9')">S9</span>
+    <span class="pill" data-sprint="10" onclick="setSprint(this,'10')">S10</span>
+    <span class="pill" data-sprint="11" onclick="setSprint(this,'11')">S11</span>
+    <span class="pill" data-sprint="12" onclick="setSprint(this,'12')">S12</span>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">Pillar:</span>
+    <span class="pill active" data-pillar="all" onclick="setPillar(this,'all')">All pillars</span>
+    <span class="pill" data-pillar="P1" onclick="setPillar(this,'P1')">P1 Data audit</span>
+    <span class="pill" data-pillar="P2" onclick="setPillar(this,'P2')">P2 Enrollment</span>
+    <span class="pill" data-pillar="P3" onclick="setPillar(this,'P3')">P3 Recovery</span>
+    <span class="pill" data-pillar="P4" onclick="setPillar(this,'P4')">P4 SF identity</span>
+    <span class="filter-label" style="margin-left:8px;">Priority:</span>
+    <span class="pill active" data-prio="all" onclick="setPrio(this,'all')">All</span>
+    <span class="pill" data-prio="High" onclick="setPrio(this,'High')">High only</span>
+    <span class="filter-label" style="margin-left:8px;">Role:</span>
+    <span class="pill active" data-role="all" onclick="setRole(this,'all')">All roles</span>
+    <span class="pill" data-role="Data Engineer" onclick="setRole(this,'Data Engineer')">Data Engineer</span>
+    <span class="pill" data-role="Platform Engineer" onclick="setRole(this,'Platform Engineer')">Platform Engineer</span>
+    <span class="pill" data-role="SF Admin" onclick="setRole(this,'SF Admin')">SF Admin</span>
+    <span class="pill" data-role="UX Engineer" onclick="setRole(this,'UX Engineer')">UX Engineer</span>
+    <span class="pill" data-role="Security Engineer" onclick="setRole(this,'Security Engineer')">Security Engineer</span>
+    <span class="pill" data-role="Support Engineer" onclick="setRole(this,'Support Engineer')">Support Engineer</span>
+  </div>
+  <div class="tbl-wrap">
+    <table id="mainTable">
+      <thead>
+        <tr>
+          <th class="col-id">Sc#</th>
+          <th class="col-sprint">Sprint</th>
+          <th class="col-pillar">Pillar</th>
+          <th class="col-epic">Epic</th>
+          <th class="col-title">Story title &amp; description</th>
+          <th class="col-prio">Priority</th>
+          <th class="col-effort">Effort</th>
+          <th class="col-sp">SP</th>
+          <th class="col-role">Owner role</th>
+          <th class="col-dep">Blocked by (Sc#)</th>
+          <th class="col-gate">Sprint gate / note</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div class="no-results" id="noRes" style="display:none;">No matching stories found.</div>
+  </div>
+</div>
+
+<script>
+const SPRINTS = {
+  1:  { label: 'Sprint 1',  name: 'Data foundations',            goal: 'Clean and classify all source data before any Auth0 import runs. This sprint is the hard gate for everything else — no import can proceed until phone normalisation, email deduplication, and the SF profile audit are complete.',   weeks: 'Weeks 1–2',  pts: 18 },
+  2:  { label: 'Sprint 2',  name: 'User classification',         goal: 'Run all scenario classification queries (A/B/C/D) across the full user population and write flags into the Auth0 bulk import dataset. Every user must be classified before the import job runs.',                              weeks: 'Weeks 3–4',  pts: 24 },
+  3:  { label: 'Sprint 3',  name: 'Edge cases + SSO setup',      goal: 'Handle the D-critical edge population and begin Auth0 SSO infrastructure in parallel. Enrollment UX decisions for Scenario A and B/D must be signed off so the Universal Login build can begin next sprint.',                weeks: 'Weeks 5–6',  pts: 26 },
+  4:  { label: 'Sprint 4',  name: 'JIT provisioning',            goal: 'Build the full Salesforce JIT handler — happy path, no-match, createUser, and license checks. This is the core identity bridge between Auth0 and Salesforce. Nothing enrollment-related can be tested until JIT is live.',  weeks: 'Weeks 7–8',  pts: 23 },
+  5:  { label: 'Sprint 5',  name: 'Migration execution',         goal: 'Execute the Auth0 bulk import for all classified users, build the registration flow for new post-go-live users, the deactivation sync, and the safety net for any migration gaps found post-import.',                       weeks: 'Weeks 9–10', pts: 26 },
+  6:  { label: 'Sprint 6',  name: 'Enrollment core',             goal: 'Build the end-to-end MFA enrollment flow: first login detection, factor picker, abandonment handling, backup factor prompt. This is the most user-facing sprint — QA and UAT must run in parallel.',                         weeks: 'Weeks 11–12',pts: 28 },
+  7:  { label: 'Sprint 7',  name: 'Enrollment UX & device trust',goal: 'Harden the enrollment experience: Universal Login branding, new device messaging, trusted browser policy, and the authenticator refusal policy decision. These are polish and security config sprints.',                    weeks: 'Weeks 13–14',pts: 15 },
+  8:  { label: 'Sprint 8',  name: 'OTP delivery & ops',          goal: 'Handle all OTP failure paths, regional SMS restrictions, international SMS failure detection, and the dormant user re-engagement campaign. Requires Twilio delivery data and real-device SMS testing.',                      weeks: 'Weeks 15–16',pts: 20 },
+  9:  { label: 'Sprint 9',  name: 'Recovery core',               goal: 'Build the admin MFA reset tool (the single authorised reset path), the lost device and lost email recovery flows. The admin reset tool is a prerequisite for Sprint 10 recovery flows and P2 Scenario 26.',                  weeks: 'Weeks 17–18',pts: 21 },
+  10: { label: 'Sprint 10', name: 'Recovery advanced',           goal: 'Build the email change flow, dual-loss recovery (highest-severity case), phone staleness self-service, and the email-inaccessible admin path from P2. All depend on the Sprint 9 reset tool.',                               weeks: 'Weeks 19–20',pts: 26 },
+  11: { label: 'Sprint 11', name: 'Security & emergency bypass', goal: 'Implement the emergency MFA bypass mechanism — the most sensitive item in the project. Must not begin until security has formally signed off the design, approval process, and audit log requirements.',                      weeks: 'Weeks 21–22',pts: 8  },
+  12: { label: 'Sprint 12', name: 'Go-live preparation & cutover', goal: 'Final regression, performance testing, admin training, and the SSO cutover event. No new features. Cutover is executed during a maintenance window with the operations team on standby and a rollback plan ready.',        weeks: 'Weeks 23–24',pts: 8  },
+};
+
+const STORIES = [
+  { id:42, sprint:1, pillar:'P4', pillarCls:'p4', epic:'Data normalisation', title:'Email deduplication in Salesforce', desc:'Detect and resolve all duplicate User.Email values before Auth0 import rejects them', prio:'High', effort:'M', sp:5, role:'Data Engineer', deps:[], gate:'GATE — Auth0 bulk import will reject duplicate emails. Zero duplicates required before Sprint 2 classification queries run.' },
+  { id:6,  sprint:1, pillar:'P1', pillarCls:'p1', epic:'Data normalisation', title:'Phone number normalisation to E.164', desc:'Transform all source system phone numbers to +[country][number] format; flag rejects as Scenario C', prio:'High', effort:'M', sp:5, role:'Data Engineer', deps:[], gate:'GATE — Auth0 SMS requires E.164. Must complete before any phone-based classification in Sprint 2.' },
+  { id:46, sprint:1, pillar:'P4', pillarCls:'p4', epic:'Pre-migration audit', title:'Community Profile SSO permission audit', desc:'Confirm Is Single Sign-On Enabled on all community user Profiles; fix any missing before cutover', prio:'High', effort:'S', sp:3, role:'SF Admin', deps:[], gate:'Blocking for Sprint 4 SSO config test — cannot verify JIT without correct Profile permissions.' },
+  { id:37, sprint:1, pillar:'P4', pillarCls:'p4', epic:'SSO integration', title:'Internal user authentication architecture decision', desc:'Decide and document whether internal SF users use Auth0 SSO or native login for community access', prio:'High', effort:'S', sp:5, role:'Platform Engineer', deps:[], gate:'Design spike. Decision drives Sprint 3 SSO config scope. Must be signed off by security and IT.' },
+
+  { id:7,  sprint:2, pillar:'P1', pillarCls:'p1', epic:'User classification', title:'Verified unique email classification', desc:'Flag all users with email_verified = true and unique email — eligible for Email OTP', prio:'High', effort:'S', sp:3, role:'Data Engineer', deps:[42], gate:'' },
+  { id:8,  sprint:2, pillar:'P1', pillarCls:'p1', epic:'User classification', title:'Shared email detection & flagging', desc:'Detect emails shared by 2+ users; set email_shared = true; block Email OTP for this cohort', prio:'High', effort:'M', sp:5, role:'Data Engineer', deps:[42], gate:'' },
+  { id:10, sprint:2, pillar:'P1', pillarCls:'p1', epic:'User classification', title:'Unverified / bouncing email flagging', desc:'Flag email_verified = false and hard-bounce users; block Email OTP until re-verified', prio:'High', effort:'M', sp:5, role:'Data Engineer', deps:[42], gate:'' },
+  { id:1,  sprint:2, pillar:'P1', pillarCls:'p1', epic:'User classification', title:'Verified unique phone — Scenario A', desc:'Classify users with clean, unique, verified phone; import with full MFA eligibility', prio:'High', effort:'S', sp:3, role:'Data Engineer', deps:[6], gate:'' },
+  { id:2,  sprint:2, pillar:'P1', pillarCls:'p1', epic:'User classification', title:'Shared phone detection — Scenario B', desc:'Detect phones shared by 2+ users; set phone_shared = true; block SMS for this cohort', prio:'High', effort:'M', sp:5, role:'Data Engineer', deps:[6], gate:'' },
+  { id:3,  sprint:2, pillar:'P1', pillarCls:'p1', epic:'User classification', title:'Unverified phone — Scenario D', desc:'Flag phone_verified = false; block SMS until user re-verifies at first login', prio:'High', effort:'M', sp:5, role:'Data Engineer', deps:[6], gate:'' },
+
+  { id:4,  sprint:3, pillar:'P1', pillarCls:'p1', epic:'User classification', title:'No phone — Scenario C', desc:'Classify users with no phone; restrict to Email OTP and TOTP only', prio:'High', effort:'S', sp:3, role:'Data Engineer', deps:[6], gate:'' },
+  { id:14, sprint:3, pillar:'P1', pillarCls:'p1', epic:'User classification', title:'D-critical — no reliable email or phone', desc:'Identify users with neither valid email nor phone; force TOTP gate before community access', prio:'High', effort:'M', sp:5, role:'Security Engineer', deps:[4,8,10], gate:'GATE — D-critical users must be identified and outreach started before go-live so they are not blindsided.' },
+  { id:11, sprint:3, pillar:'P1', pillarCls:'p1', epic:'Enrollment UX', title:'Enrollment UX — Scenario A (full factors)', desc:'Design and sign off factor picker for full-eligibility users with TOTP highlighted as recommended', prio:'High', effort:'M', sp:5, role:'UX Engineer', deps:[1], gate:'Design sign-off required before Universal Login build in Sprint 6.' },
+  { id:12, sprint:3, pillar:'P1', pillarCls:'p1', epic:'Enrollment UX', title:'Enrollment UX — Scenario B/D (restricted factors)', desc:'Design factor picker with SMS hidden and contextual message explaining restriction', prio:'High', effort:'M', sp:5, role:'UX Engineer', deps:[2,3], gate:'Design sign-off required before Universal Login build in Sprint 6.' },
+  { id:36, sprint:3, pillar:'P4', pillarCls:'p4', epic:'SSO integration', title:'Auth0 SAML SSO configuration for Salesforce Experience Cloud', desc:'Configure Auth0 SAML2 addon, map claims including MFA metadata, upload certificate to Salesforce SSO settings', prio:'High', effort:'L', sp:8, role:'Platform Engineer', deps:[37,46], gate:'GATE — all JIT work (Sprint 4) and enrollment (Sprint 6) depend on SSO being live in sandbox.' },
+
+  { id:40, sprint:4, pillar:'P4', pillarCls:'p4', epic:'JIT provisioning', title:'JIT handler — happy path user match and update', desc:'Match Auth0 user to SF User by Auth0_User_ID__c or email; update MFA metadata fields on every login', prio:'High', effort:'L', sp:8, role:'Platform Engineer', deps:[36], gate:'GATE — all enrollment and recovery flows depend on JIT being live.' },
+  { id:41, sprint:4, pillar:'P4', pillarCls:'p4', epic:'JIT provisioning', title:'JIT handler — no-match fallback', desc:'Auto-provision or throw AuthException when no SF user found; log all failures to JIT_Failed_Login__c', prio:'High', effort:'M', sp:5, role:'Platform Engineer', deps:[40], gate:'' },
+  { id:43, sprint:4, pillar:'P4', pillarCls:'p4', epic:'JIT provisioning', title:'JIT handler — createUser for unprovisioned users', desc:'Create SF community user from SAML attributes when no record exists; assign correct Profile via Custom Metadata', prio:'High', effort:'M', sp:5, role:'Platform Engineer', deps:[40], gate:'' },
+  { id:47, sprint:4, pillar:'P4', pillarCls:'p4', epic:'JIT provisioning', title:'JIT handler — deactivated user and license check', desc:'Block inactive users and expired licenses at JIT level; log failures; notify admin within 1 hour', prio:'High', effort:'M', sp:5, role:'SF Admin', deps:[40], gate:'' },
+
+  { id:48, sprint:5, pillar:'P4', pillarCls:'p4', epic:'User lifecycle sync', title:'Bidirectional user deactivation sync between SF and Auth0', desc:'SF deactivation blocks Auth0 user within 60s; Auth0 block deactivates SF user via Log Stream webhook', prio:'High', effort:'L', sp:8, role:'Platform Engineer', deps:[40], gate:'Requires Auth0 Log Stream webhook endpoint live before this sprint.' },
+  { id:39, sprint:5, pillar:'P4', pillarCls:'p4', epic:'Migration', title:'Pre-create Auth0 accounts for never-logged-in SF users', desc:'Bulk import all SF community users with null LastLoginDate; populate user_metadata from SF data', prio:'High', effort:'M', sp:5, role:'Platform Engineer', deps:[1,2,3,4,40], gate:'GATE — classification (Sprint 2) must be complete so user_metadata flags are correct in the import.' },
+  { id:44, sprint:5, pillar:'P4', pillarCls:'p4', epic:'Migration', title:'Safety net for SF users with no Auth0 account', desc:'Daily report of Auth0_User_ID__c = null users; one-click admin Auth0 account creation via Named Credential', prio:'High', effort:'M', sp:5, role:'Platform Engineer', deps:[39], gate:'Must be live on day one of go-live — migration gaps appear immediately under user load.' },
+  { id:38, sprint:5, pillar:'P4', pillarCls:'p4', epic:'Registration flow', title:'Guest-to-registered user registration flow', desc:'New registration creates linked Auth0 account and SF community user; MFA enrollment on first login', prio:'High', effort:'L', sp:8, role:'Platform Engineer', deps:[36,40], gate:'Phone uniqueness check from Sc 2 logic must be reused in registration handler.' },
+
+  { id:15, sprint:6, pillar:'P2', pillarCls:'p2', epic:'First-time enrollment', title:'Happy path — MFA enrollment on first login', desc:'Post-Login Action detects no MFA enrolled; triggers enrollment; updates SF via Log Stream on gd_enrollment_complete', prio:'High', effort:'L', sp:8, role:'Platform Engineer', deps:[36,40,11], gate:'GATE — all other enrollment stories (Sc 22, 23, 24, 16) depend on this working end-to-end.' },
+  { id:23, sprint:6, pillar:'P2', pillarCls:'p2', epic:'First-time enrollment', title:'Factor picker — Scenario A full factor eligibility', desc:'All four factors shown; TOTP highlighted; each factor enrollable end-to-end; factor stored in SF', prio:'High', effort:'M', sp:5, role:'UX Engineer', deps:[15,11], gate:'' },
+  { id:24, sprint:6, pillar:'P2', pillarCls:'p2', epic:'First-time enrollment', title:'Factor picker — Scenarios B/C restricted factors', desc:'SMS and Push hidden for ineligible users; single eligible factor skips picker; contextual restriction message shown', prio:'High', effort:'M', sp:5, role:'UX Engineer', deps:[15,12], gate:'' },
+  { id:16, sprint:6, pillar:'P2', pillarCls:'p2', epic:'First-time enrollment', title:'Enrollment abandonment handling', desc:'Counter in user_metadata tracks deferral attempts; access hard-blocked after configurable threshold; admin notified', prio:'High', effort:'M', sp:5, role:'Platform Engineer', deps:[15], gate:'' },
+  { id:22, sprint:6, pillar:'P2', pillarCls:'p2', epic:'First-time enrollment', title:'Backup factor enrollment prompt', desc:'Prompt for second factor immediately after primary enrollment; nudge banner for users who skip', prio:'High', effort:'M', sp:5, role:'Platform Engineer', deps:[15], gate:'' },
+
+  { id:18, sprint:7, pillar:'P2', pillarCls:'p2', epic:'UX & confusion', title:'Auth0 Universal Login — branding and plain-language UX', desc:'Brand enrollment page; plain-language copy; help link; support contact; drop-off KPI baseline measured', prio:'High', effort:'M', sp:5, role:'UX Engineer', deps:[15], gate:'Brand guidelines and approved copy required before dev starts. Book UX + comms sign-off in Sprint 5.' },
+  { id:19, sprint:7, pillar:'P2', pillarCls:'p2', epic:'Device trust', title:'New device MFA challenge messaging', desc:'"We do not recognise this device" message on challenge screen; trust-browser option after successful MFA', prio:'Med',  effort:'S', sp:3, role:'Platform Engineer', deps:[15], gate:'' },
+  { id:20, sprint:7, pillar:'P2', pillarCls:'p2', epic:'Device trust', title:'Trusted device policy — role-based browser trust', desc:'Standard users: allowRememberBrowser true; high-privilege roles: always challenge; policy stored in Action secrets', prio:'Med',  effort:'M', sp:5, role:'Security Engineer', deps:[19], gate:'High-privilege role list must be agreed by security team before dev.' },
+  { id:25, sprint:7, pillar:'P2', pillarCls:'p2', epic:'OTP delivery', title:'Authenticator app refusal policy', desc:'Define minimum acceptable factor when user declines TOTP; document policy; build re-enrollment campaign Flow in draft', prio:'Med',  effort:'S', sp:2, role:'Product Manager', deps:[15], gate:'Policy decision — not a dev story. Product + security + legal sign-off required.' },
+
+  { id:21, sprint:8, pillar:'P2', pillarCls:'p2', epic:'OTP delivery', title:'OTP non-delivery escalation path', desc:'Resend button; fallback factor switch after 2 failures; SMS failure event captured in SF; admin reset path available', prio:'High', effort:'M', sp:5, role:'Support Engineer', deps:[15], gate:'Requires Twilio delivery rate baseline from real-device SMS testing before go-live.' },
+  { id:27, sprint:8, pillar:'P2', pillarCls:'p2', epic:'Region & SMS', title:'Regional SMS restriction routing', desc:'Flag sms_restricted_region users in user_metadata; exclude SMS from factor picker; TOTP shown as recommended', prio:'Med',  effort:'M', sp:5, role:'Platform Engineer', deps:[2], gate:'Restricted region list must be agreed with ops team using Twilio delivery data before this sprint.' },
+  { id:28, sprint:8, pillar:'P2', pillarCls:'p2', epic:'Region & SMS', title:'International SMS failure detection and factor switch', desc:'3 consecutive SMS failures triggers factor-switch email; TOTP enrollable without resetting SMS; weekly admin report', prio:'Med',  effort:'M', sp:5, role:'Support Engineer', deps:[21], gate:'' },
+  { id:17, sprint:8, pillar:'P2', pillarCls:'p2', epic:'Ops & dormant users', title:'Dormant user re-engagement campaign', desc:'Nightly report of unenrolled users; 30/60 day emails; 90 day auto-case; admin dashboard showing enrollment rate trend', prio:'Med',  effort:'M', sp:5, role:'SF Admin', deps:[15], gate:'' },
+
+  { id:34, sprint:9, pillar:'P3', pillarCls:'p3', epic:'Admin & audit', title:'Admin MFA reset tool — single authorised reset path', desc:'Role-restricted LWC button; reason + verification method capture; Auth0 authenticator delete; immutable audit log; auto-escalation after 3 resets in 90 days', prio:'High', effort:'L', sp:8, role:'Platform Engineer', deps:[15], gate:'GATE — all P3 recovery scenarios (Sc 29, 30, 31) and P2 Sc 26 depend on this tool being live.' },
+  { id:29, sprint:9, pillar:'P3', pillarCls:'p3', epic:'MFA reset', title:'Lost device recovery flow', desc:'Out-of-band identity verification SOP; admin triggers reset via Sc 34 tool; user re-enrolls on next login; audit trail written', prio:'High', effort:'M', sp:5, role:'Support Engineer', deps:[34], gate:'Identity verification SOP must be documented and support agents trained before this goes live.' },
+  { id:30, sprint:9, pillar:'P3', pillarCls:'p3', epic:'Contact recovery', title:'Lost email recovery flow', desc:'Update email in Auth0 and SF via quick action; auto-reset MFA if Email OTP was sole factor; log to Contact_Update_Log__c', prio:'High', effort:'M', sp:8, role:'Support Engineer', deps:[34], gate:'' },
+
+  { id:33, sprint:10, pillar:'P3', pillarCls:'p3', epic:'Contact recovery', title:'Self-service email change flow', desc:'Community profile email update → Auth0 PATCH → re-verification required; existing TOTP/SMS factors preserved; security alert to old email', prio:'High', effort:'L', sp:8, role:'Platform Engineer', deps:[30], gate:'Auth0 email PATCH logic is shared with Sc 30 — build as shared Apex service to avoid duplication.' },
+  { id:26, sprint:10, pillar:'P2', pillarCls:'p2', epic:'OTP delivery', title:'Email inaccessible during login — admin reset path', desc:'Support agent uses Sc 34 reset tool for users locked out due to email access failure; support case intake path defined', prio:'High', effort:'M', sp:5, role:'Support Engineer', deps:[34], gate:'Moved to Sprint 10 as it depends on Sc 34 admin reset tool from Sprint 9.' },
+  { id:31, sprint:10, pillar:'P3', pillarCls:'p3', epic:'Contact recovery', title:'Dual loss recovery — phone and email both unavailable', desc:'Dual Recovery Case type; mandatory senior admin approval process; Execute Recovery button gated on approval; 4hr SLA breach alert', prio:'High', effort:'L', sp:8, role:'Security Engineer', deps:[34,29], gate:'Security team must formally approve the dual-approval process design before build begins.' },
+  { id:32, sprint:10, pillar:'P3', pillarCls:'p3', epic:'Self-service', title:'Phone staleness self-service — re-verification nudge', desc:'Profile page shows last verified date; 90/180 day banners; re-verify OTP flow; phone update triggers Auth0 PATCH + new OTP', prio:'Med',  effort:'M', sp:5, role:'Platform Engineer', deps:[29], gate:'' },
+
+  { id:35, sprint:11, pillar:'P3', pillarCls:'p3', epic:'Emergency bypass', title:'Time-limited emergency MFA bypass mechanism', desc:'Auth0 Post-Login Action reads mfa_bypass_until; SF dual-approval process writes timestamp; auto-expires; immutable bypass log; 30-min expiry warning', prio:'Med',  effort:'L', sp:8, role:'Security Engineer', deps:[34], gate:'GATE — security team formal sign-off on design, approval model, and audit requirements required before any dev starts.' },
+
+  { id:45, sprint:12, pillar:'P4', pillarCls:'p4', epic:'SSO cutover', title:'Production SSO cutover — disable native SF login', desc:'Update community login page to Auth0 URL; disable native Salesforce login for community profiles; rollback plan tested; ops team on standby', prio:'High', effort:'L', sp:8, role:'Platform Engineer', deps:[36,40,15,34,39,44], gate:'GATE — all prior sprints must be complete and UAT passed in a production-mirror environment before cutover is scheduled.' },
+];
+
+let activeSprint = 'all', activePillar = 'all', activePrio = 'all', activeRole = 'all';
+
+function setSprint(el, v) { document.querySelectorAll('[data-sprint]').forEach(p=>p.classList.remove('active')); el.classList.add('active'); activeSprint = v; applyFilters(); }
+function setPillar(el, v) { document.querySelectorAll('[data-pillar]').forEach(p=>p.classList.remove('active')); el.classList.add('active'); activePillar = v; applyFilters(); }
+function setPrio(el, v)   { document.querySelectorAll('[data-prio]').forEach(p=>p.classList.remove('active'));   el.classList.add('active'); activePrio = v;   applyFilters(); }
+function setRole(el, v)   { document.querySelectorAll('[data-role]').forEach(p=>p.classList.remove('active'));   el.classList.add('active'); activeRole = v;   applyFilters(); }
+
+function applyFilters() {
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  let vis = 0;
+  document.querySelectorAll('.story-row').forEach(row => {
+    const spMatch    = activeSprint === 'all' || row.dataset.sprint === activeSprint;
+    const pillarMatch = activePillar === 'all' || row.dataset.pillar === activePillar;
+    const prioMatch  = activePrio === 'all' || row.dataset.prio === activePrio;
+    const roleMatch  = activeRole === 'all' || row.dataset.role === activeRole;
+    const qMatch     = !q || row.textContent.toLowerCase().includes(q);
+    const show = spMatch && pillarMatch && prioMatch && roleMatch && qMatch;
+    row.classList.toggle('hidden', !show);
+    if (show) vis++;
+  });
+  document.querySelectorAll('.sprint-header-row').forEach(row => {
+    const spNum = row.dataset.sprint;
+    const hasVisible = [...document.querySelectorAll(`.story-row[data-sprint="${spNum}"]`)].some(r => !r.classList.contains('hidden'));
+    row.classList.toggle('hidden', !hasVisible);
+  });
+  document.getElementById('cnt').textContent = vis + ' of ' + STORIES.length;
+  document.getElementById('noRes').style.display = vis === 0 ? 'block' : 'none';
+}
+
+function pillarCls(p) { return {P1:'p1',P2:'p2',P3:'p3',P4:'p4'}[p] || 'p1'; }
+function effortCls(e) { return {S:'effort-s',M:'effort-m',L:'effort-l'}[e] || 'effort-m'; }
+
+const tbody = document.getElementById('tableBody');
+let lastSprint = null;
+
+STORIES.forEach(s => {
+  if (s.sprint !== lastSprint) {
+    lastSprint = s.sprint;
+    const sp = SPRINTS[s.sprint];
+    const htr = document.createElement('tr');
+    htr.className = 'sprint-header-row';
+    htr.dataset.sprint = String(s.sprint);
+    const totalPts = STORIES.filter(x => x.sprint === s.sprint).reduce((a,b) => a + b.sp, 0);
+    htr.innerHTML = `<td colspan="11" class="sprint-goal-cell">
+      <span class="sprint-num">${sp.label} — ${sp.name}</span>
+      <span class="sprint-meta">${sp.weeks} &nbsp;·&nbsp; ${totalPts} story points</span>
+      <span style="display:block; font-size:10px; color: var(--color-text-secondary); margin-top:4px; font-weight:400; max-width:900px;">${sp.goal}</span>
+    </td>`;
+    tbody.appendChild(htr);
+  }
+  const tr = document.createElement('tr');
+  tr.className = 'story-row';
+  tr.dataset.sprint = String(s.sprint);
+  tr.dataset.pillar = s.pillar;
+  tr.dataset.prio   = s.prio;
+  tr.dataset.role   = s.role;
+  const depHtml = s.deps.length ? s.deps.map(d => `<span class="dep-tag">Sc ${d}</span>`).join('') : '<span style="color:var(--color-text-secondary);font-size:10px;">None</span>';
+  const gateHtml = s.gate ? `<span class="gate-tag">⚑ ${s.gate.length > 80 ? s.gate.substring(0,77)+'…' : s.gate}</span>` : '<span style="font-size:10px;color:var(--color-text-secondary);">—</span>';
+  tr.innerHTML = `
+    <td class="sc-id">${s.id}</td>
+    <td style="font-size:10px;font-weight:500;white-space:nowrap;color:var(--color-text-secondary);">S${s.sprint}</td>
+    <td><span class="badge ${s.pillarCls}">${s.pillar}</span></td>
+    <td style="font-size:10px;color:var(--color-text-secondary);">${s.epic}</td>
+    <td>
+      <div class="story-title">${s.title}</div>
+      <div style="font-size:10px;color:var(--color-text-secondary);margin-top:2px;line-height:1.4;">${s.desc}</div>
+    </td>
+    <td><span class="badge ${s.prio==='High'?'prio-high':'prio-med'}">${s.prio}</span></td>
+    <td><span class="badge ${effortCls(s.effort)}">${s.effort}</span></td>
+    <td><span class="sp-badge">${s.sp}</span></td>
+    <td><span class="role-tag">${s.role}</span></td>
+    <td>${depHtml}</td>
+    <td style="font-size:10px;">${gateHtml}</td>
+  `;
+  tbody.appendChild(tr);
+});
+</script>

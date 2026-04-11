@@ -1,0 +1,915 @@
+
+<h2 class="sr-only">Detailed requirements for all high-priority Pillar 1 (Data Audit) and Pillar 4 (SF Identity) scenarios</h2>
+<style>
+  body { margin: 0; }
+  .wrap { padding: 1rem 0; font-size: 12px; }
+  .top-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; align-items: center; }
+  .top-bar input { flex: 1; min-width: 180px; padding: 7px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 13px; }
+  .pill { cursor: pointer; padding: 5px 13px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); font-size: 12px; }
+  .pill.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); font-weight: 500; }
+  .count { font-size: 12px; color: var(--color-text-secondary); white-space: nowrap; }
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1300px; }
+  thead th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 500; color: var(--color-text-secondary); border-bottom: 0.5px solid var(--color-border-secondary); text-transform: uppercase; letter-spacing: 0.04em; position: sticky; top: 0; background: var(--color-background-primary); z-index: 2; }
+  tbody tr { border-bottom: 0.5px solid var(--color-border-tertiary); }
+  tbody tr:hover { background: var(--color-background-secondary); }
+  tbody tr.hidden { display: none; }
+  td { padding: 9px 10px; vertical-align: top; line-height: 1.55; color: var(--color-text-primary); font-size: 12px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+  .p1 { background: #EEEDFE; color: #3C3489; }
+  .p4 { background: #E6F1FB; color: #185FA5; }
+  @media (prefers-color-scheme: dark) {
+    .p1 { background: #26215C; color: #CECBF6; }
+    .p4 { background: #042C53; color: #B5D4F4; }
+  }
+  .epic-p1 { background: #EEEDFE; color: #3C3489; }
+  .epic-p4 { background: #E6F1FB; color: #185FA5; }
+  @media (prefers-color-scheme: dark) {
+    .epic-p1 { background: #26215C; color: #CECBF6; }
+    .epic-p4 { background: #042C53; color: #B5D4F4; }
+  }
+  ul { margin: 0; padding-left: 14px; }
+  ul li { margin-bottom: 3px; }
+  .tag { display: inline-block; padding: 1px 6px; border-radius: 6px; font-size: 10px; margin: 1px 2px 1px 0; border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); }
+  .no-results { padding: 2rem; text-align: center; color: var(--color-text-secondary); }
+  .sc-id { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); }
+  .sc-title { font-weight: 500; font-size: 12px; color: var(--color-text-primary); }
+  .col-id { width: 38px; }
+  .col-pillar { width: 100px; }
+  .col-epic { width: 90px; }
+  .col-scenario { width: 130px; }
+  .col-user-story { width: 170px; }
+  .col-ac { width: 230px; }
+  .col-auth0 { width: 175px; }
+  .col-sf { width: 175px; }
+  .col-dep { width: 130px; }
+  .col-dod { width: 160px; }
+  .col-risk { width: 130px; }
+</style>
+
+<div class="wrap">
+  <div class="top-bar">
+    <input type="text" id="searchBox" placeholder="Search requirements..." oninput="filterRows()" />
+    <span class="pill active" data-f="all" onclick="setFilter(this,'all')">All</span>
+    <span class="pill" data-f="1" onclick="setFilter(this,'1')">P1 · Data audit</span>
+    <span class="pill" data-f="4" onclick="setFilter(this,'4')">P4 · SF identity</span>
+    <span class="count" id="cnt">24 of 24</span>
+  </div>
+  <div class="tbl-wrap">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th class="col-id">#</th>
+          <th class="col-pillar">Pillar</th>
+          <th class="col-epic">Epic</th>
+          <th class="col-scenario">Scenario</th>
+          <th class="col-user-story">User story</th>
+          <th class="col-ac">Acceptance criteria</th>
+          <th class="col-auth0">Auth0 requirements</th>
+          <th class="col-sf">Salesforce requirements</th>
+          <th class="col-dep">Dependencies</th>
+          <th class="col-dod">Definition of done</th>
+          <th class="col-risk">Risks &amp; notes</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="no-results" id="noRes" style="display:none;">No matching requirements found.</div>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {
+    id: 1, p: '1', pillarLabel: 'P1 · Data audit', pillarCls: 'p1',
+    epic: 'User data classification', epicCls: 'epic-p1',
+    scenario: 'Verified unique phone',
+    story: 'As a migration engineer, I need to identify all users with a verified and unique phone number so they can be imported into Auth0 with full MFA eligibility.',
+    ac: [
+      'SQL query identifies all users where phone is non-null, verified, and appears exactly once across the user table',
+      'Output dataset is labelled Scenario A and includes user_id, email, phone in E.164 format, and phone_verified flag',
+      'Dataset is validated: zero duplicate phones remain in this cohort',
+      'Dataset is ready for Auth0 Bulk Import job input'
+    ],
+    auth0: [
+      'Import user with user_metadata.phone = E.164 phone',
+      'Set user_metadata.phone_verified = true',
+      'Set user_metadata.mfa_scenario = "A"',
+      'Post-Login Action: api.multifactor.enable("any", { allowRememberBrowser: true })'
+    ],
+    sf: [
+      'Populate User.Phone with normalised phone',
+      'Set Auth0_MFA_Scenario__c = "A"',
+      'Set MFA_Phone_Verified__c = true',
+      'No factor restrictions applied'
+    ],
+    deps: ['Phone normalisation script complete (Scenario 6)', 'Auth0 Bulk Import job template ready'],
+    dod: [
+      'All Scenario A users imported into Auth0 without errors',
+      'Auth0 user_metadata verified via Management API spot-check',
+      'SF User records updated via JIT on test logins',
+      'MFA factor picker shows all options for a test Scenario A user'
+    ],
+    risk: 'Phone format inconsistencies inflate this cohort incorrectly if normalisation is skipped. Run normalisation (Scenario 6) first.'
+  },
+  {
+    id: 2, p: '1', pillarLabel: 'P1 · Data audit', pillarCls: 'p1',
+    epic: 'User data classification', epicCls: 'epic-p1',
+    scenario: 'Shared phone number',
+    story: 'As a migration engineer, I need to detect all phone numbers shared by more than one user so that SMS MFA is blocked for those users and they are routed to TOTP.',
+    ac: [
+      'SQL query groups users by phone and returns all phones with COUNT(user_id) > 1',
+      'All affected users are flagged with user_metadata.phone_shared = true in the Auth0 import dataset',
+      'Flagged users are excluded from SMS MFA — TOTP and Email OTP are the only available factors',
+      'A report of shared phones and affected user IDs is produced and reviewed by the project team'
+    ],
+    auth0: [
+      'Set user_metadata.phone_shared = true on all affected users',
+      'Post-Login Action: if phone_shared === true, call api.multifactor.enable("totp")',
+      'SMS factor must not appear in the factor picker for these users'
+    ],
+    sf: [
+      'Set Phone_Shared__c = true on User record via JIT',
+      'Set Auth0_MFA_Scenario__c = "B"',
+      'Community enrollment page displays message: SMS unavailable, phone linked to another account'
+    ],
+    deps: ['Phone normalisation must run before dedup query (Scenario 6)', 'Auth0 Post-Login Action template deployed'],
+    dod: [
+      'Zero shared phones exist in Scenario A (clean phone) dataset',
+      'All flagged users see only TOTP/Email options in Auth0 factor picker confirmed via test login',
+      'Shared phone report signed off by project lead',
+      'SF Phone_Shared__c field populated for all affected users'
+    ],
+    risk: 'Family accounts or shared business numbers are common. Volume may be higher than expected. Allocate manual review time for edge cases.'
+  },
+  {
+    id: 3, p: '1', pillarLabel: 'P1 · Data audit', pillarCls: 'p1',
+    epic: 'User data classification', epicCls: 'epic-p1',
+    scenario: 'Phone present but unverified',
+    story: 'As a migration engineer, I need to flag users whose phone number was never verified so that SMS MFA is blocked until they complete a re-verification step at first login.',
+    ac: [
+      'Query identifies all users with a non-null phone and phone_verified = false in the source system',
+      'These users are imported into Auth0 with user_metadata.phone_verified = false',
+      'At first login, Auth0 blocks SMS factor until phone verification flow completes',
+      'On successful phone verification, phone_verified is updated to true in Auth0 and Salesforce',
+      'Verification completion event is captured via Auth0 Log Stream'
+    ],
+    auth0: [
+      'Import with user_metadata.phone_verified = false',
+      'Post-Login Action: block SMS if phone_verified !== true',
+      'Trigger phone OTP verification step before enabling SMS as a factor',
+      'On verification success, patch user_metadata.phone_verified = true via Management API'
+    ],
+    sf: [
+      'Set MFA_Phone_Verified__c = false initially via JIT',
+      'Auth0 Log Stream webhook updates MFA_Phone_Verified__c = true on verification event',
+      'Auth0_MFA_Scenario__c = "D" until verified, then update to "A"'
+    ],
+    deps: ['Auth0 Log Stream webhook endpoint deployed in Salesforce', 'Phone verification flow configured in Auth0 Universal Login'],
+    dod: [
+      'Test user with unverified phone cannot access SMS factor before verifying',
+      'After verification, test user can enroll in SMS MFA',
+      'SF MFA_Phone_Verified__c updates automatically via log stream event',
+      'Verification flow UX reviewed and approved'
+    ],
+    risk: 'Some legacy systems do not track phone verification status. Default unverified if flag is missing — do not assume verified.'
+  },
+  {
+    id: 4, p: '1', pillarLabel: 'P1 · Data audit', pillarCls: 'p1',
+    epic: 'User data classification', epicCls: 'epic-p1',
+    scenario: 'No phone on file',
+    story: 'As a migration engineer, I need to identify all users with no phone number so they are imported into Auth0 without phone metadata and routed to Email OTP or TOTP enrollment at first login.',
+    ac: [
+      'Query returns all users where phone IS NULL in the source system',
+      'Auth0 import contains no phone field for these users',
+      'Post-Login Action does not offer SMS or Push as factor options',
+      'Factor picker at enrollment shows only: Email OTP and TOTP (Authenticator App)',
+      'TOTP is shown as the recommended default with guidance text'
+    ],
+    auth0: [
+      'Import without phone in user_metadata',
+      'Set user_metadata.mfa_scenario = "C"',
+      'Post-Login Action: api.multifactor.enable("any") — but SMS/Push disabled in Auth0 dashboard for this population',
+      'Alternatively control via allowed_factors in Action to exclude sms'
+    ],
+    sf: [
+      'Auth0_MFA_Scenario__c = "C"',
+      'Community enrollment page shows TOTP setup guide as primary option',
+      'Allow user to add phone post-enrollment — triggers re-classification to Scenario A'
+    ],
+    deps: ['Auth0 dashboard SMS factor scoping per user segment defined', 'TOTP enrollment UX designed and approved'],
+    dod: [
+      'Test user with no phone sees only Email OTP and TOTP in factor picker',
+      'TOTP enrollment completes successfully end-to-end for test user',
+      'SF scenario field set correctly via JIT on first login',
+      'User can add phone post-enrollment and SMS becomes available'
+    ],
+    risk: 'If Auth0 dashboard-level SMS disable is used it applies globally — use Post-Login Action factor filtering to target by user instead.'
+  },
+  {
+    id: 6, p: '1', pillarLabel: 'P1 · Data audit', pillarCls: 'p1',
+    epic: 'Data normalisation', epicCls: 'epic-p1',
+    scenario: 'Phone in inconsistent format',
+    story: 'As a data engineer, I need to normalise all phone numbers to E.164 format before migration so that Auth0 can use them for SMS delivery without errors.',
+    ac: [
+      'Normalisation script processes every non-null phone in the source dataset',
+      'Output phones conform to E.164 format: + followed by country code and subscriber number, no spaces, dashes, or parentheses',
+      'Phones that cannot be normalised (e.g. too short, invalid country code) are flagged in a rejection report',
+      'Rejected phones are treated as no-phone (Scenario C) in the migration dataset',
+      'Normalisation script is re-runnable and idempotent',
+      'A country code must be appended for any number missing one — default country code is defined and documented'
+    ],
+    auth0: [
+      'Auth0 Bulk Import job validates E.164 format before processing',
+      'Reject any phone that fails E.164 validation at import stage',
+      'Log rejected records to a migration error report'
+    ],
+    sf: [
+      'Add Salesforce validation rule on User.Phone enforcing E.164 format going forward',
+      'Update existing User.Phone records with normalised values during migration',
+      'Community profile phone update field validates E.164 client-side before save'
+    ],
+    deps: ['Default country code agreed by project team', 'Source system phone data extract available'],
+    dod: [
+      '100% of non-rejected phones in migration dataset are valid E.164',
+      'Rejection report reviewed and actioned — rejects treated as Scenario C',
+      'Auth0 Bulk Import job runs with zero phone format errors',
+      'Validation rule active on Salesforce User.Phone field'
+    ],
+    risk: 'Missing country code is the most common issue. Confirm the default country with the business before running normalisation. Do not guess.'
+  },
+  {
+    id: 7, p: '1', pillarLabel: 'P1 · Data audit', pillarCls: 'p1',
+    epic: 'User data classification', epicCls: 'epic-p1',
+    scenario: 'Verified unique email',
+    story: 'As a migration engineer, I need to confirm that each user has a verified unique email in the source system so that Email OTP is available as a valid MFA factor in Auth0.',
+    ac: [
+      'Query returns all users where email is non-null, email_verified = true, and email appears exactly once',
+      'Auth0 import sets email_verified = true for these users',
+      'Email OTP is available as a factor option for these users at enrollment',
+      'Email uniqueness is enforced in Auth0 — duplicate emails are flagged and resolved before import'
+    ],
+    auth0: [
+      'Import with email_verified = true',
+      'Auth0 enforces email uniqueness natively — duplicate import will fail',
+      'Email OTP enabled as a factor at tenant level',
+      'Post-Login Action does not restrict email factor for verified-email users'
+    ],
+    sf: [
+      'JIT maps Auth0 email to User.Email',
+      'Set Auth0_Email_Verified__c = true via JIT',
+      'No additional restrictions for email-verified users'
+    ],
+    deps: ['Email deduplication query run and duplicates resolved (Scenario 8 / 42)', 'Auth0 Email OTP factor enabled in dashboard'],
+    dod: [
+      'All Scenario email-verified users imported with email_verified = true',
+      'Test user can select Email OTP as a factor at enrollment',
+      'SF Auth0_Email_Verified__c field populated correctly via JIT'
+    ],
+    risk: 'Some systems store email_verified as a string ("true") rather than boolean — ensure correct type mapping in import script.'
+  },
+  {
+    id: 8, p: '1', pillarLabel: 'P1 · Data audit', pillarCls: 'p1',
+    epic: 'User data classification', epicCls: 'epic-p1',
+    scenario: 'Shared email address',
+    story: 'As a migration engineer, I need to detect all email addresses shared by more than one user so that Email OTP is blocked for those users and they are forced to use TOTP.',
+    ac: [
+      'Query groups users by email and returns emails with COUNT(user_id) > 1',
+      'All affected users are flagged with user_metadata.email_shared = true in Auth0',
+      'Email OTP factor is blocked for flagged users in Auth0 Post-Login Action',
+      'Flagged users are forced to TOTP enrollment only',
+      'Admin is notified of shared email accounts with a list for manual resolution'
+    ],
+    auth0: [
+      'Set user_metadata.email_shared = true for affected users',
+      'Post-Login Action: if email_shared === true, call api.multifactor.enable("totp")',
+      'Email OTP factor must not appear in picker for these users'
+    ],
+    sf: [
+      'Set Email_Shared__c = true on User record',
+      'Auth0_MFA_Scenario__c = "B-email"',
+      'Admin dashboard flags these users for email resolution',
+      'Community access may be blocked until TOTP enrolled if policy requires'
+    ],
+    deps: ['TOTP enrollment UX ready', 'Admin notification flow defined'],
+    dod: [
+      'Shared email users see only TOTP in factor picker confirmed via test login',
+      'SF Email_Shared__c populated for all affected users',
+      'Admin receives notification with list of shared email accounts',
+      'Zero shared email users appear in Email OTP eligible cohort'
+    ],
+    risk: 'Shared emails are often used by small businesses or families sharing a community account. Consider a policy decision on whether shared accounts are allowed at all.'
+  },
+  {
+    id: 10, p: '1', pillarLabel: 'P1 · Data audit', pillarCls: 'p1',
+    epic: 'User data classification', epicCls: 'epic-p1',
+    scenario: 'Email unverified or bouncing',
+    story: 'As a migration engineer, I need to flag users with unverified or bouncing emails so that Email OTP is disabled for them until they complete email re-verification at first login.',
+    ac: [
+      'Query identifies users where email_verified = false OR email appears in the bounce list',
+      'Auth0 import sets email_verified = false for these users',
+      'Auth0 triggers a verification email on first login attempt',
+      'Email OTP factor is not available until email_verified = true',
+      'On successful verification, email_verified is updated in both Auth0 and Salesforce',
+      'Users who do not verify within 7 days receive a follow-up reminder email'
+    ],
+    auth0: [
+      'Import with email_verified = false',
+      'Auth0 sends verification email on first login',
+      'Post-Login Action disables email OTP factor until email_verified = true',
+      'Log verification completion event via Log Stream'
+    ],
+    sf: [
+      'Set Auth0_Email_Verified__c = false initially',
+      'Log Stream webhook updates field on verification event',
+      'Scheduled Flow sends reminder after 7 days to unverified users',
+      'Auth0_MFA_Scenario__c updated when verification completes'
+    ],
+    deps: ['Auth0 Log Stream webhook endpoint in Salesforce', 'Email bounce list extracted from email service provider'],
+    dod: [
+      'Unverified email test user cannot use Email OTP before verifying',
+      'Verification email delivered and link works end-to-end',
+      'SF field updates automatically after verification',
+      'Reminder flow tested and triggered correctly at day 7'
+    ],
+    risk: 'Bounce lists may not be complete. Work with the email service provider to extract all hard bounces before migration.'
+  },
+  {
+    id: 11, p: '1', pillarLabel: 'P1 · Data audit', pillarCls: 'p1',
+    epic: 'Enrollment UX', epicCls: 'epic-p1',
+    scenario: 'Valid email + valid unique phone (cleanest case)',
+    story: 'As a product team, I need to define and implement the MFA enrollment UX for Scenario A users who have full factor eligibility so they can choose their preferred MFA method at first login.',
+    ac: [
+      'Factor selection screen presents: SMS, Email OTP, TOTP (Authenticator App), and Push (Guardian) as options',
+      'TOTP is shown as the recommended option with a security rationale',
+      'User must select and complete enrollment in at least one factor before accessing the community',
+      'User is prompted to add a backup factor after completing primary enrollment',
+      'Enrollment completion is logged and updates Salesforce user record'
+    ],
+    auth0: [
+      'api.multifactor.enable("any", { allowRememberBrowser: true })',
+      'Universal Login factor picker customised with recommended option highlighted',
+      'Guardian app available for Push notifications',
+      'gd_enrollment_complete event triggers Log Stream'
+    ],
+    sf: [
+      'MFA_Enrolled__c = true updated via Log Stream on completion',
+      'MFA_Factor_Type__c stores chosen factor name',
+      'Community home page shows backup factor nudge for single-factor users',
+      'Auth0_MFA_Scenario__c = "A"'
+    ],
+    deps: ['Auth0 Universal Login brand customisation complete', 'Log Stream webhook endpoint live', 'Backup factor nudge UI designed'],
+    dod: [
+      'Scenario A test user sees all four factors in the picker',
+      'Each factor type can be enrolled end-to-end without errors',
+      'SF fields update correctly within 60 seconds of enrollment completion',
+      'Backup factor prompt appears on community home for single-factor users',
+      'UX reviewed and approved by product owner'
+    ],
+    risk: 'Push (Guardian) requires the Auth0 Guardian app to be installed. If low adoption is expected, deprioritise Push and focus on TOTP and SMS.'
+  },
+  {
+    id: 12, p: '1', pillarLabel: 'P1 · Data audit', pillarCls: 'p1',
+    epic: 'Enrollment UX', epicCls: 'epic-p1',
+    scenario: 'Valid email + problematic phone',
+    story: 'As a product team, I need to design the enrollment state where a user has a phone but SMS is blocked so the user understands why and is clearly guided to Email OTP or TOTP.',
+    ac: [
+      'Factor picker does not display SMS as an option for users with phone_shared = true or phone_verified = false',
+      'A contextual message explains why SMS is not available (e.g. "Your phone number is linked to another account")',
+      'User can select Email OTP or TOTP and complete enrollment',
+      'User can update their phone number via community profile to potentially unlock SMS in future'
+    ],
+    auth0: [
+      'Post-Login Action filters out SMS factor for phone_shared or unverified phone users',
+      'Universal Login page shows contextual help text explaining SMS restriction',
+      'Log enrollment factor chosen for audit'
+    ],
+    sf: [
+      'Auth0_MFA_Scenario__c = "B" or "D" depending on reason',
+      'Community profile shows phone status with edit option',
+      'If user updates phone, trigger re-classification flow'
+    ],
+    deps: ['Scenario 2 and 3 flagging complete', 'Universal Login customisation with contextual messaging'],
+    dod: [
+      'Test user with shared phone does not see SMS in factor picker',
+      'Contextual message displays correctly and is reviewed by UX',
+      'User can complete TOTP or Email OTP enrollment successfully',
+      'Phone update on profile page triggers re-evaluation of SMS eligibility'
+    ],
+    risk: 'Message tone is important — users should not feel penalised. Copy must be reviewed by comms team.'
+  },
+  {
+    id: 14, p: '1', pillarLabel: 'P1 · Data audit', pillarCls: 'p1',
+    epic: 'User data classification', epicCls: 'epic-p1',
+    scenario: 'No reliable email or phone',
+    story: 'As a security engineer, I need to define and enforce the access policy for users with no reliable email or phone so that TOTP is the only factor available and community access is gated until enrollment.',
+    ac: [
+      'Query identifies users where phone IS NULL or phone_shared and email_verified = false',
+      'These users are flagged as Scenario D-critical in the migration dataset',
+      'Auth0 Post-Login Action forces TOTP enrollment with no alternative factor',
+      'Community access is blocked until TOTP enrollment is complete',
+      'An admin report lists all D-critical users for manual review and outreach',
+      'Admin can approve exceptions to allow email or phone update before enrollment'
+    ],
+    auth0: [
+      'user_metadata.mfa_scenario = "D-critical"',
+      'Post-Login Action: api.multifactor.enable("totp") — no other factor permitted',
+      'Community redirect is blocked post-authentication until gd_enrollment_complete fires',
+      'Log all D-critical login attempts for audit'
+    ],
+    sf: [
+      'Auth0_MFA_Scenario__c = "D-critical"',
+      'Community_Access_Blocked__c = true until TOTP enrolled',
+      'Admin report: list of D-critical users with last contacted date',
+      'Case auto-created for each D-critical user for admin outreach'
+    ],
+    deps: ['Scenarios 4, 8, 10 flagging complete', 'Admin outreach communication template approved', 'TOTP enrollment UX tested'],
+    dod: [
+      'D-critical test user cannot access community until TOTP enrolled',
+      'After TOTP enrollment, community access is granted automatically',
+      'Admin report shows all D-critical users with correct count',
+      'Case creation flow tested end-to-end',
+      'Security team has signed off on access gate policy'
+    ],
+    risk: 'This group may be small but has the highest lockout risk. Prioritise admin outreach before go-live so these users are contacted in advance.'
+  },
+
+  {
+    id: 36, p: '4', pillarLabel: 'P4 · SF identity', pillarCls: 'p4',
+    epic: 'SSO integration', epicCls: 'epic-p4',
+    scenario: 'External community user via Auth0 SSO',
+    story: 'As a platform engineer, I need to configure Auth0 as the SAML identity provider for Salesforce Experience Cloud so external community users authenticate via Auth0 and are provisioned in Salesforce via JIT.',
+    ac: [
+      'Auth0 SAML2 addon configured for the Salesforce application with correct ACS URL and audience',
+      'SAML assertion includes claims: email, firstName, lastName, Auth0 user_id, mfa_scenario, phone, phone_verified',
+      'JIT handler class deployed in Salesforce and correctly maps SAML claims to User fields',
+      'External community user can log in end-to-end: Auth0 login → MFA → Salesforce community',
+      'JIT creates a new User record if no match found, updates existing record if match found',
+      'Session is established correctly with the right profile and permissions after JIT'
+    ],
+    auth0: [
+      'Configure SAML2 Web App addon for Salesforce in Auth0 dashboard',
+      'Map user_metadata and app_metadata fields into SAML attribute statements',
+      'Set NameID format to emailAddress',
+      'Sign SAML assertions with Auth0 certificate — export certificate for SF upload'
+    ],
+    sf: [
+      'Create SSO configuration under Setup > Single Sign-On Settings',
+      'Upload Auth0 SAML metadata / certificate',
+      'Implement Auth.SamlJitHandler interface with createUser and updateUser methods',
+      'Map SAML attributes to standard and custom User fields',
+      'Enable SSO on Experience Cloud site',
+      'Test with a sandbox community user before production deployment'
+    ],
+    deps: ['Auth0 application for Salesforce created and client credentials documented', 'JIT handler class reviewed and approved', 'SF sandbox with Experience Cloud available for testing'],
+    dod: [
+      'Full SSO login flow works end-to-end in sandbox: Auth0 login → MFA → community landing page',
+      'JIT creates user correctly with all custom fields populated',
+      'JIT updates existing user on subsequent logins',
+      'SAML assertion attribute mapping validated with Auth0 logs and Salesforce login history',
+      'Security team has reviewed SAML certificate and encryption settings'
+    ],
+    risk: 'SAML clock skew between Auth0 and Salesforce can cause assertion rejection. Ensure server times are synchronised. Set clock skew tolerance in SF SSO config.'
+  },
+  {
+    id: 37, p: '4', pillarLabel: 'P4 · SF identity', pillarCls: 'p4',
+    epic: 'SSO integration', epicCls: 'epic-p4',
+    scenario: 'Internal SF user accessing community',
+    story: 'As an architect, I need to define and document the authentication flow for internal Salesforce users who also access the community so that MFA is not double-prompted and login is seamless.',
+    ac: [
+      'Architecture decision documented: internal users use Auth0 SSO or Salesforce native login for community — not both',
+      'If Auth0 SSO is chosen for internal users: Salesforce native MFA is disabled to prevent double prompt',
+      'If Salesforce native login is chosen for internal users: Auth0 SSO only applies to external community users',
+      'Internal users who access the community through Auth0 are subject to the same MFA Post-Login Action as external users',
+      'Decision is reviewed and signed off by security and IT teams'
+    ],
+    auth0: [
+      'Create a separate Auth0 connection or application rule for internal users if needed',
+      'Ensure MFA policy is consistent whether user arrives via internal or community login',
+      'Do not apply double MFA if internal users already authenticated via corporate IdP'
+    ],
+    sf: [
+      'Document which profiles are "internal" vs "external community"',
+      'If Salesforce native login retained for internal users: ensure community site does not force SSO for internal profiles',
+      'If Auth0 used for all: disable "Allow users to log in with Salesforce credentials" on community site'
+    ],
+    deps: ['Architecture decision meeting scheduled', 'Security team input on internal MFA policy', 'Internal IdP details (if SSO federation applies)'],
+    dod: [
+      'Architecture decision document signed off',
+      'Internal user test login works without double MFA prompt',
+      'External community user test login works via Auth0',
+      'Decision is documented in the project runbook and communicated to IT'
+    ],
+    risk: 'If internal users access the community via both Auth0 and native Salesforce login, session conflicts can occur. Enforce one path only.'
+  },
+  {
+    id: 38, p: '4', pillarLabel: 'P4 · SF identity', pillarCls: 'p4',
+    epic: 'Registration flow', epicCls: 'epic-p4',
+    scenario: 'Guest user who then registers',
+    story: 'As a platform engineer, I need to design the guest-to-registered-user flow so that new community registrations create a linked Auth0 account and a Salesforce community user, with MFA enrollment triggered on first authenticated login.',
+    ac: [
+      'Guest can browse community without authentication',
+      'Registration page collects: first name, last name, email, phone (optional)',
+      'On submit, Auth0 user is created via Auth0 signup API',
+      'A Salesforce Contact and Community User are created via the Salesforce registration handler',
+      'Auth0_User_ID__c on SF User is populated with the Auth0 user ID returned from signup',
+      'On first authenticated login, Auth0 Post-Login Action triggers MFA enrollment',
+      'Phone uniqueness check is performed at registration — shared phone flagged immediately',
+      'Duplicate email shows a helpful error: "An account exists with this email" with login CTA'
+    ],
+    auth0: [
+      'Auth0 signup API called from community registration page',
+      'Post-Login Action detects first login (no prior MFA enrollment) and triggers enrollment',
+      'Phone uniqueness check in Post-Login Action or registration hook'
+    ],
+    sf: [
+      'Custom registration handler (Site.ExternalUserCreateDirectly or custom Apex) creates Contact + User',
+      'Store Auth0_User_ID__c returned from Auth0 signup',
+      'Registration handler calls phone uniqueness SOQL before saving',
+      'Error handling for duplicate email and duplicate phone with user-friendly messages'
+    ],
+    deps: ['Auth0 signup API credentials and endpoint defined', 'Community registration page designed and built', 'Phone uniqueness logic from Scenarios 2 and 50'],
+    dod: [
+      'Guest can register end-to-end: form submission → Auth0 account → SF User → community access with MFA enrollment',
+      'Duplicate email registration shows correct error and login CTA',
+      'Shared phone registration correctly flags user and routes to TOTP',
+      'Auth0_User_ID__c populated on SF User record',
+      'MFA enrollment triggers on first post-registration login'
+    ],
+    risk: 'If Auth0 signup succeeds but SF user creation fails, the user exists in Auth0 with no SF record. Implement a rollback or reconciliation mechanism.'
+  },
+  {
+    id: 39, p: '4', pillarLabel: 'P4 · SF identity', pillarCls: 'p4',
+    epic: 'Migration', epicCls: 'epic-p4',
+    scenario: 'SF user exists but never logged into community',
+    story: 'As a migration engineer, I need to identify all Salesforce community users with no login history and pre-create their Auth0 accounts during the migration batch so MFA enrollment is ready for their first login.',
+    ac: [
+      'SOQL query returns all Users with community license where LastLoginDate IS NULL or LastLoginDate < migration start date',
+      'Auth0 accounts pre-created for all identified users via Management API Bulk Import',
+      'Auth0 user_id stored in SF User.Auth0_User_ID__c for each pre-created account',
+      'user_metadata pre-populated with phone, phone_verified, email_shared, mfa_scenario flags from SF data',
+      'These users are flagged with MFA_Migration_Pending__c = true in Salesforce',
+      'On first login, Post-Login Action triggers MFA enrollment as if it is their first time'
+    ],
+    auth0: [
+      'Bulk Import job includes all never-logged-in SF users',
+      'user_metadata fields pre-populated from SF data extract',
+      'app_metadata.salesforce_id set to SF User Id for JIT matching'
+    ],
+    sf: [
+      'Set MFA_Migration_Pending__c = true for identified users',
+      'Set Auth0_User_ID__c after Bulk Import job completes',
+      'After first login, JIT handler sets MFA_Migration_Pending__c = false',
+      'Admin report: count of migration-pending users decreasing over time post-go-live'
+    ],
+    deps: ['Auth0 Bulk Import job template ready', 'SF data extract with user_metadata fields complete', 'Scenarios 1–14 classification complete so correct flags are pre-set'],
+    dod: [
+      'All never-logged-in SF community users have Auth0 accounts pre-created',
+      'Auth0_User_ID__c populated on all corresponding SF User records',
+      'Test user who never logged in can authenticate via Auth0 and is prompted for MFA enrollment',
+      'MFA_Migration_Pending__c flips to false after first successful login',
+      'Admin report showing migration-pending count is live'
+    ],
+    risk: 'Never-logged-in users may have stale data (old emails, missing phones). Run data quality checks on this cohort separately before import.'
+  },
+  {
+    id: 40, p: '4', pillarLabel: 'P4 · SF identity', pillarCls: 'p4',
+    epic: 'JIT provisioning', epicCls: 'epic-p4',
+    scenario: 'Auth0 user maps cleanly to SF community user',
+    story: 'As a platform engineer, I need to implement the JIT handler happy-path logic that matches an Auth0-authenticated user to their existing SF community user by email or Auth0 user ID and updates MFA metadata on each login.',
+    ac: [
+      'JIT handler queries User by Auth0_User_ID__c first; falls back to User.Email if ID not set',
+      'On match, JIT updateUser method updates: Auth0_MFA_Scenario__c, MFA_Enrolled__c, MFA_Factor_Type__c, Last_Login_Date__c from SAML attributes',
+      'Auth0_User_ID__c is set on User record if not already populated (first login after migration)',
+      'JIT does not change the user\'s Profile or Role on update — only MFA metadata fields',
+      'JIT handler logs the match method used (ID vs email) for audit'
+    ],
+    auth0: [
+      'SAML NameID = email',
+      'SAML attributes include: Auth0 user_id, mfa_scenario, mfa_enrolled, mfa_factor_type',
+      'Assertions signed and certificate valid'
+    ],
+    sf: [
+      'JIT handler class implements Auth.SamlJitHandler',
+      'updateUser method uses SOQL: WHERE Auth0_User_ID__c = :federationId OR Email = :attributes.email',
+      'Update only MFA metadata fields — do not overwrite Profile, Role, or manually managed fields',
+      'Log match result to a custom JIT_Audit_Log__c object with timestamp, match method, and user ID'
+    ],
+    deps: ['SAML SSO configuration complete (Scenario 36)', 'Custom fields on User object created', 'JIT_Audit_Log__c custom object created'],
+    dod: [
+      'Happy-path test login updates all MFA fields correctly on the SF User record',
+      'Audit log entry created for each login with correct match method',
+      'SOQL uses selective indexed fields — query performance reviewed',
+      'JIT handler code reviewed and approved by Salesforce architect'
+    ],
+    risk: 'SOQL governor limits in JIT handler if query is not selective. Ensure Auth0_User_ID__c is an External ID field so it is indexed.'
+  },
+  {
+    id: 41, p: '4', pillarLabel: 'P4 · SF identity', pillarCls: 'p4',
+    epic: 'JIT provisioning', epicCls: 'epic-p4',
+    scenario: 'Auth0 email does not match any SF community user',
+    story: 'As a platform engineer, I need to implement the no-match fallback in the JIT handler so that unmatched users are either auto-provisioned or shown a clear error, and all failures are logged.',
+    ac: [
+      'JIT handler queries by Auth0_User_ID__c and email — if both return no results, no-match path is taken',
+      'Business rule documented: is auto-provisioning enabled or blocked for unmatched users?',
+      'If auto-provision enabled: createUser method runs with default Profile and populates all fields from SAML attributes',
+      'If auto-provision blocked: AuthException is thrown with a user-friendly message ("Your account could not be found. Please contact support.")',
+      'Every no-match event is logged to a JIT_Failed_Login__c custom object with Auth0 user ID, email, and timestamp',
+      'Admin receives a daily alert if failed login count exceeds a threshold'
+    ],
+    auth0: ['No Auth0 change — SSO proceeds normally; failure is on Salesforce side'],
+    sf: [
+      'JIT handler no-match logic: if createUser intent, call createUser; else throw AuthException',
+      'createUser sets: default Profile ID (configurable custom metadata), standard + MFA fields from SAML',
+      'JIT_Failed_Login__c object stores: Auth0_User_ID, Email, Timestamp, Error_Reason',
+      'Scheduled Flow sends admin alert daily if JIT_Failed_Login__c count > 0 in last 24 hours'
+    ],
+    deps: ['Business decision: auto-provision on no-match? (must be decided before dev)', 'Default Profile for auto-provisioned users agreed', 'JIT_Failed_Login__c custom object created'],
+    dod: [
+      'No-match test user sees correct error message if auto-provision is disabled',
+      'No-match test user is created with correct Profile if auto-provision is enabled',
+      'JIT_Failed_Login__c record created for every no-match event',
+      'Admin alert fires correctly when threshold exceeded',
+      'Business decision on auto-provision documented and signed off'
+    ],
+    risk: 'Auto-provisioning without a data quality gate can create duplicate or ghost user records. Recommend blocking auto-provision by default and enabling only after migration is stable.'
+  },
+  {
+    id: 42, p: '4', pillarLabel: 'P4 · SF identity', pillarCls: 'p4',
+    epic: 'Data normalisation', epicCls: 'epic-p4',
+    scenario: 'Multiple SF users share the same email',
+    story: 'As a data engineer, I need to run a Salesforce email deduplication report before migration go-live and resolve all duplicate email conflicts so the JIT handler can safely match users without ambiguity.',
+    ac: [
+      'SOQL query returns all duplicate User.Email values with list of affected User IDs',
+      'Duplicate report reviewed by the project team and business stakeholders',
+      'Each duplicate is resolved by one of: merging users, correcting the non-primary email, or deactivating a duplicate account',
+      'Zero duplicate active community user emails remain at go-live',
+      'A Salesforce validation rule is added to prevent future duplicate email creation on User object',
+      'Auth0 will reject duplicate emails at import — this must be clean before Bulk Import runs'
+    ],
+    auth0: ['Auth0 enforces email uniqueness natively — Bulk Import fails if duplicates remain'],
+    sf: [
+      'Run SOQL: SELECT Email, COUNT(Id) FROM User WHERE IsActive=true GROUP BY Email HAVING COUNT(Id) > 1',
+      'For each duplicate: open a resolution task assigned to the data team',
+      'After resolution, add Apex Trigger or Validation Rule to block duplicate User.Email inserts',
+      'Re-run dedup query to confirm zero duplicates before import job'
+    ],
+    deps: ['Access to Salesforce production or full sandbox for dedup query', 'Business stakeholder available to resolve ambiguous duplicates'],
+    dod: [
+      'Dedup SOQL returns zero results for active community users',
+      'All resolved duplicate cases are documented with resolution reason',
+      'Validation rule or trigger preventing future duplicates is active and tested',
+      'Auth0 Bulk Import test run succeeds with no duplicate email rejections'
+    ],
+    risk: 'Resolving duplicates may require business stakeholder decisions (e.g. which account is the primary). Allow 1–2 weeks for resolution. Do not defer to go-live week.'
+  },
+  {
+    id: 43, p: '4', pillarLabel: 'P4 · SF identity', pillarCls: 'p4',
+    epic: 'JIT provisioning', epicCls: 'epic-p4',
+    scenario: 'User in Auth0 but never provisioned in Salesforce',
+    story: 'As a platform engineer, I need to implement the JIT createUser method so that Auth0-authenticated users who have no Salesforce record are automatically provisioned with the correct profile and MFA metadata on first login.',
+    ac: [
+      'JIT createUser is called when no User record is found matching Auth0_User_ID__c or email',
+      'createUser sets: Username (email + .auth0 suffix or configurable suffix), Email, FirstName, LastName, Profile, TimeZone, Locale, Alias from SAML attributes',
+      'All custom MFA fields are populated from SAML attributes on creation: Auth0_MFA_Scenario__c, MFA_Enrolled__c, Auth0_User_ID__c',
+      'Created user is assigned the correct community license',
+      'Creation event is logged to JIT_Audit_Log__c with action = "create"',
+      'If user creation fails (e.g. validation error), an AuthException is thrown with a support-contact message'
+    ],
+    auth0: ['SAML assertion must include all fields needed for User creation: email, name, Auth0 user_id, scenario flags'],
+    sf: [
+      'JIT createUser method builds User object from SAML attributes map',
+      'Profile ID sourced from Custom Metadata Type — configurable without code deployment',
+      'Username = email + configurable suffix to ensure uniqueness in Salesforce',
+      'insert user; return user;',
+      'Catch DML exceptions and throw AuthException with safe message'
+    ],
+    deps: ['Default community Profile and License agreed', 'Username suffix convention documented', 'Custom Metadata for Profile ID defined'],
+    dod: [
+      'New Auth0 user with no SF record is provisioned correctly on first login end-to-end',
+      'All standard and custom MFA fields populated on created User',
+      'Audit log entry with action "create" written',
+      'Username format confirmed unique across existing users',
+      'DML error handling tested with a deliberately invalid user'
+    ],
+    risk: 'Username must be unique in Salesforce org-wide, not just in the community. Ensure the suffix convention cannot clash with internal user usernames.'
+  },
+  {
+    id: 44, p: '4', pillarLabel: 'P4 · SF identity', pillarCls: 'p4',
+    epic: 'Migration', epicCls: 'epic-p4',
+    scenario: 'SF user exists but has no Auth0 account',
+    story: 'As a migration engineer, I need to build a safety net that detects SF community users with no corresponding Auth0 account after the migration batch runs, alerts admins, and provides a one-click Auth0 account creation action.',
+    ac: [
+      'Salesforce report identifies all active community Users where Auth0_User_ID__c IS NULL after migration batch date',
+      'Admin receives a daily scheduled alert while migration-gap users remain',
+      'An admin action on the User record allows one-click Auth0 account creation via Named Credential callout to Auth0 Management API',
+      'On successful Auth0 account creation, Auth0_User_ID__c is populated on the SF User record',
+      'If Auth0 account creation fails, a Case is auto-created for the affected user with the error detail',
+      'When the gap-user logs in for the first time (after account creation), they are routed through normal MFA enrollment'
+    ],
+    auth0: [
+      'Management API POST /api/v2/users used to create missing accounts',
+      'Named Credential in Salesforce stores Management API token',
+      'Created user has correct user_metadata from SF data'
+    ],
+    sf: [
+      'Scheduled Report: Users WHERE IsActive=true AND Auth0_User_ID__c = null AND CreatedDate < migration date',
+      'Custom button "Create Auth0 Account" on User record (visible to System Admin only)',
+      'Button triggers Apex callout to Auth0 Management API via Named Credential',
+      'On success: update Auth0_User_ID__c. On failure: create Case with error details.'
+    ],
+    deps: ['Auth0 Management API Named Credential configured in SF', 'Migration batch complete and Auth0_User_ID__c populated for successful imports', 'Admin permission set for button access defined'],
+    dod: [
+      'Scheduled report returns correct count of gap users post-migration',
+      'Admin button creates Auth0 account successfully in sandbox test',
+      'Auth0_User_ID__c updates on SF User after button click',
+      'Failure scenario tested — Case created with error detail',
+      'Gap user can log in via Auth0 SSO after account creation'
+    ],
+    risk: 'Migration gaps are often discovered post-go-live under user pressure. Having this safety net live on day one is critical — do not treat as a post-launch item.'
+  },
+  {
+    id: 45, p: '4', pillarLabel: 'P4 · SF identity', pillarCls: 'p4',
+    epic: 'SSO cutover', epicCls: 'epic-p4',
+    scenario: 'Users transitioning from SF native login to Auth0 SSO',
+    story: 'As a platform engineer, I need to configure the Salesforce Experience Cloud site to redirect all community logins to Auth0 and disable native username/password login after the SSO cutover date so users cannot bypass Auth0 MFA.',
+    ac: [
+      'Experience Cloud login page is updated to redirect to Auth0 Universal Login URL before go-live',
+      'Salesforce native username/password login is disabled for all community user profiles on cutover date',
+      'Users who attempt to use a saved Salesforce login URL are redirected to Auth0',
+      'Pre-cutover communication sent to all community users at least 2 weeks in advance',
+      'A rollback plan exists to re-enable native login within 1 hour if critical issues are found on cutover day',
+      'Cutover is performed outside peak usage hours with the operations team on standby'
+    ],
+    auth0: [
+      'Auth0 application for Salesforce community is in production and fully tested',
+      'Universal Login page is branded and approved',
+      'All test scenarios (A/B/C/D) verified in production before cutover'
+    ],
+    sf: [
+      'Update Experience Cloud site login page to Auth0 URL',
+      'Remove standard login component from community login page',
+      'Ensure all community Profiles have "Is Single Sign-On Enabled" checked',
+      'Prepare rollback script to re-enable native login if needed',
+      'Monitor Salesforce login history for SSO failures in first 48 hours post-cutover'
+    ],
+    deps: ['All prior scenarios (1–44) complete and tested', 'User communication sent', 'Operations team briefed and on standby', 'Rollback plan documented and tested'],
+    dod: [
+      'Cutover performed successfully during agreed maintenance window',
+      'Zero users able to log in via Salesforce native login post-cutover',
+      'All users can log in via Auth0 SSO with MFA in production',
+      'No critical login failures in first 48 hours (monitored via SF login history and Auth0 logs)',
+      'Rollback script tested in sandbox and ready'
+    ],
+    risk: 'This is the highest-risk single event in the project. It should not happen until all prior scenarios are fully tested in a staging environment that mirrors production.'
+  },
+  {
+    id: 46, p: '4', pillarLabel: 'P4 · SF identity', pillarCls: 'p4',
+    epic: 'Pre-migration audit', epicCls: 'epic-p4',
+    scenario: 'Community Profile lacks SSO login permission',
+    story: 'As a Salesforce admin, I need to audit all community user Profiles to confirm SSO login is enabled and fix any missing permissions before the Auth0 SSO cutover so no users are blocked at go-live.',
+    ac: [
+      'Query retrieves all Profiles assigned to active community users',
+      'Each Profile is checked for "Is Single Sign-On Enabled" = true',
+      'Any Profile missing the permission is updated before go-live',
+      'A pre-migration checklist item is created for this audit step',
+      'Audit is re-run after any Profile changes in the 2 weeks before go-live',
+      'Results are documented and signed off by the Salesforce admin'
+    ],
+    auth0: ['No Auth0 action — this is a Salesforce configuration requirement'],
+    sf: [
+      'SOQL: SELECT Id, Name, IsSsoEnabled FROM Profile WHERE Id IN (SELECT ProfileId FROM User WHERE IsActive=true AND CommunityNickname != null)',
+      'For each Profile with IsSsoEnabled = false: update via Setup > Profiles',
+      'Add "SSO Profile check" as a step in the go-live runbook',
+      'Re-run query after go-live to confirm no regressions'
+    ],
+    deps: ['List of all community user Profiles available', 'Salesforce admin access to modify Profiles'],
+    dod: [
+      'SOQL returns zero Profiles with IsSsoEnabled = false for community users',
+      'Audit result documented in go-live checklist with sign-off',
+      'Re-run of SOQL after go-live confirms no regressions',
+      'At least one test login per Profile type performed successfully post-cutover'
+    ],
+    risk: 'Profile changes in Salesforce affect all users on that Profile. Test SSO login for at least one user per Profile after enabling SSO to confirm no unintended side effects.'
+  },
+  {
+    id: 47, p: '4', pillarLabel: 'P4 · SF identity', pillarCls: 'p4',
+    epic: 'JIT provisioning', epicCls: 'epic-p4',
+    scenario: 'User community license expired or deactivated in SF',
+    story: 'As a platform engineer, I need to add an active user and license validation check in the JIT handler so that deactivated users receive a clear error message and admins are notified when a deactivated account attempts SSO login.',
+    ac: [
+      'JIT handler checks IsActive = true on User record before completing login',
+      'JIT handler verifies the user has a valid community license (not expired)',
+      'If user is inactive or license expired, AuthException is thrown with message: "Your account is inactive. Please contact support."',
+      'Every deactivated login attempt is logged to JIT_Failed_Login__c with reason = "inactive" or "license_expired"',
+      'Admin receives a notification (email or Chatter) within 1 hour of a deactivated login attempt',
+      'Optionally: Auth0 Post-Login Action can pre-check is_active from app_metadata to fail faster with a better UX'
+    ],
+    auth0: [
+      'Optional: store is_active in Auth0 app_metadata and check in Post-Login Action before issuing SAML assertion',
+      'If Auth0 blocks the login, user sees an Auth0-branded error page — customise message'
+    ],
+    sf: [
+      'JIT updateUser: check IsActive before processing. If false, throw AuthException.',
+      'Check license via UserLicense or Profile — if no valid community license, throw AuthException.',
+      'Log to JIT_Failed_Login__c: User_ID, Reason, Timestamp.',
+      'Create Salesforce Flow to send admin notification within 1 hour of failed login due to deactivation.'
+    ],
+    deps: ['JIT_Failed_Login__c custom object exists (from Scenario 41)', 'Admin notification flow configured', 'Community license model documented'],
+    dod: [
+      'Deactivated test user sees correct error message after Auth0 login and MFA',
+      'JIT_Failed_Login__c record created with reason "inactive"',
+      'Admin notification received within 1 hour',
+      'Active user with valid license logs in without any issues',
+      'License expiry scenario tested with a manually expired test license'
+    ],
+    risk: 'Auth0 MFA will succeed for deactivated users before the JIT check fires — this means a deactivated user knows their credentials and MFA are valid. Consider blocking at Auth0 level first for a cleaner UX.'
+  },
+  {
+    id: 48, p: '4', pillarLabel: 'P4 · SF identity', pillarCls: 'p4',
+    epic: 'User lifecycle sync', epicCls: 'epic-p4',
+    scenario: 'User active in Auth0 but deactivated in SF (or vice versa)',
+    story: 'As a platform engineer, I need to implement bidirectional user deactivation sync between Salesforce and Auth0 so that deactivating a user in either system immediately blocks access on both sides.',
+    ac: [
+      'When a Salesforce User is deactivated (IsActive set to false), an Auth0 Management API call blocks the Auth0 user within 60 seconds',
+      'When Auth0 user is blocked via Management API (e.g. security incident), a Salesforce Flow deactivates the corresponding User record',
+      'Both sync directions are implemented and tested',
+      'Sync failures are logged and trigger an admin alert',
+      'Deactivation audit trail is maintained in both systems',
+      'Re-activation in one system does not automatically re-activate in the other — requires manual confirmation to prevent accidental re-enablement'
+    ],
+    auth0: [
+      'Management API PATCH /api/v2/users/{id} with blocked: true used to block user from Salesforce trigger',
+      'Auth0 Log Stream sends user.blocked events to Salesforce webhook',
+      'Named Credential in Salesforce stores Management API token with correct scopes'
+    ],
+    sf: [
+      'Apex Trigger on User (after update) detects IsActive changed to false',
+      'Trigger calls Auth0 Management API via Named Credential to block Auth0 user',
+      'Auth0 Log Stream webhook endpoint receives user.blocked events and deactivates SF User',
+      'Custom object Deactivation_Sync_Log__c records every sync event: direction, user, timestamp, success/failure',
+      'Scheduled Apex job reconciles any sync failures nightly'
+    ],
+    deps: ['Auth0 Management API Named Credential with block/unblock permission', 'Auth0 Log Stream webhook endpoint deployed (from Scenario 59)', 'Deactivation_Sync_Log__c custom object created'],
+    dod: [
+      'Deactivating SF User blocks Auth0 user within 60 seconds — confirmed via Auth0 Management API user record',
+      'Auth0 user block event received by SF webhook and deactivates SF User within 60 seconds',
+      'Sync failure is logged and admin alert fires',
+      'Re-activation requires manual step in both systems — confirmed via test',
+      'Nightly reconciliation job tested and resolves a deliberately failed sync'
+    ],
+    risk: 'Trigger recursion risk: SF deactivation fires trigger → Auth0 blocked → webhook fires → SF update → trigger fires again. Use a bypass flag or check old/new value to prevent loops.'
+  }
+];
+
+let activeFilter = 'all';
+
+function setFilter(el, val) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  activeFilter = val;
+  filterRows();
+}
+
+function filterRows() {
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  const rows = document.querySelectorAll('#tbody tr');
+  let vis = 0;
+  rows.forEach(row => {
+    const pm = activeFilter === 'all' || row.dataset.p === activeFilter;
+    const qm = !q || row.textContent.toLowerCase().includes(q);
+    if (pm && qm) { row.classList.remove('hidden'); vis++; }
+    else row.classList.add('hidden');
+  });
+  document.getElementById('cnt').textContent = vis + ' of ' + DATA.length;
+  document.getElementById('noRes').style.display = vis === 0 ? 'block' : 'none';
+}
+
+function ul(items) {
+  return '<ul>' + items.map(i => '<li>' + i + '</li>').join('') + '</ul>';
+}
+
+function tags(items) {
+  return items.map(i => '<span class="tag">' + i + '</span>').join('');
+}
+
+const tbody = document.getElementById('tbody');
+DATA.forEach(r => {
+  const tr = document.createElement('tr');
+  tr.dataset.p = r.p;
+  tr.innerHTML = `
+    <td class="sc-id">${r.id}</td>
+    <td><span class="badge ${r.pillarCls}">${r.pillarLabel}</span></td>
+    <td><span class="badge ${r.epicCls}" style="font-size:10px;">${r.epic}</span></td>
+    <td class="sc-title">${r.scenario}</td>
+    <td style="font-size:11px; color: var(--color-text-primary);">${r.story}</td>
+    <td style="font-size:11px;">${ul(r.ac)}</td>
+    <td style="font-size:11px;">${ul(r.auth0)}</td>
+    <td style="font-size:11px;">${ul(r.sf)}</td>
+    <td style="font-size:11px;">${tags(r.deps)}</td>
+    <td style="font-size:11px;">${ul(r.dod)}</td>
+    <td style="font-size:11px; color: var(--color-text-secondary);">${r.risk}</td>
+  `;
+  tbody.appendChild(tr);
+});
+</script>

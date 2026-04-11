@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Auth0 MFA — Salesforce Community Implementation Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal:        #0F6E56;
+    --teal-light:  #E1F5EE;
+    --teal-mid:    #1D9E75;
+    --teal-dark:   #085041;
+    --purple:      #3C3489;
+    --purple-light:#EEEDFE;
+    --purple-mid:  #7F77DD;
+    --coral:       #993C1D;
+    --coral-light: #FAECE7;
+    --amber:       #854F0B;
+    --amber-light: #FAEEDA;
+    --amber-mid:   #EF9F27;
+    --blue:        #185FA5;
+    --blue-light:  #E6F1FB;
+    --red:         #A32D2D;
+    --red-light:   #FCEBEB;
+    --green:       #3B6D11;
+    --green-light: #EAF3DE;
+    --gray-50:     #F8F7F4;
+    --gray-100:    #F1EFE8;
+    --gray-200:    #D3D1C7;
+    --gray-400:    #888780;
+    --gray-600:    #5F5E5A;
+    --gray-800:    #2C2C2A;
+    --ink:         #1A1A18;
+    --ink-soft:    #3d3d3a;
+    --ink-muted:   #73726c;
+    --surface:     #FDFCFA;
+    --border:      rgba(0,0,0,0.10);
+    --border-soft: rgba(0,0,0,0.06);
+    --radius:      10px;
+    --radius-lg:   16px;
+    --shadow-sm:   0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow:      0 4px 12px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.05);
+    --shadow-lg:   0 12px 32px rgba(0,0,0,0.09), 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gray-50);
+    color: var(--ink);
+    line-height: 1.65;
+    font-size: 15px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--ink);
+    color: #fff;
+    padding: 64px 48px 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 80% at 90% 50%, rgba(29,158,117,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 10% 80%, rgba(127,119,221,0.12) 0%, transparent 60%);
+  }
+  .hero-inner { position: relative; max-width: 900px; }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--teal-mid);
+    background: rgba(29,158,117,0.15); border: 1px solid rgba(29,158,117,0.3);
+    padding: 5px 12px; border-radius: 20px; margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 4vw, 44px); font-weight: 300; line-height: 1.2;
+    letter-spacing: -0.02em; margin-bottom: 14px; color: #fff;
+  }
+  .hero h1 strong { font-weight: 600; color: var(--teal-mid); }
+  .hero-sub { font-size: 17px; color: rgba(255,255,255,0.6); font-weight: 300; max-width: 580px; margin-bottom: 36px; }
+  .hero-stats { display: flex; flex-wrap: wrap; gap: 24px; }
+  .stat {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    padding: 14px 20px; border-radius: var(--radius);
+    min-width: 130px;
+  }
+  .stat-val { font-size: 26px; font-weight: 600; color: #fff; line-height: 1; }
+  .stat-label { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 4px; }
+
+  /* ── NAV ── */
+  .nav {
+    background: #fff; border-bottom: 1px solid var(--border);
+    padding: 0 48px; display: flex; gap: 0; position: sticky; top: 0; z-index: 100;
+  }
+  .nav a {
+    display: inline-block; padding: 16px 20px; font-size: 13px; font-weight: 500;
+    color: var(--ink-muted); text-decoration: none; border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .nav a:hover { color: var(--ink); border-color: var(--teal-mid); }
+
+  /* ── LAYOUT ── */
+  .page { max-width: 1060px; margin: 0 auto; padding: 52px 40px 80px; }
+
+  /* ── SECTION HEADERS ── */
+  .section-header { margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--border-soft); }
+  .section-tag {
+    display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; padding: 3px 9px; border-radius: 6px; margin-bottom: 8px;
+  }
+  .tag-teal { background: var(--teal-light); color: var(--teal); }
+  .tag-purple { background: var(--purple-light); color: var(--purple); }
+  .tag-amber { background: var(--amber-light); color: var(--amber); }
+  .tag-gray { background: var(--gray-100); color: var(--gray-600); }
+  .section-title { font-size: 22px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+  .section-desc { font-size: 14px; color: var(--ink-muted); margin-top: 6px; max-width: 680px; }
+
+  /* ── WHAT WE ARE BUILDING ── */
+  .overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 48px; }
+  .overview-card {
+    background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 20px 22px; box-shadow: var(--shadow-sm);
+  }
+  .overview-card-icon { font-size: 20px; margin-bottom: 10px; }
+  .overview-card h4 { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .overview-card p { font-size: 13px; color: var(--ink-muted); line-height: 1.55; }
+
+  /* ── PHASE BANNER ── */
+  .phase-banner {
+    padding: 18px 24px; border-radius: var(--radius-lg); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .phase-banner.p1 { background: var(--teal-light); border: 1px solid rgba(15,110,86,0.2); }
+  .phase-banner.p2 { background: var(--amber-light); border: 1px solid rgba(133,79,11,0.18); }
+  .phase-banner-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  .phase-banner.p1 .phase-banner-label { color: var(--teal); }
+  .phase-banner.p2 .phase-banner-label { color: var(--amber); }
+  .phase-banner-title { font-size: 16px; font-weight: 600; color: var(--ink); }
+  .phase-banner-meta { font-size: 13px; color: var(--ink-muted); margin-left: auto; }
+
+  /* ── SPRINT CARDS ── */
+  .sprint-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden;
+    box-shadow: var(--shadow-sm); margin-bottom: 16px;
+  }
+  .sprint-head {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 16px 22px; border-bottom: 1px solid var(--border-soft);
+    background: var(--gray-50);
+  }
+  .sprint-num-badge {
+    width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0;
+    background: var(--teal); color: #fff;
+  }
+  .sprint-head-info { flex: 1; }
+  .sprint-head-title { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .sprint-head-sub { font-size: 12px; color: var(--ink-muted); margin-top: 1px; }
+  .sprint-weeks { font-size: 11px; font-weight: 500; color: var(--ink-muted); background: var(--gray-100); padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+  .sprint-pts { font-size: 11px; font-weight: 600; color: var(--teal); background: var(--teal-light); padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+  .sprint-goal-row {
+    padding: 12px 22px; font-size: 13px; color: var(--ink-muted);
+    font-style: italic; background: #fff; border-bottom: 1px solid var(--border-soft);
+    line-height: 1.5;
+  }
+  .parallel-note {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 600; color: var(--blue);
+    background: var(--blue-light); padding: 2px 8px; border-radius: 12px;
+    font-style: normal; margin-left: 6px;
+  }
+  .story-table { width: 100%; border-collapse: collapse; }
+  .story-table thead th {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-muted); padding: 9px 14px; border-bottom: 1px solid var(--border-soft);
+    background: var(--gray-50); text-align: left;
+  }
+  .story-table tbody tr { border-bottom: 1px solid var(--border-soft); }
+  .story-table tbody tr:last-child { border-bottom: none; }
+  .story-table tbody tr:hover { background: var(--gray-50); }
+  .story-table td { padding: 11px 14px; vertical-align: top; }
+  .sc-id { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ink-muted); white-space: nowrap; }
+  .story-name { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .story-desc { font-size: 11px; color: var(--ink-muted); margin-top: 2px; line-height: 1.4; }
+
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+  .b-teal   { background: var(--teal-light);   color: var(--teal); }
+  .b-purple { background: var(--purple-light);  color: var(--purple); }
+  .b-coral  { background: var(--coral-light);   color: var(--coral); }
+  .b-amber  { background: var(--amber-light);   color: var(--amber); }
+  .b-blue   { background: var(--blue-light);    color: var(--blue); }
+  .b-green  { background: var(--green-light);   color: var(--green); }
+  .b-red    { background: var(--red-light);     color: var(--red); }
+  .b-gray   { background: var(--gray-100);      color: var(--gray-600); }
+
+  .effort-s { background: var(--green-light); color: var(--green); }
+  .effort-m { background: var(--amber-light); color: var(--amber); }
+  .effort-l { background: var(--coral-light); color: var(--coral); }
+  .sp-chip  { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--ink-muted); background: var(--gray-100); padding: 2px 7px; border-radius: 8px; }
+  .role-chip { font-size: 11px; color: var(--ink-muted); white-space: nowrap; }
+
+  .gate-note {
+    margin: 0 0 0 14px; padding: 8px 12px 8px 10px;
+    border-left: 3px solid var(--amber-mid); background: var(--amber-light);
+    border-radius: 0 6px 6px 0; font-size: 11px; color: var(--amber); line-height: 1.4;
+  }
+
+  /* ── DEFERRED PHASE 2 ── */
+  .deferred-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 48px; }
+  .deferred-card {
+    background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 14px; box-shadow: var(--shadow-sm);
+  }
+  .deferred-sc { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--ink-muted); }
+  .deferred-name { font-size: 12px; font-weight: 600; color: var(--ink); margin: 3px 0; }
+  .deferred-why { font-size: 11px; color: var(--ink-muted); line-height: 1.4; }
+
+  /* ── FLOW DIAGRAMS ── */
+  .flows-intro {
+    background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 24px 28px; margin-bottom: 24px; box-shadow: var(--shadow-sm);
+  }
+  .flows-intro p { font-size: 14px; color: var(--ink-muted); line-height: 1.6; }
+  .flows-intro strong { color: var(--ink); font-weight: 600; }
+
+  .flow-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+  @media (max-width: 720px) { .flow-grid { grid-template-columns: 1fr; } }
+
+  .flow-card {
+    background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg);
+    overflow: hidden; box-shadow: var(--shadow);
+  }
+  .flow-header {
+    padding: 16px 20px; display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .flow-header.teal { background: var(--teal-light); }
+  .flow-header.purple { background: var(--purple-light); }
+  .flow-letter {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; flex-shrink: 0;
+  }
+  .flow-letter.teal { background: var(--teal); color: #fff; }
+  .flow-letter.purple { background: var(--purple); color: #fff; }
+  .flow-header-text h3 { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .flow-header-text span { font-size: 11px; color: var(--ink-muted); }
+  .flow-steps { padding: 16px; display: flex; flex-direction: column; gap: 0; }
+  .flow-step { display: flex; gap: 12px; }
+  .flow-step-left { display: flex; flex-direction: column; align-items: center; }
+  .step-dot {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+  }
+  .step-dot.teal { background: var(--teal-light); color: var(--teal); }
+  .step-dot.purple { background: var(--purple-light); color: var(--purple); }
+  .step-dot.amber { background: var(--amber-light); color: var(--amber); }
+  .step-line { flex: 1; width: 1px; background: var(--border); margin: 4px 0; min-height: 16px; }
+  .flow-step-content { padding-bottom: 16px; flex: 1; }
+  .flow-step-content h4 { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+  .flow-step-content p { font-size: 12px; color: var(--ink-muted); line-height: 1.45; }
+  .flow-step-content code { font-family: 'DM Mono', monospace; font-size: 11px; background: var(--gray-100); padding: 1px 5px; border-radius: 4px; color: var(--ink-soft); }
+  .flow-step.highlight .flow-step-content { background: var(--amber-light); padding: 8px 10px; border-radius: var(--radius); border-left: 3px solid var(--amber-mid); }
+
+  /* ── KEY DECISIONS BOX ── */
+  .key-decisions {
+    background: var(--ink); color: #fff;
+    border-radius: var(--radius-lg); padding: 28px 32px; margin-bottom: 32px;
+  }
+  .key-decisions h3 { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 16px; }
+  .decision-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .decision-item { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius); padding: 14px 16px; }
+  .decision-q { font-size: 11px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 6px; }
+  .decision-a { font-size: 13px; color: #fff; font-weight: 500; line-height: 1.45; }
+
+  /* ── PHONE DATA TABLE ── */
+  .phone-table-wrap {
+    background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg);
+    overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: 32px;
+  }
+  .phone-table-header { padding: 16px 22px; background: var(--gray-50); border-bottom: 1px solid var(--border-soft); font-size: 14px; font-weight: 600; color: var(--ink); }
+  .phone-table { width: 100%; border-collapse: collapse; }
+  .phone-table thead th { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-muted); padding: 10px 16px; border-bottom: 1px solid var(--border-soft); text-align: left; background: var(--gray-50); }
+  .phone-table tbody tr { border-bottom: 1px solid var(--border-soft); }
+  .phone-table tbody tr:last-child { border-bottom: none; }
+  .phone-table td { padding: 12px 16px; font-size: 13px; vertical-align: top; }
+  .phone-table td:first-child { font-weight: 600; color: var(--ink); }
+  .check { color: var(--teal); font-weight: 700; }
+  .cross { color: var(--red); font-weight: 700; }
+  .warn  { color: var(--amber); font-weight: 700; }
+
+  /* ── FOOTER ── */
+  .footer {
+    background: var(--ink); color: rgba(255,255,255,0.4);
+    text-align: center; padding: 28px 48px; font-size: 12px;
+  }
+  .footer strong { color: rgba(255,255,255,0.7); font-weight: 500; }
+
+  /* ── PRINT ── */
+  @media print {
+    .nav { display: none; }
+    .hero { padding: 32px 32px 28px; }
+    .page { padding: 32px; }
+    body { background: #fff; }
+    .sprint-card, .flow-card, .phone-table-wrap { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Implementation brief</div>
+    <h1>Auth0 MFA for <strong>Salesforce</strong><br/>Community Users</h1>
+    <p class="hero-sub">A 6-sprint, 12-week delivery plan covering data migration, SSO integration, MFA enrollment, and user account creation flows.</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-val">6</div><div class="stat-label">Sprints to go-live</div></div>
+      <div class="stat"><div class="stat-val">12 wks</div><div class="stat-label">Total timeline</div></div>
+      <div class="stat"><div class="stat-val">28</div><div class="stat-label">Phase 1 stories</div></div>
+      <div class="stat"><div class="stat-val">~145 SP</div><div class="stat-label">Story points</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="#what">What we're building</a>
+  <a href="#sprint-plan">Sprint plan</a>
+  <a href="#user-flows">New user flows</a>
+  <a href="#phone-data">Phone &amp; email data</a>
+  <a href="#phase2">Phase 2</a>
+</nav>
+
+<main class="page">
+
+  <!-- WHAT WE ARE BUILDING -->
+  <section id="what">
+    <div class="section-header">
+      <div class="section-tag tag-teal">Overview</div>
+      <div class="section-title">What we are implementing</div>
+      <div class="section-desc">Multi-factor authentication for all Salesforce Experience Cloud community users, powered by Auth0 as the identity provider. Users will authenticate through Auth0 instead of Salesforce's native login, with MFA enforced at every login.</div>
+    </div>
+    <div class="overview-grid">
+      <div class="overview-card">
+        <div class="overview-card-icon">🔐</div>
+        <h4>Auth0 as identity provider</h4>
+        <p>Auth0 replaces Salesforce's native login for all community users. SAML 2.0 SSO connects Auth0 to Salesforce Experience Cloud.</p>
+      </div>
+      <div class="overview-card">
+        <div class="overview-card-icon">📱</div>
+        <h4>MFA for every login</h4>
+        <p>Every community user must enrol in at least one MFA factor: SMS, Email OTP, TOTP (authenticator app), or Push notification.</p>
+      </div>
+      <div class="overview-card">
+        <div class="overview-card-icon">🔄</div>
+        <h4>JIT user provisioning</h4>
+        <p>Salesforce users are created and updated automatically via a Just-in-Time handler when a user successfully authenticates through Auth0.</p>
+      </div>
+      <div class="overview-card">
+        <div class="overview-card-icon">📊</div>
+        <h4>User data migration</h4>
+        <p>All existing users are classified by data quality (Scenario A–D) before being imported into Auth0. Phone and email flags drive MFA factor eligibility.</p>
+      </div>
+      <div class="overview-card">
+        <div class="overview-card-icon">🛟</div>
+        <h4>Admin recovery tooling</h4>
+        <p>A role-restricted MFA reset tool in Salesforce allows authorised support staff to reset a user's MFA with a full audit trail.</p>
+      </div>
+      <div class="overview-card">
+        <div class="overview-card-icon">🚦</div>
+        <h4>Two user creation paths</h4>
+        <p>New users can self-register via the community portal, or be created directly by an admin in Salesforce. Both paths produce a linked Auth0 account.</p>
+      </div>
+    </div>
+
+    <!-- User scenario summary -->
+    <div class="phone-table-wrap">
+      <div class="phone-table-header">How existing users are classified before migration</div>
+      <table class="phone-table">
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th>Email status</th>
+            <th>Phone status</th>
+            <th>SMS available?</th>
+            <th>Email OTP available?</th>
+            <th>TOTP available?</th>
+            <th>Volume estimate</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>A — clean</td>
+            <td>Verified, unique</td>
+            <td>Verified, unique</td>
+            <td><span class="check">✓ Yes</span></td>
+            <td><span class="check">✓ Yes</span></td>
+            <td><span class="check">✓ Yes</span></td>
+            <td>Majority of users</td>
+          </tr>
+          <tr>
+            <td>B — shared phone</td>
+            <td>Verified</td>
+            <td>Shared with another user</td>
+            <td><span class="cross">✗ Blocked</span></td>
+            <td><span class="check">✓ Yes</span></td>
+            <td><span class="check">✓ Yes</span></td>
+            <td>Small cohort</td>
+          </tr>
+          <tr>
+            <td>C — no phone</td>
+            <td>Verified</td>
+            <td>None on file</td>
+            <td><span class="cross">✗ N/A</span></td>
+            <td><span class="check">✓ Yes</span></td>
+            <td><span class="check">✓ Yes</span></td>
+            <td>Medium cohort</td>
+          </tr>
+          <tr>
+            <td>D — data issues</td>
+            <td>Unverified or bouncing</td>
+            <td>Unverified or missing</td>
+            <td><span class="cross">✗ Blocked</span></td>
+            <td><span class="warn">⚠ After re-verify</span></td>
+            <td><span class="check">✓ Yes</span></td>
+            <td>Requires outreach</td>
+          </tr>
+          <tr>
+            <td>D-critical</td>
+            <td>Unverified/bouncing</td>
+            <td>None or shared</td>
+            <td><span class="cross">✗ Blocked</span></td>
+            <td><span class="cross">✗ Blocked</span></td>
+            <td><span class="check">✓ Only option</span></td>
+            <td>Must contact before go-live</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SPRINT PLAN -->
+  <section id="sprint-plan" style="margin-top: 52px;">
+    <div class="section-header">
+      <div class="section-tag tag-teal">Delivery plan</div>
+      <div class="section-title">6-sprint go-live plan</div>
+      <div class="section-desc">All stories ordered by dependency. Parallel workstreams are called out — running them simultaneously is what keeps the plan at 12 weeks rather than 24.</div>
+    </div>
+
+    <div class="phase-banner p1">
+      <div>
+        <div class="phase-banner-label">Phase 1</div>
+        <div class="phase-banner-title">MFA go-live — everything a community user needs on day one</div>
+      </div>
+      <div class="phase-banner-meta">6 sprints · 12 weeks · 28 stories · ~145 SP</div>
+    </div>
+
+    <!-- SPRINT 1 -->
+    <div class="sprint-card">
+      <div class="sprint-head">
+        <div class="sprint-num-badge">1</div>
+        <div class="sprint-head-info">
+          <div class="sprint-head-title">Data foundations + Auth0 infrastructure</div>
+          <div class="sprint-head-sub">Nothing can be imported or configured until this sprint is complete. It is the hard gate for everything else.</div>
+        </div>
+        <span class="sprint-weeks">Weeks 1–2</span>
+        <span class="sprint-pts">~30 SP</span>
+      </div>
+      <div class="sprint-goal-row">Run two streams simultaneously — Data Engineer on data cleaning, Platform Engineer on Auth0 setup. <span class="parallel-note">2 parallel streams</span></div>
+      <table class="story-table">
+        <thead><tr><th>Sc#</th><th>Story</th><th>Pillar</th><th>Effort</th><th>SP</th><th>Owner</th><th>Why now</th></tr></thead>
+        <tbody>
+          <tr><td class="sc-id">Sc 42</td><td><div class="story-name">Email deduplication in Salesforce</div><div class="story-desc">Detect and resolve all duplicate User.Email values</div></td><td><span class="badge b-blue">P4 SF identity</span></td><td><span class="badge effort-m">M</span></td><td><span class="sp-chip">5</span></td><td><span class="role-chip">Data Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">Auth0 rejects duplicate emails at import. Zero tolerance.</td></tr>
+          <tr><td class="sc-id">Sc 6</td><td><div class="story-name">Phone normalisation to E.164</div><div class="story-desc">Transform all phones to +[country][number] format; flag rejects as Scenario C</div></td><td><span class="badge b-teal">P1 Data audit</span></td><td><span class="badge effort-m">M</span></td><td><span class="sp-chip">5</span></td><td><span class="role-chip">Data Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">Auth0 SMS requires E.164. Must run before classification.</td></tr>
+          <tr><td class="sc-id">Sc 46</td><td><div class="story-name">Community Profile SSO permission audit</div><div class="story-desc">Confirm Is Single Sign-On Enabled on all community Profiles; fix gaps</div></td><td><span class="badge b-blue">P4 SF identity</span></td><td><span class="badge effort-s">S</span></td><td><span class="sp-chip">3</span></td><td><span class="role-chip">SF Admin</span></td><td style="font-size:12px;color:var(--ink-muted);">Missing permission blocks every login at go-live.</td></tr>
+          <tr><td class="sc-id">Sc 37</td><td><div class="story-name">Internal user auth architecture decision</div><div class="story-desc">Decide whether internal SF users use Auth0 SSO or native login for community</div></td><td><span class="badge b-blue">P4 SF identity</span></td><td><span class="badge effort-s">S</span></td><td><span class="sp-chip">5</span></td><td><span class="role-chip">Architect</span></td><td style="font-size:12px;color:var(--ink-muted);">Design spike. Drives Sprint 3 SSO scope. Needs security sign-off.</td></tr>
+          <tr><td class="sc-id">Sc 36</td><td><div class="story-name">Auth0 SAML SSO configuration for Salesforce Experience Cloud</div><div class="story-desc">Configure SAML2 addon, map MFA metadata claims, upload certificate to Salesforce</div></td><td><span class="badge b-blue">P4 SF identity</span></td><td><span class="badge effort-l">L</span></td><td><span class="sp-chip">8</span></td><td><span class="role-chip">Platform Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">Runs in parallel with data work. JIT and enrollment both depend on this.</td></tr>
+          <tr><td class="sc-id">Setup</td><td><div class="story-name">Salesforce custom objects + fields setup</div><div class="story-desc">Create Auth0_MFA_Scenario__c, MFA_Enrolled__c, Auth0_User_ID__c and all related fields</div></td><td><span class="badge b-blue">P4 SF identity</span></td><td><span class="badge effort-s">S</span></td><td><span class="sp-chip">3</span></td><td><span class="role-chip">SF Admin</span></td><td style="font-size:12px;color:var(--ink-muted);">JIT cannot write data without these fields existing.</td></tr>
+        </tbody>
+      </table>
+      <div style="padding:10px 14px;"><div class="gate-note">⚑ Sprint gate — phone normalisation (Sc 6) and email dedup (Sc 42) must be complete before any Sprint 2 classification queries can run. Do not progress until both are done and verified.</div></div>
+    </div>
+
+    <!-- SPRINT 2 -->
+    <div class="sprint-card">
+      <div class="sprint-head">
+        <div class="sprint-num-badge">2</div>
+        <div class="sprint-head-info">
+          <div class="sprint-head-title">User classification + JIT provisioning</div>
+          <div class="sprint-head-sub">Classify every existing user into a scenario (A/B/C/D) and build the Salesforce JIT handler.</div>
+        </div>
+        <span class="sprint-weeks">Weeks 3–4</span>
+        <span class="sprint-pts">~28 SP</span>
+      </div>
+      <div class="sprint-goal-row">Data Engineer runs all classification queries while Platform Engineer builds JIT — both are needed for Sprint 3's migration and enrollment work. <span class="parallel-note">2 parallel streams</span></div>
+      <table class="story-table">
+        <thead><tr><th>Sc#</th><th>Story</th><th>Pillar</th><th>Effort</th><th>SP</th><th>Owner</th><th>Why now</th></tr></thead>
+        <tbody>
+          <tr><td class="sc-id">Sc 1–4</td><td><div class="story-name">Phone scenario classification (A/B/C/D)</div><div class="story-desc">One query suite detecting unique verified, shared, unverified, and absent phones — produces user_metadata flags</div></td><td><span class="badge b-teal">P1 Data audit</span></td><td><span class="badge effort-m">M</span></td><td><span class="sp-chip">8</span></td><td><span class="role-chip">Data Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">Depends on Sc 6 (normalisation). Produces import flags.</td></tr>
+          <tr><td class="sc-id">Sc 7,8,10</td><td><div class="story-name">Email scenario classification</div><div class="story-desc">Verified email, shared email, bouncing email — all produce import flags in one sprint</div></td><td><span class="badge b-teal">P1 Data audit</span></td><td><span class="badge effort-m">M</span></td><td><span class="sp-chip">5</span></td><td><span class="role-chip">Data Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">Depends on Sc 42 (dedup). Must complete before import.</td></tr>
+          <tr><td class="sc-id">Sc 14</td><td><div class="story-name">D-critical identification + admin outreach</div><div class="story-desc">Users with no reliable email or phone — highest lockout risk. Contact before go-live.</div></td><td><span class="badge b-teal">P1 Data audit</span></td><td><span class="badge effort-s">S</span></td><td><span class="sp-chip">3</span></td><td><span class="role-chip">Data Engineer + SF Admin</span></td><td style="font-size:12px;color:var(--ink-muted);">Must be identified and outreach started well before Sprint 3 import.</td></tr>
+          <tr><td class="sc-id">Sc 40,41,43</td><td><div class="story-name">JIT handler — match, no-match, createUser</div><div class="story-desc">All three JIT methods built together — they share 80% of code and should not be split across sprints</div></td><td><span class="badge b-blue">P4 SF identity</span></td><td><span class="badge effort-l">L</span></td><td><span class="sp-chip">8</span></td><td><span class="role-chip">Platform Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">Core identity bridge. All enrollment work depends on JIT being live.</td></tr>
+          <tr><td class="sc-id">Sc 47</td><td><div class="story-name">JIT deactivated user + license check</div><div class="story-desc">Prevent deactivated or unlicensed users getting through at go-live. Small addition to JIT handler.</div></td><td><span class="badge b-blue">P4 SF identity</span></td><td><span class="badge effort-s">S</span></td><td><span class="sp-chip">3</span></td><td><span class="role-chip">SF Admin</span></td><td style="font-size:12px;color:var(--ink-muted);">Catch this before go-live rather than dealing with it as a live incident.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SPRINT 3 -->
+    <div class="sprint-card">
+      <div class="sprint-head">
+        <div class="sprint-num-badge">3</div>
+        <div class="sprint-head-info">
+          <div class="sprint-head-title">Bulk import + enrollment core</div>
+          <div class="sprint-head-sub">Execute the Auth0 bulk import for all existing users and build the first-login MFA enrollment flow end-to-end.</div>
+        </div>
+        <span class="sprint-weeks">Weeks 5–6</span>
+        <span class="sprint-pts">~31 SP</span>
+      </div>
+      <div class="sprint-goal-row">By end of sprint, a test user should be able to log in via Auth0, be provisioned in Salesforce via JIT, and complete MFA enrollment — all in one flow. <span class="parallel-note">2 parallel streams</span></div>
+      <table class="story-table">
+        <thead><tr><th>Sc#</th><th>Story</th><th>Pillar</th><th>Effort</th><th>SP</th><th>Owner</th><th>Why now</th></tr></thead>
+        <tbody>
+          <tr><td class="sc-id">Sc 39</td><td><div class="story-name">Bulk import — pre-create Auth0 accounts for all SF users</div><div class="story-desc">Import all classified users with correct user_metadata flags; populate Auth0_User_ID__c on SF User records</div></td><td><span class="badge b-blue">P4 SF identity</span></td><td><span class="badge effort-m">M</span></td><td><span class="sp-chip">5</span></td><td><span class="role-chip">Platform Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">Depends on Sprint 2 classification being complete and verified.</td></tr>
+          <tr><td class="sc-id">Sc 15</td><td><div class="story-name">Happy path — MFA enrollment on first login</div><div class="story-desc">Post-Login Action detects no MFA enrolled; triggers enrollment; updates Salesforce via Log Stream on completion</div></td><td><span class="badge b-green">P2 Enrollment</span></td><td><span class="badge effort-l">L</span></td><td><span class="sp-chip">8</span></td><td><span class="role-chip">Platform Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">The single most important story. 14 other stories depend on it.</td></tr>
+          <tr><td class="sc-id">Sc 23,24</td><td><div class="story-name">Factor picker — Scenario A (full) and B/C (restricted)</div><div class="story-desc">One component with conditional rendering based on user_metadata scenario flag. SMS hidden for ineligible users.</div></td><td><span class="badge b-green">P2 Enrollment</span></td><td><span class="badge effort-m">M</span></td><td><span class="sp-chip">5</span></td><td><span class="role-chip">UX Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">Scenarios 23 and 24 share the same UI component — build together.</td></tr>
+          <tr><td class="sc-id">Sc 16</td><td><div class="story-name">Enrollment abandonment handling</div><div class="story-desc">Counter tracks deferral attempts; access hard-blocked after configurable threshold; admin notified</div></td><td><span class="badge b-green">P2 Enrollment</span></td><td><span class="badge effort-m">M</span></td><td><span class="sp-chip">5</span></td><td><span class="role-chip">Platform Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">Without this, a user who clicks away has no recovery path and no timeout.</td></tr>
+          <tr><td class="sc-id">Sc 38</td><td><div class="story-name">Guest-to-registered user registration flow</div><div class="story-desc">New post-go-live registrations create a linked Auth0 account and SF community user with phone uniqueness check</div></td><td><span class="badge b-blue">P4 SF identity</span></td><td><span class="badge effort-m">M</span></td><td><span class="sp-chip">8</span></td><td><span class="role-chip">Platform Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">Cannot go live without a working new-user registration path.</td></tr>
+        </tbody>
+      </table>
+      <div style="padding:10px 14px;"><div class="gate-note">⚑ Sprint gate — Sc 15 (happy path enrollment) must be working end-to-end before Sprint 4's UX and recovery stories begin. Do not move to Sprint 4 until at least one full Scenario A, B, and C test login completes successfully.</div></div>
+    </div>
+
+    <!-- SPRINT 4 -->
+    <div class="sprint-card">
+      <div class="sprint-head">
+        <div class="sprint-num-badge">4</div>
+        <div class="sprint-head-info">
+          <div class="sprint-head-title">Enrollment UX + core recovery</div>
+          <div class="sprint-head-sub">Polish the enrollment experience and build the minimum recovery tooling. Users will lock themselves out from day one.</div>
+        </div>
+        <span class="sprint-weeks">Weeks 7–8</span>
+        <span class="sprint-pts">~28 SP</span>
+      </div>
+      <div class="sprint-goal-row">Admin reset must be live at go-live, not deferred. The branded enrollment UX also needs comms sign-off — book that review in Sprint 2 or it will block this sprint.</div>
+      <table class="story-table">
+        <thead><tr><th>Sc#</th><th>Story</th><th>Pillar</th><th>Effort</th><th>SP</th><th>Owner</th><th>Why now</th></tr></thead>
+        <tbody>
+          <tr><td class="sc-id">Sc 18</td><td><div class="story-name">Auth0 Universal Login — branding and plain-language UX</div><div class="story-desc">Brand enrollment page; plain-language copy; help link; support contact; drop-off KPI baseline measured</div></td><td><span class="badge b-green">P2 Enrollment</span></td><td><span class="badge effort-m">M</span></td><td><span class="sp-chip">5</span></td><td><span class="role-chip">UX Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">Without branded UX, users will drop off at the Auth0 enrollment screen.</td></tr>
+          <tr><td class="sc-id">Sc 22</td><td><div class="story-name">Backup factor enrollment prompt</div><div class="story-desc">Prompt for a second factor after primary enrollment; nudge banner for users who skip</div></td><td><span class="badge b-green">P2 Enrollment</span></td><td><span class="badge effort-m">M</span></td><td><span class="sp-chip">5</span></td><td><span class="role-chip">Platform Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">Reduces recovery cases significantly. Much cheaper to build now.</td></tr>
+          <tr><td class="sc-id">Sc 21</td><td><div class="story-name">OTP non-delivery — resend + fallback factor switch</div><div class="story-desc">Resend button; fallback factor after 2 failures; SMS failures captured in SF; support path defined</div></td><td><span class="badge b-green">P2 Enrollment</span></td><td><span class="badge effort-m">M</span></td><td><span class="sp-chip">5</span></td><td><span class="role-chip">Support Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">OTP delivery failures will happen on day one. Support needs a path before go-live.</td></tr>
+          <tr><td class="sc-id">Sc 34</td><td><div class="story-name">Admin MFA reset tool — single authorised reset path</div><div class="story-desc">Role-restricted LWC button; mandatory reason capture; Auth0 authenticator delete; immutable audit log</div></td><td><span class="badge b-coral">P3 Recovery</span></td><td><span class="badge effort-l">L</span></td><td><span class="sp-chip">8</span></td><td><span class="role-chip">Platform Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">GATE — all recovery scenarios and P2 Sc 26 depend on this tool being live.</td></tr>
+          <tr><td class="sc-id">Sc 29</td><td><div class="story-name">Lost device recovery flow (uses Sc 34 tool)</div><div class="story-desc">Identity verification SOP documented; admin triggers reset; user re-enrolls on next login</div></td><td><span class="badge b-coral">P3 Recovery</span></td><td><span class="badge effort-s">S</span></td><td><span class="sp-chip">3</span></td><td><span class="role-chip">Support Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">Process wrap around Sc 34. SOP must be written before support agents go live.</td></tr>
+          <tr><td class="sc-id">Sc 44</td><td><div class="story-name">Safety net — SF users with no Auth0 account post-import</div><div class="story-desc">Daily report of null Auth0_User_ID__c; one-click admin Auth0 account creation via Named Credential</div></td><td><span class="badge b-blue">P4 SF identity</span></td><td><span class="badge effort-m">M</span></td><td><span class="sp-chip">5</span></td><td><span class="role-chip">Platform Engineer</span></td><td style="font-size:12px;color:var(--ink-muted);">Migration gaps appear immediately under real user load. Must be live on day one.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SPRINT 5 -->
+    <div class="sprint-card">
+      <div class="sprint-head">
+        <div class="sprint-num-badge">5</div>
+        <div class="sprint-head-info">
+          <div class="sprint-head-title">UAT, regression, go-live readiness</div>
+          <div class="sprint-head-sub">No new features. End-to-end testing for all scenarios, support training, and user comms.</div>
+        </div>
+        <span class="sprint-weeks">Weeks 9–10</span>
+        <span class="sprint-pts">~20 SP</span>
+      </div>
+      <div class="sprint-goal-row">Fix defects found in UAT. Train support staff on the MFA reset tool and recovery SOPs. Send the pre-go-live user communication — do not skip this step.</div>
+      <table class="story-table">
+        <thead><tr><th>Ref</th><th>Activity</th><th>Type</th><th>Effort</th><th>SP</th><th>Owner</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="sc-id">UAT-1</td><td><div class="story-name">Scenario A–D end-to-end test for all four factor types</div><div class="story-desc">Test every combination: Scenario A with TOTP, SMS, Email OTP, Push. Scenarios B/C/D with restricted factors.</div></td><td><span class="badge b-gray">Testing</span></td><td><span class="badge effort-l">L</span></td><td><span class="sp-chip">8</span></td><td><span class="role-chip">QA + all roles</span></td><td style="font-size:12px;color:var(--ink-muted);">Use real SIM cards for SMS testing — do not rely solely on sandbox.</td></tr>
+          <tr><td class="sc-id">UAT-2</td><td><div class="story-name">Recovery flow UAT — admin reset and lost device</div><div class="story-desc">Simulate a locked-out user; verify admin can reset; user re-enrolls end-to-end</div></td><td><span class="badge b-gray">Testing</span></td><td><span class="badge effort-m">M</span></td><td><span class="sp-chip">5</span></td><td><span class="role-chip">QA + Support</span></td><td style="font-size:12px;color:var(--ink-muted);">Support agents must be hands-on during this test, not just observers.</td></tr>
+          <tr><td class="sc-id">UAT-3</td><td><div class="story-name">JIT and SSO regression across all community Profiles</div><div class="story-desc">At least one login per Profile type; verify correct landing page and permissions</div></td><td><span class="badge b-gray">Testing</span></td><td><span class="badge effort-m">M</span></td><td><span class="sp-chip">3</span></td><td><span class="role-chip">QA + SF Admin</span></td><td style="font-size:12px;color:var(--ink-muted);">Profile-level SSO permission gaps that were missed in Sc 46 will show up here.</td></tr>
+          <tr><td class="sc-id">TRAIN-1</td><td><div class="story-name">Support agent training — MFA reset tool and case handling</div><div class="story-desc">Hands-on training on the reset LWC, identity verification SOP, and OTP non-delivery escalation path</div></td><td><span class="badge b-gray">Training</span></td><td><span class="badge effort-s">S</span></td><td><span class="sp-chip">2</span></td><td><span class="role-chip">Support Lead</span></td><td style="font-size:12px;color:var(--ink-muted);">Every support agent who will handle MFA queries must attend. Non-negotiable.</td></tr>
+          <tr><td class="sc-id">COMM-1</td><td><div class="story-name">User pre-go-live MFA announcement</div><div class="story-desc">Email to all community users explaining the upcoming change, what they need to do, and who to contact</div></td><td><span class="badge b-gray">Comms</span></td><td><span class="badge effort-s">S</span></td><td><span class="sp-chip">2</span></td><td><span class="role-chip">Comms + PM</span></td><td style="font-size:12px;color:var(--ink-muted);">Must go out at least 2 weeks before cutover. Book the send date now.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SPRINT 6 -->
+    <div class="sprint-card">
+      <div class="sprint-head">
+        <div class="sprint-num-badge" style="background: var(--teal-dark);">6</div>
+        <div class="sprint-head-info">
+          <div class="sprint-head-title">Production cutover + stabilisation</div>
+          <div class="sprint-head-sub">Execute the SSO cutover in a maintenance window. Monitor in real time for 48 hours. Fix critical issues before declaring stable.</div>
+        </div>
+        <span class="sprint-weeks">Weeks 11–12</span>
+        <span class="sprint-pts">~8 SP</span>
+      </div>
+      <div class="sprint-goal-row">No new features. Ops team on standby. Rollback plan must be tested in Sprint 5 and executable in under 1 hour. This is the highest-risk event in the project.</div>
+      <table class="story-table">
+        <thead><tr><th>Sc#</th><th>Story</th><th>Pillar</th><th>Effort</th><th>SP</th><th>Owner</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="sc-id">Sc 45</td><td><div class="story-name">Production SSO cutover — disable native SF login</div><div class="story-desc">Update community login page to Auth0 URL; disable native Salesforce login for all community profiles; rollback plan on standby</div></td><td><span class="badge b-blue">P4 SF identity</span></td><td><span class="badge effort-l">L</span></td><td><span class="sp-chip">5</span></td><td><span class="role-chip">Platform Engineer + Ops</span></td><td style="font-size:12px;color:var(--ink-muted);">Perform in a maintenance window. All prior sprints must be UAT-passed before scheduling.</td></tr>
+          <tr><td class="sc-id">MON-1</td><td><div class="story-name">48-hour post-cutover monitoring</div><div class="story-desc">Watch Auth0 logs, Salesforce login history, support queue volume, and MFA enrollment rate in real time</div></td><td><span class="badge b-gray">Operations</span></td><td><span class="badge effort-m">M</span></td><td><span class="sp-chip">3</span></td><td><span class="role-chip">All hands</span></td><td style="font-size:12px;color:var(--ink-muted);">Define a critical threshold — e.g. >5% login failure rate triggers rollback.</td></tr>
+        </tbody>
+      </table>
+      <div style="padding:10px 14px;"><div class="gate-note">⚑ Sprint gate — all prior sprints must be complete and UAT passed in a production-mirror environment before cutover is scheduled. Do not negotiate this. A failed cutover at go-live is far more expensive than a delayed go-live date.</div></div>
+    </div>
+  </section>
+
+  <!-- NEW USER FLOWS -->
+  <section id="user-flows" style="margin-top: 52px;">
+    <div class="section-header">
+      <div class="section-tag tag-purple">User creation</div>
+      <div class="section-title">How new users get an Auth0 account after go-live</div>
+      <div class="section-desc">The bulk import covers existing users only. For every new user created after go-live, Auth0 must receive their data in real time through one of two flows.</div>
+    </div>
+
+    <div class="flows-intro">
+      <p>
+        <strong>The bulk import was a one-time event.</strong> It ran at migration time against your existing user population.
+        After go-live, Auth0 never receives phone or email data passively — your Salesforce code must actively push it
+        to Auth0 the moment a new user is created. The mechanism differs depending on whether the user self-registers
+        or an admin creates them directly.
+      </p>
+      <p style="margin-top: 10px;">
+        <strong>Key point on phone data:</strong> Auth0 does not have a native phone field on its user object.
+        Phone is stored in <code>user_metadata.phone</code> and must be pushed explicitly via the API.
+        The phone uniqueness check — which was a batch SQL query during migration — must now happen in
+        real time in Apex at the moment the phone number is entered.
+      </p>
+    </div>
+
+    <div class="flow-grid">
+
+      <!-- FLOW A -->
+      <div class="flow-card">
+        <div class="flow-header teal">
+          <div class="flow-letter teal">A</div>
+          <div class="flow-header-text">
+            <h3>Self-registration via community portal</h3>
+            <span>User drives this. Auth0 account created at signup.</span>
+          </div>
+        </div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="flow-step-left"><div class="step-dot teal">1</div><div class="step-line"></div></div>
+            <div class="flow-step-content"><h4>User visits Experience Cloud registration page</h4><p>Fills in name, email, password. Phone is optional on the form but prompted for MFA factor eligibility.</p></div>
+          </div>
+          <div class="flow-step highlight">
+            <div class="flow-step-left"><div class="step-dot amber">2</div><div class="step-line"></div></div>
+            <div class="flow-step-content"><h4>Real-time checks run on form submit (Apex)</h4><p>Email unique in Auth0? Phone unique across all users? Phone normalised to E.164? Email format valid? If any check fails, form shows an error — nothing is written yet.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-left"><div class="step-dot teal">3</div><div class="step-line"></div></div>
+            <div class="flow-step-content"><h4>Apex calls Auth0 signup API</h4><p>Calls <code>POST /dbconnections/signup</code> with email and password. Phone is included in <code>user_metadata.phone</code>. If phone is already in system → <code>phone_shared: true</code> flag set immediately.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-left"><div class="step-dot teal">4</div><div class="step-line"></div></div>
+            <div class="flow-step-content"><h4>Auth0 creates user account + returns user_id</h4><p>Auth0 enforces email uniqueness natively — will reject a duplicate. MFA scenario flag (<code>mfa_scenario: "A"</code> or <code>"C"</code> etc.) written to <code>user_metadata</code>.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-left"><div class="step-dot teal">5</div><div class="step-line"></div></div>
+            <div class="flow-step-content"><h4>Apex creates Salesforce Contact + Community User</h4><p>Registration handler creates the SF records. <code>Auth0_User_ID__c</code> is populated immediately from the Auth0 response.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-left"><div class="step-dot teal">6</div><div class="step-line"></div></div>
+            <div class="flow-step-content"><h4>User logs in for the first time</h4><p>Auth0 → SAML assertion → JIT handler updates the SF user record with MFA metadata. Post-Login Action detects no MFA enrolled.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-left"><div class="step-dot teal">7</div></div>
+            <div class="flow-step-content"><h4>MFA enrollment triggered</h4><p>Factor picker shows options based on <code>mfa_scenario</code> flag already in <code>user_metadata</code>. If phone was provided and is unique, SMS is available.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FLOW B -->
+      <div class="flow-card">
+        <div class="flow-header purple">
+          <div class="flow-letter purple">B</div>
+          <div class="flow-header-text">
+            <h3>Admin creates user directly in Salesforce</h3>
+            <span>Admin drives this. Auth0 account created by a trigger after SF insert.</span>
+          </div>
+        </div>
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="flow-step-left"><div class="step-dot purple">1</div><div class="step-line"></div></div>
+            <div class="flow-step-content"><h4>Admin opens Setup or a custom user creation form</h4><p>Fills in name, email, phone, Profile, and community license. This is a standard Salesforce user creation — nothing Auth0-specific yet.</p></div>
+          </div>
+          <div class="flow-step highlight">
+            <div class="flow-step-left"><div class="step-dot amber">2</div><div class="step-line"></div></div>
+            <div class="flow-step-content"><h4>Real-time checks run before insert (Apex Trigger / validation)</h4><p>Email unique in SF? Phone unique across all SF users? Phone normalised to E.164? These replace the batch queries from migration time. Must be synchronous — block insert if checks fail.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-left"><div class="step-dot purple">3</div><div class="step-line"></div></div>
+            <div class="flow-step-content"><h4>Salesforce User record is created</h4><p>Phone, email, profile, and license saved in Salesforce. At this point, Auth0 still has no knowledge of this user.</p></div>
+          </div>
+          <div class="flow-step highlight">
+            <div class="flow-step-left"><div class="step-dot amber">4</div><div class="step-line"></div></div>
+            <div class="flow-step-content"><h4>Apex Trigger fires after insert → calls Auth0 Management API</h4><p>This is the key difference from Flow A. The trigger calls <code>POST /api/v2/users</code> with email, phone (in <code>user_metadata</code>), and MFA scenario flag. This creates the Auth0 account in real time. If the trigger fails, the Sc 44 safety net kicks in.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-left"><div class="step-dot purple">5</div><div class="step-line"></div></div>
+            <div class="flow-step-content"><h4>Auth0 returns user_id → written back to SF</h4><p>Trigger writes the Auth0 <code>user_id</code> to <code>Auth0_User_ID__c</code> on the SF User record in a second DML update. Both systems are now linked.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-left"><div class="step-dot purple">6</div><div class="step-line"></div></div>
+            <div class="flow-step-content"><h4>SF emails the user with a login link</h4><p>Standard community welcome email. User clicks the link and is redirected to the Auth0 Universal Login page — not Salesforce's login.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-step-left"><div class="step-dot purple">7</div></div>
+            <div class="flow-step-content"><h4>MFA enrollment triggered on first login</h4><p>JIT updates the SF user from SAML attributes. Post-Login Action triggers enrollment. Factor options based on phone data already in <code>user_metadata</code> from the trigger.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key decisions -->
+    <div class="key-decisions">
+      <h3>Key decisions and technical notes</h3>
+      <div class="decision-grid">
+        <div class="decision-item">
+          <div class="decision-q">Where does phone go in Auth0?</div>
+          <div class="decision-a">Auth0 has no native phone field. Phone is stored in <code style="background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:3px;font-family:monospace;font-size:12px;">user_metadata.phone</code> and must be explicitly sent in every API call that creates or updates the user.</div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-q">When does the phone uniqueness check happen?</div>
+          <div class="decision-a">During migration: a batch SQL query. After go-live: synchronous Apex validation at form submit (Flow A) or before trigger executes (Flow B). It must block the insert if the phone is already in use.</div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-q">What if the Apex trigger fails in Flow B?</div>
+          <div class="decision-a">The SF user is created but Auth0 has no account. The Sc 44 safety net — a daily report of <code style="background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:3px;font-family:monospace;font-size:12px;">Auth0_User_ID__c = null</code> users plus a one-click creation button — catches and resolves these gaps.</div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-q">Who creates the SF user in Flow A?</div>
+          <div class="decision-a">Auth0 creates the Auth0 account first. Apex then creates the SF Contact and Community User in the same registration handler call. The Auth0 user_id is stored immediately — JIT only updates the record on first login, it does not create it.</div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-q">What about email uniqueness?</div>
+          <div class="decision-a">Auth0 enforces this natively — it rejects a signup or Management API call with a duplicate email. In Flow A this surfaces as a registration error. In Flow B the trigger must handle the Auth0 API error and surface it to the admin.</div>
+        </div>
+        <div class="decision-item">
+          <div class="decision-q">What MFA factors are available for new users?</div>
+          <div class="decision-a">Determined at the point of account creation based on phone status. Phone provided and unique → Scenario A (all factors). Phone shared → Scenario B (no SMS). No phone → Scenario C (no SMS). The Post-Login Action reads the scenario flag from <code style="background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:3px;font-family:monospace;font-size:12px;">user_metadata</code>.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PHONE DATA HANDLING -->
+  <section id="phone-data" style="margin-top: 52px;">
+    <div class="section-header">
+      <div class="section-tag tag-amber">Data handling</div>
+      <div class="section-title">Phone &amp; email data — migration vs ongoing</div>
+      <div class="section-desc">The approach changes fundamentally after the bulk import runs. Batch queries become real-time Apex validation.</div>
+    </div>
+    <div class="phone-table-wrap">
+      <div class="phone-table-header">Data handling comparison — migration time vs after go-live</div>
+      <table class="phone-table">
+        <thead>
+          <tr><th>Concern</th><th>During migration (batch)</th><th>After go-live — Flow A (self-reg)</th><th>After go-live — Flow B (admin creates)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Email uniqueness check</td><td>SQL GROUP BY query across all users</td><td>Auth0 signup API rejects duplicate automatically</td><td>SOQL check in Apex before insert; Auth0 API error handling</td></tr>
+          <tr><td>Phone uniqueness check</td><td>SQL GROUP BY query; flag phone_shared</td><td>Apex SOQL on form submit before calling Auth0 signup</td><td>Apex SOQL in trigger before calling Management API</td></tr>
+          <tr><td>Phone normalisation</td><td>Batch normalisation script pre-import</td><td>Apex utility method validates E.164 on form submit</td><td>Apex utility method validates E.164 before trigger fires</td></tr>
+          <tr><td>Scenario classification (A/B/C/D)</td><td>Batch SQL classification queries produce mfa_scenario flag</td><td>Determined in real time on form submit based on phone and email inputs</td><td>Determined in real time in trigger based on SF user data</td></tr>
+          <tr><td>Writing phone to Auth0</td><td>Bulk import JSON file includes user_metadata.phone</td><td>Included in POST /dbconnections/signup body</td><td>Included in POST /api/v2/users body from trigger</td></tr>
+          <tr><td>Writing Auth0_User_ID__c to SF</td><td>Written back after bulk import job completes</td><td>Written after Auth0 signup API returns user_id</td><td>Written by trigger after Management API returns user_id</td></tr>
+          <tr><td>What happens on failure</td><td>Import error log; manual review</td><td>Form shows error; nothing written to Auth0 or SF</td><td>SF user created but no Auth0 account; Sc 44 safety net detects gap</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PHASE 2 -->
+  <section id="phase2" style="margin-top: 52px;">
+    <div class="section-header">
+      <div class="section-tag tag-amber">Phase 2</div>
+      <div class="section-title">Deferred to after go-live is stable</div>
+      <div class="section-desc">These are genuine requirements — they just do not block MFA going live. Start Phase 2 once the Sprint 6 post-cutover monitoring period ends without critical issues.</div>
+    </div>
+
+    <div class="phase-banner p2">
+      <div>
+        <div class="phase-banner-label">Phase 2</div>
+        <div class="phase-banner-title">Operational maturity — add after Phase 1 is proven stable</div>
+      </div>
+      <div class="phase-banner-meta">3–4 additional sprints · start when Phase 1 monitoring is clean</div>
+    </div>
+
+    <div class="deferred-grid">
+      <div class="deferred-card"><div class="deferred-sc">Sc 48</div><div class="deferred-name">Bidirectional deactivation sync</div><div class="deferred-why">Manual deactivation in both systems works as interim until this is built.</div></div>
+      <div class="deferred-card"><div class="deferred-sc">Sc 33</div><div class="deferred-name">Self-service email change flow</div><div class="deferred-why">Admin can handle email changes via the Sc 34 reset tool in the interim.</div></div>
+      <div class="deferred-card"><div class="deferred-sc">Sc 30</div><div class="deferred-name">Lost email recovery (full flow)</div><div class="deferred-why">Admin reset covers the immediate lockout. Full recovery SOP is Phase 2.</div></div>
+      <div class="deferred-card"><div class="deferred-sc">Sc 31</div><div class="deferred-name">Dual loss — approval process</div><div class="deferred-why">Very low frequency. Manual senior admin approval as interim SOP.</div></div>
+      <div class="deferred-card"><div class="deferred-sc">Sc 32</div><div class="deferred-name">Phone staleness nudge</div><div class="deferred-why">Add after go-live once real data shows how often phones go stale.</div></div>
+      <div class="deferred-card"><div class="deferred-sc">Sc 19, 20</div><div class="deferred-name">Trusted device policy</div><div class="deferred-why">Auth0 default (no trust) is safe at go-live. Tune after observing real usage.</div></div>
+      <div class="deferred-card"><div class="deferred-sc">Sc 17</div><div class="deferred-name">Dormant user campaign</div><div class="deferred-why">You don't have dormant users until after go-live. Build when you can measure the problem.</div></div>
+      <div class="deferred-card"><div class="deferred-sc">Sc 27, 28</div><div class="deferred-name">Regional SMS restrictions</div><div class="deferred-why">Identify from real Twilio failure data post go-live, then build routing logic.</div></div>
+      <div class="deferred-card"><div class="deferred-sc">Sc 35</div><div class="deferred-name">Emergency bypass mechanism</div><div class="deferred-why">Security sign-off alone takes weeks. Manual process as interim. Phase 2.</div></div>
+      <div class="deferred-card"><div class="deferred-sc">Sc 25</div><div class="deferred-name">TOTP refusal policy doc</div><div class="deferred-why">Policy decision — can run in parallel to Phase 1 as a non-dev task.</div></div>
+      <div class="deferred-card"><div class="deferred-sc">Sc 26</div><div class="deferred-name">Email inaccessible lockout path</div><div class="deferred-why">Admin reset (Sc 34) covers this. Formalised support intake is Phase 2.</div></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <strong>Auth0 MFA — Salesforce Community Implementation Plan</strong><br/>
+  Generated for internal planning use. This document covers Phase 1 go-live scope only. Phase 2 operational maturity features are listed but not scoped in detail here.
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,639 @@
+
+<h2 class="sr-only">Detailed requirements for all Pillar 2 Enrollment scenarios for Auth0 MFA Salesforce Community implementation</h2>
+<style>
+  .wrap { padding: 1rem 0; font-size: 12px; }
+  .top-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; align-items: center; }
+  .top-bar input { flex: 1; min-width: 180px; padding: 7px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 13px; }
+  .pill { cursor: pointer; padding: 5px 13px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); font-size: 12px; }
+  .pill.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); font-weight: 500; }
+  .count { font-size: 12px; color: var(--color-text-secondary); white-space: nowrap; }
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1300px; }
+  thead th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 500; color: var(--color-text-secondary); border-bottom: 0.5px solid var(--color-border-secondary); text-transform: uppercase; letter-spacing: 0.04em; position: sticky; top: 0; background: var(--color-background-primary); z-index: 2; }
+  tbody tr { border-bottom: 0.5px solid var(--color-border-tertiary); }
+  tbody tr:hover { background: var(--color-background-secondary); }
+  tbody tr.hidden { display: none; }
+  td { padding: 9px 10px; vertical-align: top; line-height: 1.55; color: var(--color-text-primary); font-size: 12px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+  .p2 { background: #E1F5EE; color: #0F6E56; }
+  @media (prefers-color-scheme: dark) { .p2 { background: #04342C; color: #9FE1CB; } }
+  .epic-onboard { background: #EAF3DE; color: #3B6D11; }
+  .epic-ux { background: #E6F1FB; color: #185FA5; }
+  .epic-ops { background: #FAEEDA; color: #854F0B; }
+  .epic-device { background: #EEEDFE; color: #3C3489; }
+  .epic-delivery { background: #FAECE7; color: #993C1D; }
+  .epic-region { background: #FBEAF0; color: #993556; }
+  @media (prefers-color-scheme: dark) {
+    .epic-onboard { background: #173404; color: #C0DD97; }
+    .epic-ux { background: #042C53; color: #B5D4F4; }
+    .epic-ops { background: #412402; color: #FAC775; }
+    .epic-device { background: #26215C; color: #CECBF6; }
+    .epic-delivery { background: #4A1B0C; color: #F5C4B3; }
+    .epic-region { background: #4B1528; color: #F4C0D1; }
+  }
+  .prio { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 10px; font-weight: 500; }
+  .high { background: #FCEBEB; color: #A32D2D; }
+  .med { background: #FAEEDA; color: #854F0B; }
+  @media (prefers-color-scheme: dark) {
+    .high { background: #501313; color: #F7C1C1; }
+    .med { background: #412402; color: #FAC775; }
+  }
+  ul { margin: 0; padding-left: 14px; }
+  ul li { margin-bottom: 3px; }
+  .tag { display: inline-block; padding: 1px 6px; border-radius: 6px; font-size: 10px; margin: 1px 2px 1px 0; border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); }
+  .no-results { padding: 2rem; text-align: center; color: var(--color-text-secondary); }
+  .sc-id { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); }
+  .sc-title { font-weight: 500; font-size: 12px; color: var(--color-text-primary); }
+  .col-id { width: 36px; }
+  .col-pillar { width: 90px; }
+  .col-epic { width: 100px; }
+  .col-prio { width: 62px; }
+  .col-scenario { width: 120px; }
+  .col-story { width: 165px; }
+  .col-ac { width: 220px; }
+  .col-auth0 { width: 165px; }
+  .col-sf { width: 165px; }
+  .col-dep { width: 130px; }
+  .col-dod { width: 155px; }
+  .col-risk { width: 130px; }
+</style>
+
+<div class="wrap">
+  <div class="top-bar">
+    <input type="text" id="searchBox" placeholder="Search requirements, epics, stories..." oninput="filterRows()" />
+    <span class="pill active" data-f="all" onclick="setFilter(this,'all')">All (14)</span>
+    <span class="pill" data-f="onboard" onclick="setFilter(this,'onboard')">First-time enrollment</span>
+    <span class="pill" data-f="ux" onclick="setFilter(this,'ux')">UX &amp; confusion</span>
+    <span class="pill" data-f="device" onclick="setFilter(this,'device')">Device trust</span>
+    <span class="pill" data-f="delivery" onclick="setFilter(this,'delivery')">OTP delivery</span>
+    <span class="pill" data-f="ops" onclick="setFilter(this,'ops')">Ops &amp; dormant</span>
+    <span class="pill" data-f="region" onclick="setFilter(this,'region')">Region / SMS</span>
+    <span class="count" id="cnt">14 of 14</span>
+  </div>
+  <div class="tbl-wrap">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th class="col-id">#</th>
+          <th class="col-pillar">Pillar</th>
+          <th class="col-epic">Epic</th>
+          <th class="col-prio">Priority</th>
+          <th class="col-scenario">Scenario</th>
+          <th class="col-story">User story</th>
+          <th class="col-ac">Acceptance criteria</th>
+          <th class="col-auth0">Auth0 requirements</th>
+          <th class="col-sf">Salesforce requirements</th>
+          <th class="col-dep">Dependencies</th>
+          <th class="col-dod">Definition of done</th>
+          <th class="col-risk">Risks &amp; notes</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="no-results" id="noRes" style="display:none;">No matching requirements found.</div>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  {
+    id: 15, epic: 'First-time enrollment', epicKey: 'onboard', epicCls: 'epic-onboard', prio: 'high',
+    scenario: 'User completes MFA enrollment on first login',
+    story: 'As a platform engineer, I need to implement the happy-path MFA enrollment flow so that a community user who logs in for the first time is prompted to enroll in MFA, completes it successfully, and their Salesforce record is updated automatically.',
+    ac: [
+      'On first login, Auth0 Post-Login Action detects no prior MFA enrollment and triggers the enrollment flow before granting community access',
+      'User is presented with the factor picker appropriate to their scenario (A/B/C/D from Pillar 1)',
+      'User completes enrollment in at least one factor without errors',
+      'Auth0 fires a gd_enrollment_complete log event on success',
+      'Salesforce MFA_Enrolled__c is set to true within 60 seconds of enrollment via Log Stream webhook',
+      'MFA_Factor_Type__c is updated with the name of the enrolled factor',
+      'User is redirected to the community landing page after enrollment — no additional prompts',
+      'A confirmation message is shown to the user post-enrollment'
+    ],
+    auth0: [
+      'Post-Login Action checks event.user.multifactor — if empty array, trigger enrollment via api.multifactor.enable()',
+      'Factor options shown are restricted per user scenario flags in user_metadata',
+      'Auth0 Log Stream configured to push gd_enrollment_complete events to Salesforce webhook endpoint',
+      'Universal Login branded and factor picker instructions reviewed'
+    ],
+    sf: [
+      'Apex REST endpoint receives gd_enrollment_complete webhook from Auth0 Log Stream',
+      'Endpoint parses user_id and factor type from event payload',
+      'Updates MFA_Enrolled__c = true and MFA_Factor_Type__c on matching User record',
+      'Logs event to MFA_Audit_Log__c with action = "enrolled", timestamp, factor type',
+      'Send confirmation email to user via Salesforce Flow on MFA_Enrolled__c flip'
+    ],
+    deps: ['P1 scenario flags complete — user_metadata pre-populated', 'Auth0 Log Stream webhook endpoint deployed', 'MFA_Audit_Log__c custom object created', 'Factor picker UX signed off'],
+    dod: [
+      'End-to-end test: first-time login → factor picker → enrollment → community landing page works for all four factor types',
+      'SF MFA_Enrolled__c updates within 60 seconds confirmed via test',
+      'Confirmation email received by test user',
+      'Audit log entry written correctly',
+      'Negative test: partially enrolled user cannot access community until enrollment is complete'
+    ],
+    risk: 'If the Log Stream webhook fails, SF will not reflect enrollment. Implement a nightly reconciliation job that cross-checks Auth0 enrollment status via Management API against SF records.'
+  },
+  {
+    id: 16, epic: 'First-time enrollment', epicKey: 'onboard', epicCls: 'epic-onboard', prio: 'high',
+    scenario: 'User abandons MFA enrollment midway',
+    story: 'As a platform engineer, I need to handle the case where a user starts but does not complete MFA enrollment so that they are re-prompted on next login, and community access is blocked after a configurable number of abandonments.',
+    ac: [
+      'If user closes the browser or navigates away mid-enrollment, Auth0 session ends without enrollment completing',
+      'On next login attempt, Post-Login Action detects enrollment is still incomplete and re-prompts',
+      'Each abandonment increments a counter stored in Auth0 user_metadata.enrollment_attempts',
+      'After a configurable threshold (default: 3 attempts), community access is hard-blocked and the user sees a support contact message',
+      'Admin can view blocked users in a Salesforce report and manually reset the abandonment counter if needed',
+      'Admin receives a Chatter notification when a user hits the abandonment threshold'
+    ],
+    auth0: [
+      'Post-Login Action reads user_metadata.enrollment_attempts on every login',
+      'If enrollment incomplete and attempts < threshold: increment counter via Management API patch and re-prompt',
+      'If attempts >= threshold: api.access.deny("mfa_enrollment_required") with custom message',
+      'Threshold value stored in Auth0 Action secrets or environment variable — configurable without redeployment'
+    ],
+    sf: [
+      'Auth0 Log Stream forwards access.denied events to SF webhook',
+      'Webhook sets MFA_Enrollment_Blocked__c = true on User record',
+      'Salesforce Flow sends admin Chatter notification on field flip',
+      'Admin report: Users WHERE MFA_Enrollment_Blocked__c = true with abandonment count and last attempt date',
+      'Admin "Reset Abandonment Block" button calls Auth0 Management API to reset counter and unblock user'
+    ],
+    deps: ['Scenario 15 (happy path) complete', 'Auth0 Management API Named Credential in SF', 'MFA_Enrollment_Blocked__c and MFA_Enrollment_Attempts__c custom fields on User', 'Abandonment threshold agreed by product owner'],
+    dod: [
+      'Test user who abandons 3 times is blocked on 4th login attempt with correct message',
+      'Counter increments correctly in Auth0 user_metadata after each abandonment confirmed via Management API',
+      'SF MFA_Enrollment_Blocked__c flips to true and Chatter notification fires',
+      'Admin reset button clears the block and allows user to re-attempt enrollment',
+      'Threshold is configurable and changing it does not require a code deployment'
+    ],
+    risk: 'Users on slow connections may appear to abandon when the page simply did not load. Set the threshold conservatively (3–5 attempts) and ensure the support message provides a clear path to help.'
+  },
+  {
+    id: 17, epic: 'Ops & dormant users', epicKey: 'ops', epicCls: 'epic-ops', prio: 'med',
+    scenario: 'Dormant user never logs in after migration',
+    story: 'As an admin, I need to identify community users who have not logged in within 60 days of migration go-live and trigger an automated re-engagement campaign so their MFA enrollment is completed before accounts become stale.',
+    ac: [
+      'Salesforce scheduled report runs nightly and returns Users where Auth0_User_ID__c is populated, MFA_Enrolled__c = false, and Last_Login_Date__c is null or older than 60 days from go-live',
+      'At 30 days post-go-live, a re-engagement email is sent to all dormant users with a login CTA',
+      'At 60 days, a second escalation email is sent with a warning that account access may be restricted',
+      'At 90 days, a Salesforce Case is auto-created for each dormant user assigned to the community admin team',
+      'Admin dashboard shows a live count of dormant users trending down over time post-migration',
+      'Policy decision documented: whether dormant accounts are deactivated after a defined period'
+    ],
+    auth0: [
+      'Auth0 Management API GET /api/v2/users can be used to retrieve last_login for reconciliation',
+      'No login-time changes needed — this is an operational monitoring scenario'
+    ],
+    sf: [
+      'Scheduled Report: Users WHERE MFA_Enrolled__c = false AND (Last_Login_Date__c = null OR Last_Login_Date__c < :goLiveDate + 30)',
+      'Salesforce Flow triggered by report threshold: send re-engagement email at 30 days, escalation at 60',
+      'At 90 days: auto-create Case with subject "Dormant community user — MFA not enrolled" assigned to admin queue',
+      'Dashboard component on Admin Home showing dormant user count with weekly trend',
+      'Email templates for re-engagement and escalation reviewed and approved by comms team'
+    ],
+    deps: ['Go-live date stored as a Salesforce Custom Setting or Custom Metadata for Flow reference', 'Email templates approved by comms team', 'Admin dashboard page created', 'Deactivation policy decision documented'],
+    dod: [
+      'Report returns correct dormant users in sandbox test with seeded data',
+      'Re-engagement email sends automatically at 30-day trigger and content is approved',
+      'Escalation email sends at 60-day trigger',
+      'Case auto-created at 90-day trigger with correct owner queue',
+      'Dashboard component shows accurate count and updates daily',
+      'Deactivation policy signed off by business stakeholder'
+    ],
+    risk: 'Dormant accounts often belong to users who have left the organisation. Check with HR or account management before sending re-engagement emails to avoid contacting departed users.'
+  },
+  {
+    id: 18, epic: 'UX & confusion', epicKey: 'ux', epicCls: 'epic-ux', prio: 'high',
+    scenario: 'User confused by MFA prompt and drops off',
+    story: 'As a UX engineer, I need to customise the Auth0 Universal Login MFA enrollment screen with clear plain-language instructions, contextual help, and a support contact link so that user drop-off during enrollment is minimised.',
+    ac: [
+      'Auth0 Universal Login enrollment page is branded with the organisation logo, colours, and font',
+      'Each factor option includes a plain-language description of what the user needs to do (e.g. "You will receive a text message with a 6-digit code")',
+      'A "Need help?" link is visible on the enrollment page and links to a community help article',
+      'A support contact email or phone number is displayed below the factor picker',
+      'The page title and heading use plain language — no technical jargon (e.g. "Set up your login verification" not "Configure MFA")',
+      'Drop-off rate is tracked as a KPI: percentage of users who reach the enrollment screen but do not complete',
+      'Drop-off rate target is defined and agreed by the product owner before go-live'
+    ],
+    auth0: [
+      'Customise Universal Login via Auth0 Dashboard > Branding > Universal Login',
+      'Add custom HTML/CSS to the login page template for help text and support link',
+      'Localise text for all languages used by the community user base',
+      'Track enrollment funnel via Auth0 logs: gd_enrollment_complete vs total logins triggering MFA'
+    ],
+    sf: [
+      'Create a "Setting up MFA" help article in the Salesforce community knowledge base',
+      'Create a support case template for MFA confusion with a suggested resolution script',
+      'Track community help article views and support cases tagged "MFA confusion" as KPIs',
+      'Report on MFA drop-off rate monthly using Auth0 log data forwarded via Log Stream'
+    ],
+    deps: ['Brand guidelines provided to UX team', 'Help article content written and approved', 'Support contact details confirmed', 'Drop-off rate KPI target agreed by product owner'],
+    dod: [
+      'Branded enrollment page reviewed and approved by UX and brand team',
+      'Help link opens correct knowledge article in a new tab',
+      'Support contact displays correctly on mobile and desktop',
+      'Plain-language copy reviewed and approved by comms',
+      'Drop-off rate tracked in Auth0 logs and a baseline measurement taken in UAT',
+      'Accessibility check completed on the enrollment page (WCAG 2.1 AA minimum)'
+    ],
+    risk: 'Auth0 Universal Login customisation options vary by plan tier. Verify that the organisation\'s Auth0 plan supports the required level of HTML/CSS customisation before UX design begins.'
+  },
+  {
+    id: 19, epic: 'Device trust', epicKey: 'device', epicCls: 'epic-device', prio: 'med',
+    scenario: 'User logs in from a new device',
+    story: 'As a product engineer, I need to configure Auth0 trusted device settings and add in-context messaging on the MFA challenge screen so that users logging in from a new device understand why MFA is being requested and are not alarmed.',
+    ac: [
+      'When a user logs in from a device with no trusted browser cookie, Auth0 challenges them for MFA regardless of recent prior logins',
+      'The MFA challenge screen includes a message: "We do not recognise this device. Please verify your identity."',
+      'After successful MFA on a new device, the user is offered the option to trust this browser for 30 days',
+      'The trust-browser prompt is only shown if the organisational policy allows browser trust (configurable per user role)',
+      'High-privilege users (e.g. community admins) are always challenged for MFA regardless of trusted device status',
+      'Trusted device expiry is set to 30 days — after expiry, MFA is required again on next login'
+    ],
+    auth0: [
+      'Set allowRememberBrowser: true in Post-Login Action for standard users',
+      'Set allowRememberBrowser: false in Post-Login Action for high-privilege roles (read from app_metadata.role)',
+      'Customise the "Remember this browser" prompt text in Universal Login',
+      'Trusted device cookie duration set to 30 days via Auth0 tenant settings'
+    ],
+    sf: [
+      'Pass user role/profile from SF app_metadata to Post-Login Action to drive trust policy',
+      'Optionally log new device login events from Auth0 Log Stream for audit',
+      'Community help article explains trusted device behaviour and what to do on a new device'
+    ],
+    deps: ['User role/privilege tiers agreed and documented', 'app_metadata.role populated for all users', 'Trusted device policy approved by security team', 'Universal Login customisation complete (Scenario 18)'],
+    dod: [
+      'Standard user on new device sees MFA challenge with correct contextual message',
+      'Standard user offered "remember this browser" after successful MFA on new device',
+      'High-privilege user is never offered browser trust — always challenged',
+      'Trust cookie expires after 30 days confirmed by advancing system clock in test',
+      'Security team has reviewed and signed off the trusted device policy'
+    ],
+    risk: 'Trusted browser cookies can be stolen. Communicate to users never to trust a browser on a shared or public computer. Consider disabling browser trust entirely for high-security deployments.'
+  },
+  {
+    id: 20, epic: 'Device trust', epicKey: 'device', epicCls: 'epic-device', prio: 'med',
+    scenario: 'User on regularly trusted device',
+    story: 'As a security engineer, I need to define and implement the trusted browser policy in Auth0 Post-Login Actions so that standard users on trusted devices skip MFA while high-risk roles are always challenged, and the policy is configurable without code changes.',
+    ac: [
+      'If a valid trusted browser cookie exists and has not expired, standard users bypass the MFA challenge on login',
+      'High-risk roles (configurable list) always bypass the trusted browser cookie and are challenged for MFA',
+      'The trust policy is stored in Auth0 Action secrets or a custom configuration object — changing the policy does not require code redeployment',
+      'Trust cookie expiry is validated server-side by Auth0 — client-side tampering of the cookie does not bypass MFA',
+      'When a trusted device is used, the login event is still logged with a flag indicating trust was applied',
+      'Admin can view a report of users who regularly bypass MFA via trusted device to assess risk'
+    ],
+    auth0: [
+      'Post-Login Action reads app_metadata.role and compares against a configurable high-risk roles list',
+      'For high-risk roles: api.multifactor.enable("any", { allowRememberBrowser: false })',
+      'For standard roles: api.multifactor.enable("any", { allowRememberBrowser: true })',
+      'Action secrets store the high-risk roles list — editable in Auth0 dashboard without deployment'
+    ],
+    sf: [
+      'Auth0 Log Stream forwards login events with trusted_device flag to Salesforce',
+      'Store Trusted_Device_Login__c boolean on MFA_Audit_Log__c entries for reporting',
+      'Admin report: users where Trusted_Device_Login__c = true > 90% of their last 10 logins (high trust usage)',
+      'Security team reviews trusted device report quarterly'
+    ],
+    deps: ['High-risk roles list agreed by security team', 'Scenario 19 (new device trust) complete', 'app_metadata.role populated for all users', 'MFA_Audit_Log__c custom object and fields in place'],
+    dod: [
+      'Standard user with valid cookie skips MFA and logs into community in under 3 seconds',
+      'High-risk role user with valid cookie is still challenged for MFA',
+      'Changing the high-risk roles list in Action secrets takes effect on next login without code deployment',
+      'Trusted device login event logged in audit with correct flag',
+      'Admin report shows correct data for trusted vs non-trusted logins'
+    ],
+    risk: 'Trusted browser cookies are browser-specific and are cleared when a user clears cookies or uses incognito mode. Communicate this to users so they do not raise it as a bug.'
+  },
+  {
+    id: 21, epic: 'OTP delivery', epicKey: 'delivery', epicCls: 'epic-delivery', prio: 'high',
+    scenario: 'User claims OTP never arrived',
+    story: 'As a support engineer, I need to define the OTP delivery failure escalation path including a resend option, fallback factor switching, and an admin-assisted MFA reset so that users who do not receive their OTP can recover without being permanently locked out.',
+    ac: [
+      'Auth0 Universal Login enrollment and challenge pages include a visible "Resend code" button',
+      'After two failed resend attempts, the page offers the option to switch to a different factor (e.g. "Try a different method")',
+      'Factor fallback is only offered if the user has an alternative eligible factor (e.g. TOTP or email if they attempted SMS)',
+      'SMS delivery failures are captured as gd_send_sms_failure events in Auth0 logs and forwarded to Salesforce',
+      'If all factors fail, the user is shown a support contact message and directed to raise a case',
+      'Support staff can trigger an admin MFA reset via the SF User record to allow the user to re-enroll',
+      'OTP non-delivery cases are tracked as a category in Salesforce Cases for volume monitoring'
+    ],
+    auth0: [
+      'Auth0 Universal Login default includes OTP resend — confirm it is enabled and visible',
+      'Configure fallback factor option in Universal Login for SMS → email or SMS → TOTP',
+      'Log Stream forwards gd_send_sms_failure events to Salesforce webhook',
+      'Fallback factor is determined by user_metadata flags from Pillar 1 scenario classification'
+    ],
+    sf: [
+      'Apex REST webhook endpoint receives gd_send_sms_failure events',
+      'Increments SMS_Failure_Count__c on User record',
+      'Auto-creates a Case tagged "OTP Non-Delivery" when failure count exceeds threshold in a session',
+      'Support case template with resolution script: verify phone, try resend, offer factor switch, escalate to admin reset',
+      'Admin MFA reset button on User record (from Scenario 34 in Pillar 3) is available to support agents'
+    ],
+    deps: ['Auth0 Log Stream webhook endpoint live', 'SMS_Failure_Count__c field on User object', 'Admin MFA reset action (Pillar 3 Scenario 34) deployed', 'Fallback factor policy agreed per scenario A/B/C/D'],
+    dod: [
+      'Resend code button is visible and functional on SMS challenge screen',
+      'After 2 failed resends, alternative factor option appears and works end-to-end',
+      'gd_send_sms_failure events captured in SF and SMS_Failure_Count__c increments',
+      'Case auto-created when threshold exceeded and tagged correctly',
+      'Support agent can trigger MFA reset from Case or User record',
+      'Twilio SMS delivery dashboard reviewed — baseline delivery rate established'
+    ],
+    risk: 'SMS delivery rates vary significantly by carrier and country. Establish a baseline in UAT using real SIM cards across major carriers before go-live. Do not rely solely on sandbox testing.'
+  },
+  {
+    id: 22, epic: 'First-time enrollment', epicKey: 'onboard', epicCls: 'epic-onboard', prio: 'high',
+    scenario: 'Enrolled MFA device is lost or unavailable',
+    story: 'As a product engineer, I need to add a secondary backup factor enrollment prompt during the initial MFA setup flow so that users have a fallback before they lose access to their primary device, reducing admin recovery effort.',
+    ac: [
+      'Immediately after completing primary factor enrollment, the user is shown a prompt: "Add a backup verification method to protect your account"',
+      'The backup factor prompt offers at least one alternative factor that is different from the primary (e.g. if primary is SMS, backup options are TOTP or Email OTP)',
+      'Users can skip the backup factor prompt — skipping is logged',
+      'If a user skips, a nudge banner is shown on the community home page on their next 3 logins',
+      'Backup_Factor_Enrolled__c on the Salesforce User record is updated via Log Stream when a second factor is enrolled',
+      'Admin report shows the percentage of users with a backup factor enrolled — this is a security KPI'
+    ],
+    auth0: [
+      'After gd_enrollment_complete fires for primary factor, redirect user to a backup factor enrollment page',
+      'Backup factor page uses Auth0 MFA enroll endpoint for a second authenticator',
+      'Skipped backup prompt is tracked by setting user_metadata.backup_factor_prompted = true',
+      'Auth0 Log Stream forwards second gd_enrollment_complete event with factor type for SF to distinguish primary vs backup'
+    ],
+    sf: [
+      'Auth0 Log Stream webhook handles gd_enrollment_complete: first event sets MFA_Enrolled__c = true, second sets Backup_Factor_Enrolled__c = true',
+      'SF Flow triggers a nudge banner record for users with MFA_Enrolled__c = true and Backup_Factor_Enrolled__c = false',
+      'Nudge banner component on community home page reads the banner record and renders for up to 3 logins',
+      'Admin KPI report: percentage of users where Backup_Factor_Enrolled__c = true, trended weekly'
+    ],
+    deps: ['Scenario 15 (happy path enrollment) complete', 'Backup_Factor_Enrolled__c field on User object', 'Nudge banner community component built', 'Second factor enrollment UX designed and approved'],
+    dod: [
+      'Primary enrollment completes and backup prompt appears immediately after',
+      'User can enroll a different factor type as backup end-to-end without errors',
+      'Skip action is logged in user_metadata',
+      'Nudge banner shows on community home for skip users for 3 logins then stops',
+      'Backup_Factor_Enrolled__c updates correctly via Log Stream',
+      'Admin KPI report shows accurate backup enrollment percentage'
+    ],
+    risk: 'Auth0 does not natively distinguish primary vs backup enrollment in log events — use the sequence of gd_enrollment_complete events (first = primary, second = backup) or track via user_metadata.'
+  },
+  {
+    id: 23, epic: 'First-time enrollment', epicKey: 'onboard', epicCls: 'epic-onboard', prio: 'high',
+    scenario: 'User eligible for all MFA factors',
+    story: 'As a UX engineer, I need to design and implement the factor selection screen for Scenario A users with full factor eligibility so that they can choose their preferred method, understand the security trade-offs, and enroll a backup factor.',
+    ac: [
+      'Factor picker shows all four options: SMS, Email OTP, TOTP (Authenticator App), and Push (Guardian)',
+      'TOTP is visually highlighted as the recommended option with a brief security rationale ("Most secure — works without phone signal")',
+      'Each factor option includes a one-line description of what the user needs and how it works',
+      'User selects a factor, completes enrollment, and is then offered the backup factor prompt (Scenario 22)',
+      'After completing primary and optional backup enrollment, user lands on the community home page',
+      'Chosen factor is recorded in MFA_Factor_Type__c on the SF User record via Log Stream'
+    ],
+    auth0: [
+      'api.multifactor.enable("any", { allowRememberBrowser: true }) in Post-Login Action for Scenario A',
+      'Universal Login factor picker customised to highlight TOTP as recommended',
+      'Guardian app push factor enabled in Auth0 tenant',
+      'gd_enrollment_complete event payload includes factor type — forwarded via Log Stream'
+    ],
+    sf: [
+      'Log Stream webhook maps factor type from event to MFA_Factor_Type__c picklist values: SMS, Email OTP, TOTP, Push',
+      'Community home page personalises the security tips section based on MFA_Factor_Type__c (e.g. TOTP users see authenticator app tips)',
+      'Auth0_MFA_Scenario__c = "A" on User record confirms full eligibility'
+    ],
+    deps: ['Universal Login customisation complete (Scenario 18)', 'Backup factor prompt built (Scenario 22)', 'Guardian push factor tested with Auth0 Guardian app on iOS and Android', 'MFA_Factor_Type__c picklist values defined'],
+    dod: [
+      'Scenario A test user sees all four factors in the picker with correct descriptions and TOTP highlighted',
+      'Each factor type can be enrolled end-to-end without errors — tested for all four',
+      'SF MFA_Factor_Type__c populated correctly after each factor type enrollment',
+      'Backup factor prompt appears after primary enrollment',
+      'Guardian push notification received on a real device during test',
+      'UX reviewed and signed off by product owner'
+    ],
+    risk: 'Guardian Push requires the Auth0 Guardian app to be downloaded. If community users are unlikely to install a dedicated app, consider deprioritising Push and focusing on TOTP and SMS for the initial release.'
+  },
+  {
+    id: 24, epic: 'First-time enrollment', epicKey: 'onboard', epicCls: 'epic-onboard', prio: 'high',
+    scenario: 'User can only use Email OTP or TOTP',
+    story: 'As a frontend engineer, I need to ensure the Auth0 Universal Login factor picker only displays eligible factors for each user scenario, hiding SMS and Push entirely for users who are not eligible, so there is no confusion or failed enrollment attempts.',
+    ac: [
+      'For users with phone_shared = true, phone_verified = false, or no phone: SMS and Push do not appear in the factor picker',
+      'The factor picker shows exactly: Email OTP and TOTP (Authenticator App)',
+      'If only one eligible factor exists (e.g. TOTP only for Scenario D-critical), the picker is skipped and the user goes directly to that factor\'s enrollment flow',
+      'A contextual message explains why limited options are available if phone was provided but is not eligible',
+      'No error occurs if a user attempts to access an SMS enrollment URL directly — they are redirected to the eligible factor picker',
+      'Factor eligibility is determined server-side in the Post-Login Action — not client-side'
+    ],
+    auth0: [
+      'Post-Login Action reads mfa_scenario from user_metadata and calls the appropriate api.multifactor.enable()',
+      'For Scenario B/D: api.multifactor.enable("totp") or api.multifactor.enable("email") — never "any"',
+      'Universal Login renders only the factors enabled by the Action — no additional client-side filtering needed',
+      'Direct URL access to SMS enrollment returns a 400 or redirect if SMS is not enabled for the user'
+    ],
+    sf: [
+      'Auth0_MFA_Scenario__c drives the community profile display of MFA settings',
+      'Community profile MFA section only shows change options for eligible factors for the user\'s scenario',
+      'Contextual help text on profile page explains factor restrictions based on scenario'
+    ],
+    deps: ['P1 scenario classification complete — all users have mfa_scenario in user_metadata', 'Universal Login customisation complete', 'Contextual restriction message copy approved by comms'],
+    dod: [
+      'Scenario B test user (shared phone) sees only Email OTP and TOTP — confirmed via test login',
+      'Scenario C test user (no phone) sees only Email OTP and TOTP — confirmed via test login',
+      'Scenario D-critical test user goes directly to TOTP enrollment with no picker',
+      'Direct access to SMS enrollment URL is blocked or redirected for ineligible users',
+      'All test scenarios confirmed without any console errors in Auth0 logs'
+    ],
+    risk: 'Factor eligibility is determined at login time by the Post-Login Action. If user_metadata is missing or malformed, the Action must have a safe default — fail to the most restrictive option (TOTP only), not the least restrictive.'
+  },
+  {
+    id: 25, epic: 'OTP delivery', epicKey: 'delivery', epicCls: 'epic-delivery', prio: 'med',
+    scenario: 'User refuses to install authenticator app',
+    story: 'As a product manager, I need to define the MFA factor fallback policy for users who decline to install an authenticator app so that they have an approved alternative and the minimum acceptable factor standard is documented.',
+    ac: [
+      'Policy document defines the minimum acceptable MFA factor for community users — agreed by security and product teams',
+      'If TOTP is not mandatory policy, Email OTP or SMS (if phone valid) are accepted as fallback factors for users who decline TOTP',
+      'Community enrollment page explains the security benefit of TOTP but does not force it if alternatives are available',
+      'If future policy mandates TOTP, a re-enrollment campaign is triggered for all non-TOTP users — this is flagged as a future state',
+      'Users who enroll with Email OTP or SMS instead of TOTP are tracked in a Salesforce report for future campaign targeting',
+      'No user is denied community access solely because they declined TOTP — unless policy mandates it'
+    ],
+    auth0: [
+      'Post-Login Action does not force TOTP if user has an alternative eligible factor',
+      'If policy later mandates TOTP: update Action to call api.multifactor.enable("totp") and reset non-TOTP users',
+      'Factor choice is logged via gd_enrollment_complete factor type field'
+    ],
+    sf: [
+      'MFA_Factor_Type__c tracks chosen factor for every user',
+      'Report: Users WHERE MFA_Factor_Type__c != "TOTP" — for future campaign targeting',
+      'Policy document stored in Salesforce Files and linked to the project record',
+      'Salesforce Flow to trigger TOTP re-enrollment campaign if policy changes — built as a draft, activated when policy requires'
+    ],
+    deps: ['Security and product teams aligned on minimum factor policy', 'MFA_Factor_Type__c picklist values include all factor names', 'Re-enrollment campaign Flow built in draft state'],
+    dod: [
+      'Policy document signed off by security, product, and legal teams',
+      'User who declines TOTP can complete Email OTP or SMS enrollment without errors',
+      'Report of non-TOTP users runs correctly and is shared with the security team',
+      'Re-enrollment campaign Flow exists in draft and has been reviewed — can be activated in under 1 hour',
+      'Community enrollment page TOTP recommendation copy is informative, not coercive — reviewed by comms'
+    ],
+    risk: 'If the organisation later mandates TOTP and a large population enrolled via SMS or Email OTP, a forced re-enrollment campaign will cause significant user friction. Get the policy right before go-live.'
+  },
+  {
+    id: 26, epic: 'OTP delivery', epicKey: 'delivery', epicCls: 'epic-delivery', prio: 'high',
+    scenario: 'User cannot access email during login',
+    story: 'As a support engineer, I need to build an admin tool in Salesforce that allows authorised support staff to trigger an Auth0 MFA reset for users who are locked out because they cannot access their email during login.',
+    ac: [
+      'Admin MFA reset button on the Salesforce User record is visible only to users with the "MFA Admin" permission set',
+      'Clicking the button opens a confirmation modal with a mandatory "Reason for reset" text field',
+      'On confirmation, an Apex callout to Auth0 Management API DELETE /api/v2/users/{id}/authenticators resets all enrolled factors',
+      'A MFA_Reset_Log__c record is created with: admin user, affected user, reason, timestamp, success/failure status',
+      'The affected user is notified by email that their MFA has been reset and they must re-enroll on next login',
+      'Support agent logs a Case linked to the reset record for audit trail continuity',
+      'Reset is only possible for users where MFA_Enrolled__c = true — the button is hidden for unenrolled users'
+    ],
+    auth0: [
+      'Management API DELETE /api/v2/users/{id}/authenticators called from Salesforce via Named Credential',
+      'After reset, user is treated as a new enrollment on next login — Post-Login Action detects empty multifactor array',
+      'Auth0 logs the authenticator deletion event — forward via Log Stream for audit'
+    ],
+    sf: [
+      'Custom button "Reset MFA" on User record — visible only to MFA Admin permission set',
+      'LWC confirmation modal with Reason field (required, min 20 characters)',
+      'Apex controller calls Auth0 Management API via Named Credential on confirm',
+      'On success: create MFA_Reset_Log__c record, send notification email to user via Flow',
+      'On failure: show error toast, log failure to MFA_Reset_Log__c with error detail',
+      'Case creation prompt appears after successful reset — linked to MFA_Reset_Log__c'
+    ],
+    deps: ['Auth0 Management API Named Credential with delete:users_authenticators scope', 'MFA_Reset_Log__c custom object created', 'MFA Admin permission set defined', 'User notification email template approved'],
+    dod: [
+      'Admin can reset MFA for a test user end-to-end: button click → modal → confirm → Auth0 reset → log → notification email',
+      'Reset button is hidden from non-MFA Admin users — confirmed via permission set test',
+      'Reason field is required — form does not submit without it',
+      'Reset user cannot log in without re-enrolling — confirmed via immediate test login attempt',
+      'MFA_Reset_Log__c record created with all fields populated correctly',
+      'Failure scenario tested — Apex handles Auth0 API error gracefully with toast message'
+    ],
+    risk: 'Admin MFA reset is a high-privilege action. Ensure the Named Credential token used is scoped specifically to delete:users_authenticators only — do not use a full Management API token.'
+  },
+  {
+    id: 27, epic: 'Region & SMS', epicKey: 'region', epicCls: 'epic-region', prio: 'med',
+    scenario: 'User in region with unreliable SMS delivery',
+    story: 'As a migration engineer, I need to identify users in regions with high SMS failure rates and configure Auth0 to automatically route those users to TOTP or Email OTP during enrollment so that SMS delivery failures do not block community access.',
+    ac: [
+      'A list of regions/countries with unreliable SMS delivery is defined by the operations team based on Twilio delivery data or industry knowledge',
+      'Users in flagged regions are identified by their country field in the source system',
+      'Auth0 user_metadata.sms_restricted_region = true is set for users in flagged regions during migration import',
+      'Post-Login Action checks sms_restricted_region flag and excludes SMS from the factor picker for these users',
+      'TOTP is presented as the recommended option with a note that SMS may not be available in their region',
+      'A Salesforce report shows users by region alongside their MFA factor type for ongoing monitoring'
+    ],
+    auth0: [
+      'Set user_metadata.sms_restricted_region = true in Bulk Import for users in flagged regions',
+      'Post-Login Action: if sms_restricted_region === true, exclude SMS from factors (same logic as phone_shared)',
+      'Monitor gd_send_sms_failure events by country in Auth0 logs — use to update the restricted regions list post-go-live'
+    ],
+    sf: [
+      'Store User.Country on SF User record (standard field)',
+      'Report: Users by Country with MFA_Factor_Type__c breakdown — run monthly',
+      'If SMS failure rate for a region exceeds a threshold post-go-live, add country to restricted list and trigger re-enrollment outreach for SMS users in that region via Flow',
+      'Auth0_MFA_Scenario__c note updated to reflect region-based SMS restriction'
+    ],
+    deps: ['Restricted region list agreed with ops team and documented', 'User country data available in source system', 'Scenario 4 (no phone) and Scenario 24 (limited factors) UX in place', 'Twilio delivery rate data available for review'],
+    dod: [
+      'Restricted region users imported with sms_restricted_region = true — spot-checked via Management API',
+      'Test user with sms_restricted_region = true does not see SMS in the factor picker',
+      'TOTP enrollment completes successfully for a restricted region test user',
+      'Salesforce region report runs correctly and shows expected breakdown',
+      'Restricted region list is documented and stored in Salesforce Custom Metadata for operational updates'
+    ],
+    risk: 'SMS delivery reliability can change over time. Build the restricted region list into a Salesforce Custom Metadata Type so it can be updated operationally without a code deployment.'
+  },
+  {
+    id: 28, epic: 'Region & SMS', epicKey: 'region', epicCls: 'epic-region', prio: 'med',
+    scenario: 'User cannot receive international SMS',
+    story: 'As a support engineer, I need to build an automated flow that detects repeated SMS delivery failures for a specific user and triggers a factor migration prompt asking them to switch to TOTP, so they are not permanently locked out.',
+    ac: [
+      'Every gd_send_sms_failure event for a user increments SMS_Failure_Count__c on their SF User record',
+      'After 3 consecutive SMS failures (within a single day), a Salesforce Flow sends the user an email: "We had trouble sending your verification code. Please switch to an authenticator app."',
+      'The email contains a direct link to the community profile page MFA settings section',
+      'On the MFA settings page, user can add TOTP as a new factor while SMS is still enrolled',
+      'After TOTP is enrolled, an optional step allows the user to remove SMS',
+      'Admin receives a weekly report of users with SMS_Failure_Count__c > 3 for proactive outreach',
+      'Users who switch away from SMS are tracked in MFA_Factor_Type__c and removed from the SMS risk cohort'
+    ],
+    auth0: [
+      'Auth0 Log Stream forwards gd_send_sms_failure events to Salesforce webhook',
+      'Auth0 Management API allows enrolling a second factor (TOTP) while SMS remains — no reset needed',
+      'After TOTP enrollment confirmed via gd_enrollment_complete, user can optionally delete SMS authenticator via Management API'
+    ],
+    sf: [
+      'Apex webhook receives gd_send_sms_failure events and increments SMS_Failure_Count__c',
+      'Scheduled Flow checks daily for users where SMS_Failure_Count__c >= 3 and last failure is today — sends factor switch email',
+      'Email template with deep link to community profile MFA settings page',
+      'Community profile MFA settings page allows adding TOTP and removing SMS (built in Scenario 52)',
+      'Weekly admin report: Users WHERE SMS_Failure_Count__c > 3 with their current factor and country'
+    ],
+    deps: ['Auth0 Log Stream webhook live (Scenario 21)', 'SMS_Failure_Count__c field on User object', 'Community profile MFA settings page built', 'Factor switch email template approved', 'Weekly admin report scheduled'],
+    dod: [
+      'Three simulated SMS failure events increment SMS_Failure_Count__c correctly',
+      'Factor switch email sends on the same day as the 3rd failure and content is approved',
+      'User can add TOTP via community profile without resetting existing SMS enrollment',
+      'MFA_Factor_Type__c updates to TOTP after switch confirmed via Log Stream event',
+      'Weekly admin SMS failure report runs and returns correct data',
+      'Auth0 Management API call to remove SMS authenticator tested and works without affecting TOTP'
+    ],
+    risk: 'Some international SMS failures are transient (carrier outage) not permanent (plan restriction). Avoid triggering factor switch emails after a single failure — the 3-attempt threshold reduces false positives.'
+  }
+];
+
+let activeFilter = 'all';
+
+function setFilter(el, val) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  activeFilter = val;
+  filterRows();
+}
+
+function filterRows() {
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  const rows = document.querySelectorAll('#tbody tr');
+  let vis = 0;
+  rows.forEach(row => {
+    const pm = activeFilter === 'all' || row.dataset.epic === activeFilter;
+    const qm = !q || row.textContent.toLowerCase().includes(q);
+    if (pm && qm) { row.classList.remove('hidden'); vis++; }
+    else row.classList.add('hidden');
+  });
+  document.getElementById('cnt').textContent = vis + ' of ' + DATA.length;
+  document.getElementById('noRes').style.display = vis === 0 ? 'block' : 'none';
+}
+
+function ul(items) {
+  return '<ul>' + items.map(i => '<li>' + i + '</li>').join('') + '</ul>';
+}
+
+function tags(items) {
+  return items.map(i => '<span class="tag">' + i + '</span>').join('');
+}
+
+const tbody = document.getElementById('tbody');
+DATA.forEach(r => {
+  const tr = document.createElement('tr');
+  tr.dataset.epic = r.epicKey;
+  tr.innerHTML = `
+    <td class="sc-id">${r.id}</td>
+    <td><span class="badge p2">P2 · Enrollment</span></td>
+    <td><span class="badge ${r.epicCls}" style="font-size:10px;">${r.epic}</span></td>
+    <td><span class="prio ${r.prio === 'high' ? 'high' : 'med'}">${r.prio === 'high' ? 'High' : 'Medium'}</span></td>
+    <td class="sc-title">${r.scenario}</td>
+    <td style="font-size:11px;">${r.story}</td>
+    <td style="font-size:11px;">${ul(r.ac)}</td>
+    <td style="font-size:11px;">${ul(r.auth0)}</td>
+    <td style="font-size:11px;">${ul(r.sf)}</td>
+    <td style="font-size:11px;">${tags(r.deps)}</td>
+    <td style="font-size:11px;">${ul(r.dod)}</td>
+    <td style="font-size:11px; color: var(--color-text-secondary);">${r.risk}</td>
+  `;
+  tbody.appendChild(tr);
+});
+</script>
