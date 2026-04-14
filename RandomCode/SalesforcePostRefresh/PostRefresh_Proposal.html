@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salesforce Post-Refresh Automation — Proposal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;0,700;1,300;1,500&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FAFAFA;--surface:#F2F4F6;--border:#E3E7EC;--border-md:#C4CBD6;
+  --text:#111827;--muted:#6B7280;--faint:#9CA3AF;
+  --dark:#0F172A;--dark2:#1E293B;--dark3:#334155;
+  --blue:#2563EB;--blue-lt:#EFF6FF;--blue-md:#BFDBFE;
+  --tb:#2563EB;--tb-lt:#EFF6FF;--tb-bd:#BFDBFE;
+  --tm:#0891B2;--tm-lt:#ECFEFF;--tm-bd:#A5F3FC;
+  --ta:#7C3AED;--ta-lt:#F5F3FF;--ta-bd:#DDD6FE;
+  --tn:#D97706;--tn-lt:#FFFBEB;--tn-bd:#FDE68A;
+  --ok:#059669;--ok-lt:#ECFDF5;--ok-bd:#A7F3D0;
+  --warn:#D97706;--warn-lt:#FFFBEB;--warn-bd:#FDE68A;
+  --danger:#DC2626;--danger-lt:#FEF2F2;--danger-bd:#FECACA;
+  --serif:'Fraunces',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --mono:'DM Mono',monospace
+}
+
+html,body{width:100%;height:100%;overflow:hidden;font-family:var(--sans);background:var(--dark)}
+
+/* ── SLIDE ENGINE ──────────────────────────────────────────── */
+.deck{position:fixed;inset:0;overflow:hidden}
+.slide{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .45s cubic-bezier(.4,0,.2,1), transform .45s cubic-bezier(.4,0,.2,1);
+  transform:translateX(40px);
+  padding:0;overflow:hidden;
+}
+.slide.active{opacity:1;pointer-events:all;transform:translateX(0)}
+.slide.prev{opacity:0;transform:translateX(-40px)}
+
+/* ── SLIDE BACKGROUNDS ──────────────────────────────────────── */
+.slide-dark{background:var(--dark)}
+.slide-dark2{background:var(--dark2)}
+.slide-light{background:#fff}
+.slide-mist{background:var(--bg)}
+
+/* ── CHROME — top bar + nav ──────────────────────────────────── */
+.chrome{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 2.5rem;height:50px;
+}
+.chrome-dark{background:rgba(15,23,42,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.07)}
+.chrome-light{background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+
+.brand{font-family:var(--serif);font-size:.88rem;font-weight:500}
+.brand-dark{color:rgba(255,255,255,.65)}
+.brand-light{color:var(--dark)}
+
+.slide-counter{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em}
+.counter-dark{color:rgba(255,255,255,.3)}
+.counter-light{color:var(--faint)}
+
+/* ── BOTTOM NAV ─────────────────────────────────────────────── */
+.nav-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:center;gap:1.5rem;
+  padding:0 2.5rem;height:52px;
+}
+.nav-dark{background:rgba(15,23,42,.85);backdrop-filter:blur(8px);border-top:1px solid rgba(255,255,255,.06)}
+.nav-light{background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border-top:1px solid var(--border)}
+
+.nav-btn{
+  width:34px;height:34px;border-radius:50%;border:1px solid;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:.75rem;background:transparent;
+  transition:all .18s;font-family:var(--sans);
+}
+.nav-btn-dark{border-color:rgba(255,255,255,.18);color:rgba(255,255,255,.55)}
+.nav-btn-dark:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.4)}
+.nav-btn-light{border-color:var(--border-md);color:var(--muted)}
+.nav-btn-light:hover{background:var(--surface);color:var(--dark);border-color:var(--border-md)}
+
+.dots{display:flex;gap:.45rem;align-items:center}
+.dot{
+  width:6px;height:6px;border-radius:50%;cursor:pointer;
+  transition:all .22s;border:1px solid;
+}
+.dot-dark{background:transparent;border-color:rgba(255,255,255,.25)}
+.dot-dark.on{background:rgba(255,255,255,.8);border-color:rgba(255,255,255,.8);width:20px;border-radius:3px}
+.dot-light{background:transparent;border-color:var(--border-md)}
+.dot-light.on{background:var(--blue);border-color:var(--blue);width:20px;border-radius:3px}
+
+/* ── SLIDE CONTENT HELPERS ──────────────────────────────────── */
+.sw{width:100%;max-width:1020px;padding:60px 2.5rem 62px;margin:0 auto;height:100%;display:flex;flex-direction:column;justify-content:center}
+.sw.scroll{overflow-y:auto;justify-content:flex-start;padding-top:70px}
+.sw.scroll::-webkit-scrollbar{width:4px}
+.sw.scroll::-webkit-scrollbar-track{background:transparent}
+.sw.scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+.sw.scroll.light::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12)}
+
+.eye{font-family:var(--mono);font-size:.65rem;text-transform:uppercase;letter-spacing:.13em;margin-bottom:.6rem;display:flex;align-items:center;gap:.48rem}
+.eye::before{content:'';display:block;width:14px;height:1px}
+.eye-dark{color:#60A5FA}.eye-dark::before{background:#60A5FA}
+.eye-light{color:var(--blue)}.eye-light::before{background:var(--blue)}
+
+.sh{font-family:var(--serif);font-weight:300;letter-spacing:-.02em;line-height:1.12;margin-bottom:.75rem}
+.sh-xl{font-size:clamp(2.4rem,5vw,4rem)}
+.sh-lg{font-size:clamp(1.7rem,3.2vw,2.4rem)}
+.sh-md{font-size:clamp(1.4rem,2.5vw,1.9rem)}
+.sh strong{font-weight:600}
+.sh em{font-style:italic}
+.sh-dark em,.sh-dark strong{color:#93C5FD}
+.sh-light em{color:var(--blue)}
+.sh-dark{color:#fff}
+.sh-light{color:var(--dark)}
+
+.lead{font-size:.93rem;line-height:1.8;margin-bottom:1.75rem;max-width:600px}
+.lead-dark{color:rgba(255,255,255,.45)}
+.lead-light{color:var(--muted)}
+
+/* ── CARDS & GRIDS ──────────────────────────────────────────── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.g4{display:grid;grid-template-columns:repeat(4,1fr)}
+
+.card{background:#fff;padding:1.4rem 1.5rem}
+.card-dark{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:1.25rem 1.4rem}
+
+/* Problem cards */
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden}
+.pcard{background:rgba(255,255,255,.04);padding:1.3rem 1.4rem;border-right:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07)}
+.pcard:nth-child(3n){border-right:none}
+.pcard:nth-child(4),.pcard:nth-child(5),.pcard:nth-child(6){border-bottom:none}
+.pcard-icon{font-size:1.1rem;margin-bottom:.6rem;display:block}
+.pcard h3{font-family:var(--serif);font-size:.88rem;font-weight:500;color:rgba(255,255,255,.88);margin-bottom:.28rem}
+.pcard p{font-size:.75rem;color:rgba(255,255,255,.42);line-height:1.65}
+
+/* Stat cells */
+.srow{display:grid;grid-template-columns:repeat(4,1fr);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.scell{padding:1.65rem 1.2rem;text-align:center;border-right:1px solid rgba(255,255,255,.08)}
+.scell:last-child{border-right:none}
+.scell.lgt{border-color:var(--border)}
+.sn{font-family:var(--serif);font-size:2.4rem;font-weight:300;line-height:1;margin-bottom:.3rem}
+.sn-blue{color:#93C5FD}
+.sn-dark{color:var(--dark)}
+.sl2{font-size:.65rem;text-transform:uppercase;letter-spacing:.09em;font-family:var(--mono)}
+.sl2-dark{color:rgba(255,255,255,.3)}
+.sl2-light{color:var(--faint)}
+
+/* Type cards */
+.tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.tc{background:#fff;padding:1.35rem 1.5rem;position:relative}
+.tc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.tc.batch::before{background:var(--tb)}
+.tc.meta::before{background:var(--tm)}
+.tc.api::before{background:var(--ta)}
+.tc.manual::before{background:var(--tn)}
+.tbadge{display:inline-flex;font-family:var(--mono);font-size:.59rem;letter-spacing:.09em;text-transform:uppercase;padding:.15rem .48rem;border-radius:4px;margin-bottom:.55rem;font-weight:500;border:1px solid}
+.batch .tbadge{color:var(--tb);background:var(--tb-lt);border-color:var(--tb-bd)}
+.meta  .tbadge{color:var(--tm);background:var(--tm-lt);border-color:var(--tm-bd)}
+.api   .tbadge{color:var(--ta);background:var(--ta-lt);border-color:var(--ta-bd)}
+.manual.tbadge{color:var(--tn);background:var(--tn-lt);border-color:var(--tn-bd)}
+.tc h3{font-family:var(--serif);font-size:.88rem;font-weight:500;color:var(--dark);margin-bottom:.28rem}
+.tc p{font-size:.76rem;color:var(--muted);line-height:1.6;margin-bottom:.55rem}
+.tex{list-style:none}
+.tex li{font-size:.72rem;color:var(--text);padding:.14rem 0;display:flex;gap:.38rem}
+.tex li::before{content:'–';color:var(--border-md);flex-shrink:0}
+
+/* Decision flow */
+.dflow{display:flex;flex-direction:column;gap:0}
+.dq{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:9px;padding:1rem 1.25rem}
+.dq-n{font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.12em;color:#60A5FA;margin-bottom:.28rem}
+.dq-t{font-size:.84rem;color:rgba(255,255,255,.88);font-weight:500;line-height:1.45}
+.dconn{width:1px;height:16px;background:rgba(255,255,255,.12);margin:0 auto}
+.dbs{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.dbr{border-radius:7px;padding:.8rem 1rem;border:1px solid}
+.by{background:rgba(5,150,105,.11);border-color:rgba(5,150,105,.28)}
+.bn{background:rgba(220,38,38,.09);border-color:rgba(220,38,38,.22)}
+.dbl{font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.22rem}
+.by .dbl{color:#6EE7B7}.bn .dbl{color:#FCA5A5}
+.dbt{font-size:.76rem;color:rgba(255,255,255,.7);line-height:1.45}
+.chip{display:inline-flex;font-family:var(--mono);font-size:.58rem;padding:.18rem .5rem;border-radius:20px;font-weight:500;border:1px solid;vertical-align:middle;margin:1px 2px}
+.ch-b{color:#93C5FD;background:rgba(37,99,235,.2);border-color:rgba(37,99,235,.38)}
+.ch-m{color:#67E8F9;background:rgba(8,145,178,.2);border-color:rgba(8,145,178,.38)}
+.ch-a{color:#C4B5FD;background:rgba(124,58,237,.2);border-color:rgba(124,58,237,.38)}
+.ch-n{color:#FDE68A;background:rgba(217,119,6,.2);border-color:rgba(217,119,6,.38)}
+.ch-s{color:rgba(255,255,255,.38);background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)}
+
+/* Roadmap */
+.rmwrap{position:relative}
+.rmwrap::before{content:'';position:absolute;left:20px;top:0;bottom:0;width:1px;background:rgba(255,255,255,.1)}
+.rs{display:flex;gap:1.4rem;margin-bottom:1.6rem}
+.rs:last-child{margin-bottom:0}
+.rnum{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.68rem;font-weight:500;position:relative;z-index:1}
+.rnum.on{background:rgba(37,99,235,.2);border:1.5px solid rgba(37,99,235,.5);color:#93C5FD}
+.rnum.off{background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.12);color:rgba(255,255,255,.3)}
+.rbody{padding-top:.4rem;flex:1}
+.rph{font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.28);margin-bottom:.2rem}
+.rt2{font-family:var(--serif);font-size:.92rem;font-weight:500;color:rgba(255,255,255,.88);margin-bottom:.28rem}
+.rd{font-size:.76rem;color:rgba(255,255,255,.42);line-height:1.65;margin-bottom:.6rem}
+.rtasks{display:flex;flex-direction:column;gap:.25rem}
+.rt{display:flex;align-items:flex-start;gap:.42rem;font-size:.74rem;color:rgba(255,255,255,.65)}
+.ri{width:15px;height:15px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;flex-shrink:0;margin-top:1px;font-weight:700}
+.ri.a{background:var(--ok-lt);color:var(--ok)}
+.ri.m{background:var(--warn-lt);color:var(--warn)}
+.ri.d{background:var(--blue-lt);color:var(--blue)}
+
+/* Decision table */
+.dtbl{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.dtbl th{background:var(--dark);color:rgba(255,255,255,.75);padding:.72rem .95rem;font-size:.66rem;text-transform:uppercase;letter-spacing:.07em;font-weight:500;text-align:left;font-family:var(--mono)}
+.dtbl td{padding:.72rem .95rem;font-size:.76rem;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.55;color:var(--text)}
+.dtbl tr:last-child td{border-bottom:none}
+.dtbl tr:nth-child(even) td{background:var(--bg)}
+.cs{color:var(--ok);font-weight:500}.ct{color:var(--warn);font-weight:500}
+code{font-family:var(--mono);font-size:.74em;background:var(--surface);padding:1px 4px;border-radius:3px;border:1px solid var(--border);color:var(--dark3)}
+
+/* Sprint cards */
+.scard{border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.shdr{padding:1.1rem 1.3rem}
+.sh1{background:var(--dark)}
+.sh2{background:var(--dark2)}
+.slbl{font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:.28rem}
+.snm{font-family:var(--serif);font-size:.92rem;font-weight:500;color:#fff;margin-bottom:.15rem}
+.sgl{font-size:.7rem;color:rgba(255,255,255,.35);line-height:1.45}
+.sbdy{background:#fff;padding:1.1rem 1.3rem}
+.sstories{list-style:none;display:flex;flex-direction:column;gap:.42rem}
+.ss{display:flex;gap:.5rem;align-items:flex-start}
+.sid{font-family:var(--mono);font-size:.57rem;background:var(--blue-lt);color:var(--blue);padding:.1rem .32rem;border-radius:3px;border:1px solid var(--blue-md);flex-shrink:0;margin-top:2px}
+.stxt{font-size:.76rem;color:var(--text);line-height:1.45;flex:1}
+.spt{font-family:var(--mono);font-size:.58rem;color:var(--faint);flex-shrink:0;margin-top:2px}
+.sft{background:var(--bg);padding:.58rem 1.3rem;display:flex;justify-content:space-between;border-top:1px solid var(--border);font-size:.71rem;color:var(--muted);font-weight:500}
+
+/* Criteria */
+.crow{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem}
+.cbox{padding:.95rem 1.1rem;border:1px solid var(--border);border-radius:9px;background:#fff}
+.clbl{font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.09em;color:var(--faint);margin-bottom:.4rem}
+.citems{list-style:none;display:flex;flex-direction:column;gap:.25rem}
+.citems li{font-size:.73rem;color:var(--text);display:flex;gap:.35rem}
+.citems li::before{content:'→';color:var(--border-md);flex-shrink:0}
+
+/* Dashboard (compact) */
+.dbw{font-family:var(--sans)}
+.db-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem}
+.db-hdr h4{font-size:12px;font-weight:500;color:var(--dark)}
+.db-hdr p{font-size:9px;color:var(--muted);margin-top:1px}
+.db-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:.7rem}
+.db-stat{background:var(--bg);border-radius:6px;padding:8px 9px;border:1px solid var(--border)}
+.db-sl{font-size:8px;color:var(--faint);margin-bottom:2px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.db-sv{font-size:16px;font-weight:500;color:var(--dark)}
+.db-sv.g{color:var(--ok)}.db-sv.a{color:var(--warn)}.db-sv.r{color:var(--danger)}
+.db-phase{margin-bottom:.45rem;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.db-ph{display:flex;align-items:center;gap:6px;padding:6px 9px;background:var(--bg);border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.db-pt{font-size:10px;font-weight:500;color:var(--dark);flex:1}
+.dbp{font-size:8px;padding:2px 6px;border-radius:20px;font-weight:500;font-family:var(--mono)}
+.bpend{background:#FEF3C7;color:#92400E}.brun{background:var(--blue-lt);color:var(--blue)}.bdone{background:var(--ok-lt);color:var(--ok)}
+.db-act{display:flex;align-items:center;gap:5px;padding:5px 9px;border-bottom:1px solid var(--border);font-size:10px}
+.db-act:last-child{border-bottom:none}
+.db-act.done{opacity:.5}
+.db-seq{font-size:8px;color:var(--faint);min-width:13px;font-family:var(--mono)}
+.db-ico{width:13px;height:13px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;flex-shrink:0;border:1px solid}
+.db-ico.pending{background:#fff;border-color:var(--border-md);color:var(--faint)}
+.db-ico.running{background:var(--blue-lt);border-color:var(--blue-md);color:var(--blue);animation:dbp 1.2s infinite}
+.db-ico.done{background:var(--ok-lt);border-color:var(--ok-bd);color:var(--ok)}
+.db-ico.failed{background:var(--danger-lt);border-color:var(--danger-bd);color:var(--danger)}
+@keyframes dbp{0%,100%{opacity:1}50%{opacity:.3}}
+.db-info{flex:1}
+.db-an{font-size:10px;font-weight:500;color:var(--dark)}
+.db-am{font-size:8px;color:var(--faint);margin-top:1px}
+.db-type{font-size:8px;padding:1px 4px;border-radius:3px;font-family:var(--mono);border:1px solid}
+.tp-batch{background:var(--tb-lt);color:var(--tb);border-color:var(--tb-bd)}
+.tp-meta{background:var(--tm-lt);color:var(--tm);border-color:var(--tm-bd)}
+.tp-api{background:var(--ta-lt);color:var(--ta);border-color:var(--ta-bd)}
+.tp-manual{background:var(--tn-lt);color:var(--tn);border-color:var(--tn-bd)}
+.db-btn{font-size:8px;padding:2px 6px;border-radius:4px;border:1px solid var(--ok-bd);background:transparent;color:var(--ok);cursor:pointer;font-family:var(--sans)}
+.db-btn:disabled{opacity:.25;cursor:not-allowed;border-color:var(--border);color:var(--faint)}
+.db-toolbar{display:flex;gap:5px;margin-bottom:.65rem}
+.db-toolbar button{font-size:9px;padding:4px 8px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-family:var(--sans)}
+.db-toolbar button:hover{background:var(--surface)}
+.db-toolbar button.primary{background:var(--dark);border-color:var(--dark);color:#fff}
+.db-log{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:5px 9px;font-size:8px;font-family:var(--mono);color:var(--faint);max-height:52px;overflow-y:auto;margin-top:.5rem}
+.db-log-ok{color:var(--ok)}.db-log-info{color:var(--blue)}.db-log-err{color:var(--danger)}
+.db-chev{font-size:8px;color:var(--faint);transition:transform .18s}
+.db-collapsed .db-chev{transform:rotate(-90deg)}
+.db-body.hidden{display:none}
+
+/* Layer cards (solution slide) */
+.layers{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;margin-bottom:1rem}
+.layer{background:rgba(255,255,255,.04);padding:1.1rem 1.3rem}
+.layer-n{font-family:var(--mono);font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.25);margin-bottom:.32rem}
+.layer-t{font-weight:500;color:rgba(255,255,255,.88);margin-bottom:.25rem;font-size:.88rem}
+.layer-d{font-size:.75rem;color:rgba(255,255,255,.42);line-height:1.62}
+
+/* CTA slide */
+.cta-badge{font-family:var(--mono);font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:#60A5FA;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.cta-badge::before{content:'';display:block;width:24px;height:1px;background:#60A5FA}
+.cta-steps{display:flex;flex-direction:column;gap:.6rem;margin-top:1.5rem;max-width:500px}
+.cta-step{display:flex;align-items:center;gap:.85rem;padding:.85rem 1.1rem;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04)}
+.cta-num{font-family:var(--mono);font-size:.7rem;color:#60A5FA;font-weight:500;flex-shrink:0;width:24px}
+.cta-text{font-size:.85rem;color:rgba(255,255,255,.75)}
+.cta-tag{font-size:.68rem;font-family:var(--mono);padding:.15rem .45rem;border-radius:3px;margin-left:auto;flex-shrink:0}
+.cta-auto{background:var(--ok-lt);color:var(--ok)}
+.cta-human{background:var(--warn-lt);color:var(--warn)}
+
+/* Hero glow */
+.hero-glow{position:absolute;inset:0;background:radial-gradient(ellipse 55% 45% at 68% 32%,rgba(37,99,235,.15) 0%,transparent 65%);pointer-events:none}
+.hero-tex{position:absolute;inset:0;opacity:.022;background-image:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(255,255,255,1) 60px),repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(255,255,255,1) 60px);pointer-events:none}
+
+/* Progress bar */
+.prog{position:fixed;top:50px;left:0;right:0;z-index:199;height:2px;background:rgba(255,255,255,.06)}
+.prog-fill{height:100%;background:var(--blue);transition:width .4s cubic-bezier(.4,0,.2,1)}
+.prog.light{background:var(--border)}
+.prog.light .prog-fill{background:var(--blue)}
+</style>
+</head>
+<body>
+
+<!-- CHROME -->
+<div class="chrome chrome-dark" id="chrome">
+  <div class="brand brand-dark" id="brand">Post-Refresh Automation</div>
+  <div class="slide-counter counter-dark" id="counter">01 / 10</div>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog" id="prog"><div class="prog-fill" id="prog-fill" style="width:10%"></div></div>
+
+<!-- NAV -->
+<div class="nav-bar nav-dark" id="navbar">
+  <button class="nav-btn nav-btn-dark" id="prev-btn" onclick="go(-1)">←</button>
+  <div class="dots" id="dots"></div>
+  <button class="nav-btn nav-btn-dark" id="next-btn" onclick="go(1)">→</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SLIDE 1: TITLE -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="slide slide-dark active" data-theme="dark">
+  <div class="hero-tex"></div><div class="hero-glow"></div>
+  <div class="sw" style="max-width:900px">
+    <div class="cta-badge">Platform Engineering Proposal · April 2026</div>
+    <h1 class="sh sh-xl sh-dark">Automating <em>post-refresh</em><br>activities in Salesforce</h1>
+    <p class="lead lead-dark" style="max-width:560px">A structured framework to sequence, automate, and govern every task that must happen after a sandbox refresh — so nothing is missed, no PII escapes, and developers focus on building.</p>
+    <div style="display:flex;gap:2.5rem;flex-wrap:wrap;margin-top:.5rem">
+      <div><div style="font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.24);margin-bottom:.2rem">Effort</div><div style="font-size:.86rem;color:rgba(255,255,255,.72);font-weight:500">2 sprints · 55 story points</div></div>
+      <div><div style="font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.24);margin-bottom:.2rem">Activities</div><div style="font-size:.86rem;color:rgba(255,255,255,.72);font-weight:500">35+ across 5 phases</div></div>
+      <div><div style="font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.24);margin-bottom:.2rem">Target time</div><div style="font-size:.86rem;color:rgba(255,255,255,.72);font-weight:500">~25 min vs ~4 hours today</div></div>
+      <div><div style="font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.24);margin-bottom:.2rem">Approach</div><div style="font-size:.86rem;color:rgba(255,255,255,.72);font-weight:500">Metadata-driven orchestration</div></div>
+    </div>
+    <div style="margin-top:2.5rem;font-family:var(--mono);font-size:.62rem;color:rgba(255,255,255,.18);letter-spacing:.08em">Press → or use arrow keys to navigate</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SLIDE 2: THE PROBLEM -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="slide slide-dark" data-theme="dark">
+  <div class="hero-tex"></div>
+  <div class="sw">
+    <div class="eye eye-dark">The problem</div>
+    <h2 class="sh sh-lg sh-dark">Sandbox refreshes are <strong>high-risk,<br>low-visibility</strong> events</h2>
+    <p class="lead lead-dark" style="margin-bottom:1.25rem">Every refresh lands production data, live email addresses, and active integrations in a non-production environment. Without a structured process, things go wrong.</p>
+    <div class="pgrid">
+      <div class="pcard"><span class="pcard-icon">✉️</span><h3>Emails sent to real users</h3><p>Sandbox workflows fire against real production email addresses until deliverability is disabled.</p></div>
+      <div class="pcard"><span class="pcard-icon">🔐</span><h3>PII exposed to developers</h3><p>Contact and Lead records carry real names, phone numbers, and payment tokens until masking runs.</p></div>
+      <div class="pcard"><span class="pcard-icon">🔗</span><h3>Integrations pointing at production</h3><p>Named credentials still point at production endpoints. A sandbox test triggers real middleware.</p></div>
+      <div class="pcard"><span class="pcard-icon">📋</span><h3>No consistent checklist</h3><p>Steps live in tribal knowledge. Different engineers follow different sequences and miss different steps.</p></div>
+      <div class="pcard"><span class="pcard-icon">⏱️</span><h3>Hours of manual work</h3><p>An experienced engineer takes 3–5 hours. A new joiner takes a full day and still misses things.</p></div>
+      <div class="pcard"><span class="pcard-icon">🚫</span><h3>No audit trail</h3><p>When something goes wrong there's no log of what ran, in what order, or whether it succeeded.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SLIDE 3: THE SCALE -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="slide slide-dark" data-theme="dark">
+  <div class="hero-tex"></div>
+  <div class="sw" style="max-width:860px">
+    <div class="eye eye-dark">The scale of the problem</div>
+    <h2 class="sh sh-lg sh-dark" style="margin-bottom:1.5rem">From <strong>4 hours of risk</strong> to <em>25 minutes, automated</em></h2>
+    <div class="srow" style="margin-bottom:1.75rem">
+      <div class="scell"><div class="sn sn-blue">35+</div><div class="sl2 sl2-dark">Activities per refresh</div></div>
+      <div class="scell"><div class="sn sn-blue">~4h</div><div class="sl2 sl2-dark">Avg manual time today</div></div>
+      <div class="scell"><div class="sn sn-blue">~25m</div><div class="sl2 sl2-dark">Target automated time</div></div>
+      <div class="scell"><div class="sn sn-blue">0</div><div class="sl2 sl2-dark">Missed steps with automation</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="card-dark"><div style="font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.28);margin-bottom:.55rem">Today — manual process</div>
+        <div style="display:flex;flex-direction:column;gap:.35rem">
+          <div style="font-size:.8rem;color:rgba(255,255,255,.55);display:flex;gap:.5rem"><span style="color:#FCA5A5">✗</span>Steps in Confluence pages and tribal knowledge</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.55);display:flex;gap:.5rem"><span style="color:#FCA5A5">✗</span>Different engineers, different sequences</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.55);display:flex;gap:.5rem"><span style="color:#FCA5A5">✗</span>3–5 hours of risk window per refresh</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.55);display:flex;gap:.5rem"><span style="color:#FCA5A5">✗</span>No audit trail — impossible to debug</div>
+        </div>
+      </div>
+      <div class="card-dark"><div style="font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.28);margin-bottom:.55rem">After — automated platform</div>
+        <div style="display:flex;flex-direction:column;gap:.35rem">
+          <div style="font-size:.8rem;color:rgba(255,255,255,.55);display:flex;gap:.5rem"><span style="color:#6EE7B7">✓</span>All activities in Custom Metadata — version-controlled</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.55);display:flex;gap:.5rem"><span style="color:#6EE7B7">✓</span>One button to run all automatable activities in sequence</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.55);display:flex;gap:.5rem"><span style="color:#6EE7B7">✓</span>Risk window reduced to ~25 minutes</div>
+          <div style="font-size:.8rem;color:rgba(255,255,255,.55);display:flex;gap:.5rem"><span style="color:#6EE7B7">✓</span>Full execution log per refresh run — timestamped</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SLIDE 4: THE SOLUTION (with live dashboard) -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="slide slide-light" data-theme="light">
+  <div class="sw" style="max-width:1060px;justify-content:center">
+    <div class="eye eye-light">The solution</div>
+    <h2 class="sh sh-lg sh-light" style="margin-bottom:.65rem">A metadata-driven <strong>orchestration platform</strong></h2>
+    <div class="layers">
+      <div class="layer" style="background:var(--bg);border-right:1px solid var(--border)"><div class="layer-n" style="color:var(--faint)">Layer 1</div><div class="layer-t" style="color:var(--dark)">Custom Metadata Types</div><div class="layer-d" style="color:var(--muted)">Activity registry — sequence order, type, class name, dependencies. Version-controlled. Zero code to add activities.</div></div>
+      <div class="layer" style="background:var(--bg);border-right:1px solid var(--border)"><div class="layer-n" style="color:var(--faint)">Layer 2</div><div class="layer-t" style="color:var(--dark)">Apex Orchestrator</div><div class="layer-d" style="color:var(--muted)">Reads registry, resolves dependencies, dispatches each activity to the correct mechanism, chains batch jobs via finish().</div></div>
+      <div class="layer" style="background:var(--bg)"><div class="layer-n" style="color:var(--faint)">Layer 3</div><div class="layer-t" style="color:var(--dark)">LWC Dashboard</div><div class="layer-d" style="color:var(--muted)">Live status polling, phase grouping, individual triggers, manual sign-off buttons, exportable execution log.</div></div>
+    </div>
+    <!-- Compact live dashboard -->
+    <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 8px 28px rgba(15,23,42,.08)">
+      <div style="background:var(--dark2);padding:.55rem 1rem;display:flex;align-items:center;gap:.6rem">
+        <div style="display:flex;gap:4px"><div style="width:10px;height:10px;border-radius:50%;background:#FF5F57"></div><div style="width:10px;height:10px;border-radius:50%;background:#FEBC2E"></div><div style="width:10px;height:10px;border-radius:50%;background:#28C840"></div></div>
+        <div style="flex:1;background:rgba(255,255,255,.06);border-radius:4px;padding:.2rem .55rem;font-family:var(--mono);font-size:.62rem;color:rgba(255,255,255,.26);margin:0 .6rem">lightning.force.com · Post-Refresh Manager · UAT-FULL</div>
+      </div>
+      <div style="background:#fff;padding:1.1rem 1.4rem" class="dbw">
+        <div class="db-hdr"><div><h4>Post-refresh activity manager</h4><p>Sandbox: <strong>UAT-FULL</strong> &nbsp;·&nbsp; Refreshed: Apr 14, 2026 09:42 AM</p></div></div>
+        <div class="db-stats" id="dbs"></div>
+        <div class="db-toolbar"><button class="primary" onclick="dbRunAll()">▶ Run all auto</button><button onclick="dbReset()">↺ Reset</button></div>
+        <div id="dbph"></div>
+        <div class="db-log" id="dbl"><div class="db-log-info">[09:42:11] Sandbox refresh detected. 13 activities pending.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SLIDE 5: ACTIVITY TYPES -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="slide slide-mist" data-theme="light">
+  <div class="sw">
+    <div class="eye eye-light">Activity classification</div>
+    <h2 class="sh sh-lg sh-light" style="margin-bottom:1rem">Four execution types, <strong>one orchestrator</strong></h2>
+    <div class="tgrid">
+      <div class="tc batch"><span class="tbadge">Batch</span><h3>Database.Batchable — large record volumes</h3><p>Use when the activity processes more records than a single transaction can handle. Chains via finish().</p><ul class="tex"><li>Mask PII on Contact, Lead, custom objects</li><li>Invalidate user email addresses (.invalid)</li><li>Delete email message and audit log records</li><li>Wipe payment tokens across account records</li></ul></div>
+      <div class="tc meta"><span class="tbadge">Metadata</span><h3>IPostRefreshHandler — single transaction</h3><p>Use when the activity changes org configuration and completes in milliseconds. Runs synchronously.</p><ul class="tex"><li>Disable email deliverability</li><li>Update custom settings (env config flags)</li><li>Activate or deactivate flows by env tag</li><li>Set debug log levels for active developers</li></ul></div>
+      <div class="tc api"><span class="tbadge">API / Queueable</span><h3>Queueable + callout — external systems</h3><p>Use when the activity requires an HTTP callout. Queueable allows callouts; batch context does not.</p><ul class="tex"><li>Revoke OAuth tokens on the auth server</li><li>Ping integration endpoints for health check</li><li>Post Slack / Teams refresh notification</li><li>Create a Jira compliance ticket</li></ul></div>
+      <div class="tc manual"><span class="tbadge">Manual</span><h3>Human gate — cannot be automated</h3><p>Orchestrator pauses and marks as "Awaiting Action". Developer completes and clicks Mark Complete.</p><ul class="tex"><li>Re-authenticate named credentials (OAuth)</li><li>Re-enter API keys unavailable from production</li><li>Validate third-party integration handshake</li><li>Install or upgrade managed packages</li></ul></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SLIDE 6: DECISION FRAMEWORK -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="slide slide-dark" data-theme="dark">
+  <div class="hero-tex"></div>
+  <div class="sw" style="max-width:860px">
+    <div class="eye eye-dark">Classification decision tree</div>
+    <h2 class="sh sh-md sh-dark" style="margin-bottom:1.25rem">Four questions that classify <em>any activity</em></h2>
+    <div class="dflow">
+      <div class="dq"><div class="dq-n">Q1</div><div class="dq-t">Does this activity require a human to log in, make a judgment call, or complete an action in an external UI that has no API?</div></div>
+      <div class="dconn"></div>
+      <div class="dbs" style="margin-bottom:.7rem">
+        <div class="dbr by"><div class="dbl">Yes</div><div class="dbt">Create a <span class="chip ch-n">Manual</span> task. Document exactly what the human must do and what "done" looks like.</div></div>
+        <div class="dbr bn"><div class="dbl">No — continue ↓</div><div class="dbt">This activity can be automated. Move to Q2.</div></div>
+      </div>
+      <div class="dq"><div class="dq-n">Q2</div><div class="dq-t">Does this activity need an HTTP callout to an external system — auth server, middleware, Slack, Jira, or SSO provider?</div></div>
+      <div class="dconn"></div>
+      <div class="dbs" style="margin-bottom:.7rem">
+        <div class="dbr by"><div class="dbl">Yes</div><div class="dbt">Build a <span class="chip ch-a">Queueable</span> implementing Queueable + AllowsCallouts. Read endpoints from Named Credentials.</div></div>
+        <div class="dbr bn"><div class="dbl">No — continue ↓</div><div class="dbt">No callout needed. Move to Q3.</div></div>
+      </div>
+      <div class="dq"><div class="dq-n">Q3</div><div class="dq-t">Does this activity need to process, update, or delete more than a few hundred records — i.e. would it hit governor limits in one transaction?</div></div>
+      <div class="dconn"></div>
+      <div class="dbs" style="margin-bottom:.7rem">
+        <div class="dbr by"><div class="dbl">Yes</div><div class="dbt">Build a <span class="chip ch-b">Batch</span> extending PostRefreshBatchBase. Implement Database.Stateful to carry chain state into finish().</div></div>
+        <div class="dbr bn"><div class="dbl">No — continue ↓</div><div class="dbt">Single-transaction operation. Move to Q4.</div></div>
+      </div>
+      <div class="dq"><div class="dq-n">Q4</div><div class="dq-t">Is this a pure org config change — custom setting, flow activation, email deliverability, debug log, or static resource?</div></div>
+      <div class="dconn"></div>
+      <div class="dbs">
+        <div class="dbr by"><div class="dbl">Yes</div><div class="dbt">Build a <span class="chip ch-m">Metadata</span> handler implementing IPostRefreshHandler. Runs synchronously — orchestrator chains immediately after.</div></div>
+        <div class="dbr bn"><div class="dbl">No</div><div class="dbt"><span class="chip ch-s">Revisit</span> — return to Q1. If still unclear, raise as a spike with the tech lead before writing any code.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SLIDE 7: IMPLEMENTATION ROADMAP (scrollable) -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="slide slide-dark" data-theme="dark">
+  <div class="hero-tex"></div>
+  <div class="sw scroll" style="max-width:860px">
+    <div class="eye eye-dark" style="margin-top:.5rem">Implementation roadmap</div>
+    <h2 class="sh sh-md sh-dark" style="margin-bottom:.5rem">8 steps from <strong>zero to automated</strong></h2>
+    <div style="display:flex;gap:.9rem;margin-bottom:1.25rem;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:.38rem;font-size:.72rem;color:rgba(255,255,255,.42)"><div class="ri a">✓</div>Automated/generated</div>
+      <div style="display:flex;align-items:center;gap:.38rem;font-size:.72rem;color:rgba(255,255,255,.42)"><div class="ri m">!</div>Manual action</div>
+      <div style="display:flex;align-items:center;gap:.38rem;font-size:.72rem;color:rgba(255,255,255,.42)"><div class="ri d">?</div>Decision point</div>
+    </div>
+    <div class="rmwrap">
+      <div class="rs"><div class="rnum on">01</div><div class="rbody"><div class="rph">Discovery</div><div class="rt2">Inventory every post-refresh activity your org does</div><div class="rd">Run a discovery workshop, pull Confluence runbooks, search Jira tickets. The goal is a raw unfiltered list.</div><div class="rtasks"><div class="rt"><div class="ri m">!</div><span>Discovery workshop with all engineers who touch sandbox refreshes</span></div><div class="rt"><div class="ri m">!</div><span>Pull existing Confluence pages and past Jira "sandbox refresh" tickets</span></div><div class="rt"><div class="ri a">✓</div><span>Document every activity: Name, Who does it, Time taken, What breaks if skipped</span></div></div></div></div>
+      <div class="rs"><div class="rnum on">02</div><div class="rbody"><div class="rph">Classification</div><div class="rt2">Classify each activity using the 4-question decision tree</div><div class="rd">Apply Q1–Q4 to every activity. The output determines whether each gets a Technical Story or Manual Task.</div><div class="rtasks"><div class="rt"><div class="ri d">?</div><span>For each activity: apply Questions 1–4 from the classification framework</span></div><div class="rt"><div class="ri a">✓</div><span>Batch / Metadata / API activities → raise as a <strong style="color:rgba(255,255,255,.82)">Technical Story</strong> in the sprint backlog</span></div><div class="rt"><div class="ri a">✓</div><span>Manual activities → raise as a <strong style="color:rgba(255,255,255,.82)">Manual Task</strong> in the LWC checklist</span></div></div></div></div>
+      <div class="rs"><div class="rnum on">03</div><div class="rbody"><div class="rph">Schema setup</div><div class="rt2">Deploy the Custom Metadata Type schema (Story PRA-S1-001)</div><div class="rd">The single most important deliverable — everything else reads from this at runtime. Deploy, commit, and freeze before Sprint 2.</div><div class="rtasks"><div class="rt"><div class="ri a">✓</div><span>Create <code style="font-family:var(--mono);font-size:.75em;background:rgba(255,255,255,.08);padding:1px 4px;border-radius:3px">PostRefreshActivity__mdt</code> with all 10 fields in Setup</span></div><div class="rt"><div class="ri a">✓</div><span>Deploy one CMT record per activity, commit all <code style="font-family:var(--mono);font-size:.75em;background:rgba(255,255,255,.08);padding:1px 4px;border-radius:3px">.md-meta.xml</code> files to version control</span></div><div class="rt"><div class="ri m">!</div><span>Tech lead schema freeze — no field changes without approval from this point</span></div></div></div></div>
+      <div class="rs"><div class="rnum on">04</div><div class="rbody"><div class="rph">Core infrastructure (Sprint 1)</div><div class="rt2">Build orchestrator, logger, interface, and LWC shell</div><div class="rd">All Sprint 2 handlers depend on these. Deploy and confirm end-to-end with a NoOp handler before Sprint 2 begins.</div><div class="rtasks"><div class="rt"><div class="ri a">✓</div><span>Deploy <code style="font-family:var(--mono);font-size:.75em;background:rgba(255,255,255,.08);padding:1px 4px;border-radius:3px">PostRefreshOrchestrator</code>, <code style="font-family:var(--mono);font-size:.75em;background:rgba(255,255,255,.08);padding:1px 4px;border-radius:3px">PostRefreshExecutionLogger</code>, <code style="font-family:var(--mono);font-size:.75em;background:rgba(255,255,255,.08);padding:1px 4px;border-radius:3px">IPostRefreshHandler</code></code></span></div><div class="rt"><div class="ri a">✓</div><span>Deploy LWC dashboard shell with live polling and phase grouping</span></div><div class="rt"><div class="ri m">!</div><span>Smoke test with NoOp handler — confirm execution log writes correctly</span></div></div></div></div>
+      <div class="rs"><div class="rnum off">05</div><div class="rbody"><div class="rph">Activity handlers (Sprint 2)</div><div class="rt2">Build all automation handlers in parallel</div><div class="rd">Each handler is independent. Split across developers. Each implements the interface or extends the base batch class.</div><div class="rtasks"><div class="rt"><div class="ri a">✓</div><span>Phase 1 Metadata handlers: email deliverability, custom settings, flow activation, debug logs</span></div><div class="rt"><div class="ri a">✓</div><span>Phase 2–3 Batch handlers: invalidate emails, mask PII, delete logs, wipe tokens</span></div><div class="rt"><div class="ri a">✓</div><span>Phase 4 Queueable handlers: OAuth revocation, endpoint ping, Slack notification, Jira ticket</span></div><div class="rt"><div class="ri m">!</div><span>Named Credentials for Slack, Jira, SSO must be manually configured in each sandbox</span></div></div></div></div>
+      <div class="rs"><div class="rnum off">06</div><div class="rbody"><div class="rph">Validation</div><div class="rt2">Run end-to-end and assert outputs programmatically</div><div class="rtasks"><div class="rt"><div class="ri a">✓</div><span>Deploy and run <code style="font-family:var(--mono);font-size:.75em;background:rgba(255,255,255,.08);padding:1px 4px;border-radius:3px">PostRefreshSmokeTest</code>: assert deliverability off, emails contain .invalid, PII masked</span></div><div class="rt"><div class="ri m">!</div><span>Spot-check 5–10 Contact/Lead records manually. Confirm Slack notification received.</span></div><div class="rt"><div class="ri a">✓</div><span>Record total runtime — target &lt; 45 minutes for a full-copy sandbox</span></div></div></div></div>
+      <div class="rs"><div class="rnum off">07</div><div class="rbody"><div class="rph">Operationalise</div><div class="rt2">Write the runbook, train the team, lock the process</div><div class="rtasks"><div class="rt"><div class="ri a">✓</div><span>Publish runbook to internal wiki: prerequisites, trigger steps, how to retry failures</span></div><div class="rt"><div class="ri m">!</div><span>Runbook review: two engineers who did not write it follow it from scratch</span></div><div class="rt"><div class="ri m">!</div><span>Live walkthrough of the LWC dashboard for the wider development team</span></div></div></div></div>
+      <div class="rs"><div class="rnum off">08</div><div class="rbody"><div class="rph">Continuous improvement</div><div class="rt2">Extend and iterate after the first live refresh</div><div class="rtasks"><div class="rt"><div class="ri a">✓</div><span>New activity needed? Create CMT record → write handler → deploy. No orchestrator changes.</span></div><div class="rt"><div class="ri d">?</div><span>Quarterly review: re-apply the classification framework to all Manual tasks</span></div><div class="rt"><div class="ri a">✓</div><span>Track automation coverage % over time using the type breakdown in the execution log</span></div></div></div></div>
+    </div>
+    <div style="height:.5rem"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SLIDE 8: DECISION GUIDE — STORY vs TASK -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="slide slide-light" data-theme="light">
+  <div class="sw scroll light" style="max-width:1020px">
+    <div class="eye eye-light" style="margin-top:.5rem">Decision guide</div>
+    <h2 class="sh sh-md sh-light" style="margin-bottom:.5rem">Technical story <em>or</em> <strong>manual task?</strong></h2>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:1.1rem;max-width:580px;line-height:1.7">Apply the classification framework first, then use this table to determine exactly what work item to create and what to put in it.</p>
+    <table class="dtbl">
+      <thead><tr><th style="width:13%">Classification</th><th style="width:12%">Work item</th><th style="width:23%">What to write</th><th style="width:27%">AC must include</th><th style="width:25%">Example</th></tr></thead>
+      <tbody>
+        <tr><td><span class="chip ch-b">Batch</span></td><td class="cs">Technical Story</td><td>Class name, batch scope, objects/fields, idempotency requirement, governor limit risk</td><td>Extends PostRefreshBatchBase · Database.Stateful · finish() calls runNext() · coverage ≥ 85%</td><td>"Mask PII on Contact — <code>MaskContactPIIBatch</code> — scramble Email, Phone, MailingStreet. Scope 200."</td></tr>
+        <tr><td><span class="chip ch-m">Metadata</span></td><td class="cs">Technical Story</td><td>Handler class name, which org setting changes, API used (Tooling API vs DML), expected result</td><td>Implements IPostRefreshHandler · single transaction · verifies by re-querying · coverage ≥ 85%</td><td>"Disable email deliverability — <code>DisableEmailDeliverabilityHandler</code> — sets System Email Access to No Access."</td></tr>
+        <tr><td><span class="chip ch-a">API / Queueable</span></td><td class="cs">Technical Story</td><td>Queueable class name, target endpoint, Named Credential, expected HTTP response, retry behaviour</td><td>Implements Queueable + AllowsCallouts · URL from Named Credential · HttpCalloutMock in tests · coverage ≥ 85%</td><td>"Ping endpoints — <code>PingEndpointsQueueable</code> — GET each Remote Site URL, log status + latency."</td></tr>
+        <tr><td><span class="chip ch-n">Manual</span></td><td class="ct">Manual Task</td><td>Step-by-step instructions any developer can follow, definition of "done", owner, estimated time</td><td>LWC shows Awaiting Action · Mark Complete button visible · instructions in Description__c · time shown</td><td>"Re-authenticate Named Credentials — Setup → Named Credentials → Authenticate each. Done: all Authenticated."</td></tr>
+        <tr><td><span class="chip ch-s">Unclear</span></td><td class="ct">Spike</td><td>What the activity does, what is unclear, what outcome is needed from the investigation</td><td>Classification decision + rough effort within 1 sprint · result is either a story or a manual task</td><td>"Unclear: Configure Einstein Analytics recipe — spike whether Analytics REST API allows automation."</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:1rem;padding:1rem 1.2rem;border-radius:9px;background:var(--warn-lt);border:1px solid var(--warn-bd);display:flex;gap:.7rem;align-items:flex-start">
+      <span style="font-size:.95rem;flex-shrink:0;margin-top:1px">💡</span>
+      <div><div style="font-weight:500;font-size:.82rem;color:var(--dark);margin-bottom:.2rem">The classification is not permanent</div><div style="font-size:.76rem;color:var(--muted);line-height:1.7">A Manual task today may become a Technical Story next quarter as Salesforce expands its API surface. Build a quarterly review into planning so Manual tasks are regularly re-evaluated.</div></div>
+    </div>
+    <div style="height:.5rem"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SLIDE 9: SPRINT PLAN -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="slide slide-mist" data-theme="light">
+  <div class="sw scroll light" style="max-width:1020px">
+    <div class="eye eye-light" style="margin-top:.5rem">Sprint plan</div>
+    <h2 class="sh sh-md sh-light" style="margin-bottom:.5rem">Two sprints to <strong>full coverage</strong></h2>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:1.1rem;line-height:1.7">Sprint 1 delivers the infrastructure that makes Sprint 2 possible. No Sprint 2 story begins until Sprint 1 is fully deployed and confirmed working with a NoOp handler.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div class="scard">
+        <div class="shdr sh1"><div class="slbl">Sprint 1 · Apr 21 – May 2</div><div class="snm">Foundation & Orchestration</div><div class="sgl">Goal: Core engine deployed and proven before any handlers are written</div></div>
+        <div class="sbdy"><ul class="sstories">
+          <li class="ss"><span class="sid">S1-001</span><span class="stxt">Custom Metadata Type schema — 10 fields, 13+ seed records, version-controlled</span><span class="spt">5 pts</span></li>
+          <li class="ss"><span class="sid">S1-002</span><span class="stxt">Execution logger & PostRefreshExecution__c audit object with all status fields</span><span class="spt">5 pts</span></li>
+          <li class="ss"><span class="sid">S1-003</span><span class="stxt">Orchestrator engine — dispatcher, dependency resolver, lock mechanism, chain logic</span><span class="spt">8 pts</span></li>
+          <li class="ss"><span class="sid">S1-004</span><span class="stxt">IPostRefreshHandler interface, PostRefreshBatchBase, PostRefreshQueueableBase</span><span class="spt">3 pts</span></li>
+          <li class="ss"><span class="sid">S1-005</span><span class="stxt">LWC dashboard shell — phase grouping, status polling, Run All, permission set</span><span class="spt">8 pts</span></li>
+        </ul></div>
+        <div class="sft"><span>5 stories · 29 points</span><span>2 devs + 1 LWC dev</span></div>
+      </div>
+      <div class="scard">
+        <div class="shdr sh2"><div class="slbl">Sprint 2 · May 5 – May 16</div><div class="snm">Activity Library & Hardening</div><div class="sgl">Goal: All 35+ activities implemented, tested, and end-to-end validated</div></div>
+        <div class="sbdy"><ul class="sstories">
+          <li class="ss"><span class="sid">S2-001</span><span class="stxt">Phase 1 Metadata handlers — email deliverability, custom settings, flows, debug logs</span><span class="spt">5 pts</span></li>
+          <li class="ss"><span class="sid">S2-002</span><span class="stxt">Phase 2 & 3 Batch handlers — invalidate emails, mask PII, delete logs, wipe tokens</span><span class="spt">8 pts</span></li>
+          <li class="ss"><span class="sid">S2-003</span><span class="stxt">Phase 4 Queueable handlers — OAuth revocation, endpoint ping, Slack, Jira ticket</span><span class="spt">5 pts</span></li>
+          <li class="ss"><span class="sid">S2-004</span><span class="stxt">Error recovery — retry logic, timeout monitor scheduled job, failure email alerting</span><span class="spt">5 pts</span></li>
+          <li class="ss"><span class="sid">S2-005</span><span class="stxt">End-to-end test run, smoke test class, runbook, LWC polish, sprint demo</span><span class="spt">3 pts</span></li>
+        </ul></div>
+        <div class="sft"><span>5 stories · 26 points</span><span>3 devs + QA + architect</span></div>
+      </div>
+    </div>
+    <div class="crow">
+      <div class="cbox"><div class="clbl">Definition of ready</div><ul class="citems"><li>Estimated and reviewed in refinement</li><li>AC unambiguous and testable</li><li>Dependencies identified</li><li>Sandbox available and accessible</li></ul></div>
+      <div class="cbox"><div class="clbl">Definition of done</div><ul class="citems"><li>Deployed and smoke-tested in sandbox</li><li>Test coverage ≥ 85% — no exceptions</li><li>Peer-reviewed and approved</li><li>Execution log confirms correct status</li></ul></div>
+      <div class="cbox"><div class="clbl">Success metrics</div><ul class="citems"><li>0 missed activities post-refresh</li><li>Full run completes in &lt; 45 minutes</li><li>0 PII records exposed post-run</li><li>Any engineer can run it independently</li></ul></div>
+    </div>
+    <div style="height:.5rem"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SLIDE 10: NEXT STEPS / CTA -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="slide slide-dark" data-theme="dark">
+  <div class="hero-tex"></div><div class="hero-glow"></div>
+  <div class="sw" style="max-width:820px">
+    <div class="eye eye-dark">Ready to start</div>
+    <h2 class="sh sh-xl sh-dark" style="margin-bottom:.75rem">The first step<br>takes <em>one hour</em></h2>
+    <p class="lead lead-dark" style="margin-bottom:.25rem">Run the discovery workshop, collect your activity list, and apply the classification framework. That output tells you exactly what technical stories to raise and what manual tasks to document.</p>
+    <div class="cta-steps">
+      <div class="cta-step"><div class="cta-num">01</div><div class="cta-text">Run a discovery workshop — collect every post-refresh activity from the team</div><span class="cta-tag cta-human">Manual</span></div>
+      <div class="cta-step"><div class="cta-num">02</div><div class="cta-text">Apply the 4-question classification framework to every activity</div><span class="cta-tag cta-human">Decision</span></div>
+      <div class="cta-step"><div class="cta-num">03</div><div class="cta-text">Raise Technical Stories for automatable activities, Manual Tasks for the rest</div><span class="cta-tag cta-auto">Auto</span></div>
+      <div class="cta-step"><div class="cta-num">04</div><div class="cta-text">Deploy CMT schema and kick off Sprint 1 — infrastructure first</div><span class="cta-tag cta-auto">Auto</span></div>
+      <div class="cta-step"><div class="cta-num">05</div><div class="cta-text">Sprint 2: build all handlers, validate end-to-end, publish runbook, demo</div><span class="cta-tag cta-auto">Auto</span></div>
+    </div>
+    <div style="margin-top:1.75rem;font-family:var(--mono);font-size:.62rem;color:rgba(255,255,255,.18);letter-spacing:.08em">Prepared by Platform Engineering · April 2026 · Internal use only</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SCRIPT -->
+<!-- ══════════════════════════════════════════════════════ -->
+<script>
+// ── Slider engine ──────────────────────────────────────
+const slides = Array.from(document.querySelectorAll('.slide'));
+const total = slides.length;
+let cur = 0;
+
+function getTheme(i){ return slides[i].dataset.theme || 'dark'; }
+
+function updateChrome(i){
+  const t = getTheme(i);
+  const chrome = document.getElementById('chrome');
+  const navbar = document.getElementById('navbar');
+  const prog   = document.getElementById('prog');
+  const brand  = document.getElementById('brand');
+  const counter= document.getElementById('counter');
+  const prevBtn= document.getElementById('prev-btn');
+  const nextBtn= document.getElementById('next-btn');
+
+  if(t === 'dark'){
+    chrome.className = 'chrome chrome-dark';
+    navbar.className = 'nav-bar nav-dark';
+    prog.className   = 'prog';
+    brand.className  = 'brand brand-dark';
+    counter.className= 'slide-counter counter-dark';
+    prevBtn.className= 'nav-btn nav-btn-dark';
+    nextBtn.className= 'nav-btn nav-btn-dark';
+  } else {
+    chrome.className = 'chrome chrome-light';
+    navbar.className = 'nav-bar nav-light';
+    prog.className   = 'prog light';
+    brand.className  = 'brand brand-light';
+    counter.className= 'slide-counter counter-light';
+    prevBtn.className= 'nav-btn nav-btn-light';
+    nextBtn.className= 'nav-btn nav-btn-light';
+  }
+  counter.textContent = String(i+1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+  document.getElementById('prog-fill').style.width = ((i+1)/total*100)+'%';
+  buildDots(i, t);
+}
+
+function buildDots(i, t){
+  const dotsEl = document.getElementById('dots');
+  dotsEl.innerHTML = '';
+  for(let n=0;n<total;n++){
+    const d = document.createElement('div');
+    d.className = `dot dot-${t}${n===i?' on':''}`;
+    d.onclick = (()=>{const idx=n; return ()=>goTo(idx)})();
+    dotsEl.appendChild(d);
+  }
+}
+
+function goTo(n, dir){
+  if(n === cur) return;
+  const prev = slides[cur];
+  prev.classList.remove('active');
+  prev.classList.add('prev');
+  setTimeout(()=>prev.classList.remove('prev'), 460);
+
+  slides[n].style.transform = (n > cur) ? 'translateX(40px)' : 'translateX(-40px)';
+  slides[n].offsetHeight; // reflow
+  slides[n].classList.add('active');
+  slides[n].style.transform = '';
+  cur = n;
+  updateChrome(cur);
+  // reset scroll in scrollable slides
+  const sw = slides[n].querySelector('.sw.scroll');
+  if(sw) sw.scrollTop = 0;
+}
+
+window.go = function(dir){
+  const n = Math.max(0, Math.min(total-1, cur+dir));
+  goTo(n);
+};
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown') go(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp') go(-1);
+});
+
+// Swipe support
+let tx=0;
+document.addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; }, {passive:true});
+document.addEventListener('touchend', e=>{
+  const diff = tx - e.changedTouches[0].clientX;
+  if(Math.abs(diff)>50) go(diff>0?1:-1);
+}, {passive:true});
+
+updateChrome(0);
+
+// ── Dashboard simulation ────────────────────────────────
+const PH=[
+  {id:'p1',name:'Phase 1 — Foundation setup',acts:[
+    {id:'a1',name:'Disable email deliverability',meta:'System Email Access → No access',type:'meta',auto:true},
+    {id:'a2',name:'Update custom settings',meta:'OrgSettings__c, IntegrationConfig__c',type:'meta',auto:true},
+    {id:'a3',name:'Refresh named credentials',meta:'Re-authenticate OAuth flows',type:'manual',auto:false}
+  ]},
+  {id:'p2',name:'Phase 2 — User & security',acts:[
+    {id:'a4',name:'Invalidate user email addresses',meta:'Append .invalid to all active users',type:'batch',auto:true},
+    {id:'a5',name:'Reset user passwords',meta:'ApexClass: ResetUserPasswordBatch',type:'batch',auto:true},
+    {id:'a6',name:'Assign permission sets',meta:'ApexClass: PermSetAssignBatch',type:'batch',auto:true}
+  ]},
+  {id:'p3',name:'Phase 3 — Data cleanup',acts:[
+    {id:'a7',name:'Mask PII fields — Contact & Lead',meta:'ApexClass: MaskPIIBatch (~15 min)',type:'batch',auto:true},
+    {id:'a8',name:'Delete email message records',meta:'ApexClass: DeleteEmailMessageBatch',type:'batch',auto:true},
+    {id:'a9',name:'Wipe payment tokens',meta:'ApexClass: WipePaymentTokenBatch',type:'batch',auto:true}
+  ]},
+  {id:'p4',name:'Phase 4 — Integration',acts:[
+    {id:'a10',name:'Ping integration endpoints',meta:'ApexClass: PingEndpointsQueueable',type:'api',auto:true},
+    {id:'a11',name:'Send Slack notification',meta:'ApexClass: SendSlackNotificationQueueable',type:'api',auto:true},
+    {id:'a12',name:'Verify scheduled jobs',meta:'Manual review of CronTrigger records',type:'manual',auto:false},
+    {id:'a13',name:'Validate integration handshake',meta:'Confirm third-party endpoints responding',type:'manual',auto:false}
+  ]}
+];
+const st={},col={};
+PH.forEach(p=>{col[p.id]=false;p.acts.forEach(a=>{st[a.id]='pending';})});
+let logs=[{c:'info',t:'[09:42:11] Sandbox refresh detected. 13 activities pending.'}];
+function now(){return new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function addLog(c,t){logs.push({c,t});renderLog()}
+function renderLog(){const el=document.getElementById('dbl');if(!el)return;el.innerHTML=logs.map(l=>`<div class="db-log-${l.c}">${l.t}</div>`).join('');el.scrollTop=el.scrollHeight}
+function runAct(id,all){
+  if(st[id]==='done'||st[id]==='running')return;
+  const a=all.find(x=>x.id===id);st[id]='running';renderAll();
+  addLog('info',`[${now()}] Starting: ${a.name}…`);
+  setTimeout(()=>{st[id]='done';renderAll();addLog('ok',`[${now()}] ✓ Completed: ${a.name}`)},a.type==='batch'?2000+Math.random()*1500:650+Math.random()*600);
+}
+window.dbRunAll=function(){
+  const all=PH.flatMap(p=>p.acts);let d=0;
+  all.forEach(a=>{if(st[a.id]==='pending'&&a.auto){setTimeout(()=>runAct(a.id,all),d);d+=320;}});
+  addLog('info',`[${now()}] Automated run started.`);
+};
+window.dbReset=function(){PH.flatMap(p=>p.acts).forEach(a=>{st[a.id]='pending';});logs=[{c:'info',t:`[${now()}] Reset. Ready to run.`}];renderAll();renderLog();};
+window.dbRunOne=function(id){runAct(id,PH.flatMap(p=>p.acts));};
+window.dbToggle=function(pid){col[pid]=!col[pid];renderPhases();};
+function renderStats(){
+  const all=PH.flatMap(p=>p.acts);
+  const done=all.filter(a=>st[a.id]==='done').length,run=all.filter(a=>st[a.id]==='running').length,fail=all.filter(a=>st[a.id]==='failed').length,pend=all.length-done-run-fail;
+  const el=document.getElementById('dbs');if(!el)return;
+  el.innerHTML=`<div class="db-stat"><div class="db-sl">Total</div><div class="db-sv">${all.length}</div></div><div class="db-stat"><div class="db-sl">Done</div><div class="db-sv g">${done}</div></div><div class="db-stat"><div class="db-sl">Pending</div><div class="db-sv a">${pend+run}</div></div><div class="db-stat"><div class="db-sl">Failed</div><div class="db-sv r">${fail}</div></div>`;
+}
+function renderPhases(){
+  const all=PH.flatMap(p=>p.acts);
+  const ico={pending:'·',running:'●',done:'✓',failed:'✗'};
+  const tl={batch:'Batch',meta:'Metadata',manual:'Manual',api:'API'};
+  const tc={batch:'tp-batch',meta:'tp-meta',manual:'tp-manual',api:'tp-api'};
+  const el=document.getElementById('dbph');if(!el)return;
+  el.innerHTML=PH.map((ph,pi)=>{
+    const ss=ph.acts.map(a=>st[a.id]);
+    const allD=ss.every(s=>s==='done'),anyR=ss.some(s=>s==='running');
+    const bc=allD?'bdone':anyR?'brun':'bpend',bl=allD?'complete':anyR?'running':'pending';
+    const rows=ph.acts.map((a,i)=>{
+      const s=st[a.id];
+      return `<div class="db-act ${s}"><span class="db-seq">${pi*10+i+1}</span><div class="db-ico ${s}">${ico[s]||'·'}</div><div class="db-info"><div class="db-an">${a.name}${!a.auto?' <span style="font-size:8px;color:var(--faint)">(manual)</span>':''}</div><div class="db-am">${a.meta}</div></div><span class="db-type ${tc[a.type]}">${tl[a.type]}</span><button class="db-btn" ${s==='done'||s==='running'?'disabled':''} onclick="dbRunOne('${a.id}')">${s==='done'?'Done':'Run'}</button></div>`;
+    }).join('');
+    return `<div class="db-phase ${col[ph.id]?'db-collapsed':''}"><div class="db-ph" onclick="dbToggle('${ph.id}')"><span class="db-chev">▼</span><span class="db-pt">${ph.name}</span><span class="dbp ${bc}">${bl}</span></div><div class="db-body ${col[ph.id]?'hidden':''}">${rows}</div></div>`;
+  }).join('');
+}
+function renderAll(){renderStats();renderPhases()}
+renderAll();
+</script>
+</body>
+</html>
